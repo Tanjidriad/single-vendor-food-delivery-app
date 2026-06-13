@@ -5,6 +5,7 @@ import 'package:kitchen_app/features/kds/presentation/widgets/kds_kanban_board.d
 import 'package:kitchen_app/features/kds/presentation/widgets/mobile_tab_selector.dart';
 import 'package:kitchen_app/features/kds/presentation/widgets/premium_order_card.dart';
 import 'package:kitchen_app/features/kds/presentation/widgets/returned_food_panel.dart';
+import '../../../../core/services/kitchen_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/order_workflow.dart';
 import '../providers/kds_provider.dart';
@@ -29,6 +30,7 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
     final prepOrders = ref.watch(kdsPreparingOrdersProvider);
     final readyOrders = ref.watch(kdsReadyOrdersProvider);
     final returnedOrders = ref.watch(kdsReturnedOrdersProvider);
+    final compact = ref.watch(kitchenPreferencesProvider).compactDensity;
 
     final width = MediaQuery.sizeOf(context).width;
     final useKanban = width >= 720;
@@ -51,21 +53,25 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
                   newOrders: newOrders,
                   prepOrders: prepOrders,
                   readyOrders: readyOrders,
+                  compact: compact,
                   newCardBuilder: (order) => _buildOrderCard(
                     order,
                     section: KitchenSection.newOrders,
+                    compact: compact,
                   ),
                   prepCardBuilder: (order) => _buildOrderCard(
                     order,
                     section: KitchenSection.preparing,
+                    compact: compact,
                   ),
                   readyCardBuilder: (order) => _buildOrderCard(
                     order,
                     section: KitchenSection.ready,
+                    compact: compact,
                   ),
                   onRefresh: () => ref.read(kdsProvider.notifier).fetchOrders(),
                 )
-              : _buildMobileList(newOrders, prepOrders, readyOrders),
+              : _buildMobileList(newOrders, prepOrders, readyOrders, compact: compact),
         ),
       ],
     );
@@ -74,6 +80,7 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
   Widget _buildOrderCard(
     dynamic order, {
     required KitchenSection section,
+    bool compact = false,
   }) {
     String? nextStatus;
     String actionText = '';
@@ -118,6 +125,7 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
       nextStatus: nextStatus,
       actionText: actionText,
       accentColor: accentColor,
+      compact: compact,
       secondaryActionText: canSendPathao ? 'Send to Pathao' : null,
       onSecondaryAction: canSendPathao
           ? () => _showPathaoDialog(context, order['id'] as String)
@@ -163,8 +171,9 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
   Widget _buildMobileList(
     List<dynamic> newOrders,
     List<dynamic> prepOrders,
-    List<dynamic> readyOrders,
-  ) {
+    List<dynamic> readyOrders, {
+    bool compact = false,
+  }) {
     final isLoading = ref.watch(kdsProvider).isLoading;
 
     if (isLoading &&
@@ -179,15 +188,16 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
     return RefreshIndicator(
       color: AppColors.pandaPink,
       onRefresh: () => ref.read(kdsProvider.notifier).fetchOrders(),
-      child: _buildMobileTabContent(newOrders, prepOrders, readyOrders),
+      child: _buildMobileTabContent(newOrders, prepOrders, readyOrders, compact: compact),
     );
   }
 
   Widget _buildMobileTabContent(
     List<dynamic> newOrders,
     List<dynamic> prepOrders,
-    List<dynamic> readyOrders,
-  ) {
+    List<dynamic> readyOrders, {
+    bool compact = false,
+  }) {
     List<dynamic> currentOrders;
 
     if (_activeTab == 0) {
@@ -240,7 +250,7 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
             : _activeTab == 1
                 ? KitchenSection.preparing
                 : KitchenSection.ready;
-        return _buildOrderCard(order, section: section)
+        return _buildOrderCard(order, section: section, compact: compact)
             .animate(key: ValueKey(order['id']))
             .fadeIn(duration: 300.ms)
             .slideY(begin: 0.1, end: 0);

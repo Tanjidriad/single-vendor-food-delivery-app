@@ -39,14 +39,16 @@ class OrderDetailSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final orderMap = order as Map<String, dynamic>;
     final items = (orderMap['items'] as List<dynamic>?) ?? [];
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.sizeOf(context).height * 0.85,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.white50,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.white50,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -68,30 +70,30 @@ class OrderDetailSheet extends ConsumerWidget {
               children: [
                 Text(
                   '#${orderMap['orderNumber']?.toString() ?? '---'}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.textPrimary,
-                    fontFeatures: [FontFeature.tabularFigures()],
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
                 const SizedBox(width: 10),
                 OrderChannelBadge(order: orderMap),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Iconsax.printer, color: AppColors.gray700),
+                  icon: Icon(Iconsax.printer, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
                   tooltip: 'Print kitchen ticket',
                   onPressed: () => _printTicket(context, ref, orderMap),
                 ),
                 IconButton(
-                  icon: const Icon(Iconsax.close_circle, color: AppColors.gray700),
+                  icon: Icon(Iconsax.close_circle, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
                   tooltip: 'Close',
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.gray200),
+          Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.gray200),
 
           // Scrollable content.
           Flexible(
@@ -102,36 +104,41 @@ class OrderDetailSheet extends ConsumerWidget {
                 children: [
                   _buildMetaRow(orderMap),
                   const SizedBox(height: 16),
-                  _buildCustomerCard(orderMap),
+                  _buildCustomerCard(context, orderMap),
                   const SizedBox(height: 16),
                   OrderNotesHighlight(
                     deliveryNote: orderMap['deliveryNote']?.toString(),
                     itemNotes: OrderNotesHighlight.extractItemNotes(items),
                   ),
                   const SizedBox(height: 8),
-                  _buildItemsList(items),
+                  _buildItemsList(context, items),
                   const SizedBox(height: 16),
                   _buildStatusNotes(orderMap),
                   const SizedBox(height: 16),
                   _buildRiderInfo(orderMap),
                   if (secondaryActionText != null && onSecondaryAction != null) ...[
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.gray800,
-                          side: const BorderSide(color: AppColors.gray300),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        onPressed: onSecondaryAction,
-                        icon: const Icon(Iconsax.truck_fast, size: 18),
-                        label: Text(
-                          secondaryActionText!,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                        ),
-                      ),
+                    Builder(
+                      builder: (context) {
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        return SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: isDark ? AppColors.darkTextPrimary : AppColors.gray800,
+                              side: BorderSide(color: isDark ? AppColors.darkBorderStrong : AppColors.gray300),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            onPressed: onSecondaryAction,
+                            icon: const Icon(Iconsax.truck_fast, size: 18),
+                            label: Text(
+                              secondaryActionText!,
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                   // Bottom padding for action bar.
@@ -190,17 +197,19 @@ class OrderDetailSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildCustomerCard(Map<String, dynamic> orderMap) {
+  Widget _buildCustomerCard(BuildContext context, Map<String, dynamic> orderMap) {
     final name = orderMap['customerName']?.toString() ?? 'Guest';
     final phone = orderMap['customerPhone']?.toString();
     final address = orderMap['deliveryAddress']?.toString();
     final orderType = orderMap['orderType']?.toString().toUpperCase();
     final isPickup = orderType == 'PICKUP';
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.gray100,
+        color: isDark ? AppColors.darkElevated : AppColors.gray100,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -208,11 +217,11 @@ class OrderDetailSheet extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Icon(Iconsax.user, size: 16, color: AppColors.gray700),
+              Icon(Iconsax.user, size: 16, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
               const SizedBox(width: 8),
               Text(
                 name,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
               ),
             ],
           ),
@@ -220,9 +229,9 @@ class OrderDetailSheet extends ConsumerWidget {
             const SizedBox(height: 6),
             Row(
               children: [
-                const Icon(Iconsax.call, size: 16, color: AppColors.gray700),
+                Icon(Iconsax.call, size: 16, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
                 const SizedBox(width: 8),
-                Text(phone, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                Text(phone, style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary)),
               ],
             ),
           ],
@@ -231,12 +240,12 @@ class OrderDetailSheet extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Iconsax.location, size: 16, color: AppColors.gray700),
+                Icon(Iconsax.location, size: 16, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     address,
-                    style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.4),
+                    style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary, height: 1.4),
                   ),
                 ),
               ],
@@ -247,13 +256,15 @@ class OrderDetailSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildItemsList(List<dynamic> items) {
+  Widget _buildItemsList(BuildContext context, List<dynamic> items) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'ORDER ITEMS',
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1, color: AppColors.gray700),
+          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
         ),
         const SizedBox(height: 12),
         ...items.asMap().entries.map((entry) {
@@ -267,12 +278,12 @@ class OrderDetailSheet extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.gray100,
+                    color: isDark ? AppColors.darkElevated : AppColors.gray100,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     '${item['quantity'] ?? 1}x',
-                    style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                    style: TextStyle(fontWeight: FontWeight.w800, color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -282,7 +293,7 @@ class OrderDetailSheet extends ConsumerWidget {
                     children: [
                       Text(
                         item['name']?.toString() ?? 'Item',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
                       ),
                       if (addons.isNotEmpty)
                         Padding(
@@ -292,7 +303,7 @@ class OrderDetailSheet extends ConsumerWidget {
                             children: addons.map((addon) {
                               return Text(
                                 '+ ${addon['name']}',
-                                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                                style: TextStyle(fontSize: 13, color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
                               );
                             }).toList(),
                           ),
@@ -425,15 +436,16 @@ class OrderDetailSheet extends ConsumerWidget {
 
   Widget _buildActionBar(BuildContext context) {
     final showReject = onReject != null;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white50,
-        border: const Border(top: BorderSide(color: AppColors.gray200)),
+        color: isDark ? AppColors.darkSurface : AppColors.white50,
+        border: Border(top: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.gray200)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),

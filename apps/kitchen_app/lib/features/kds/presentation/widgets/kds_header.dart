@@ -30,17 +30,19 @@ class KdsHeader extends ConsumerWidget {
     );
     final user = ref.watch(authProvider).user;
     final staffName = user?['fullName']?.toString();
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        color: AppColors.white50,
-        border: Border(bottom: BorderSide(color: AppColors.gray200)),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(bottom: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.gray200)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
+            color: isDark ? Colors.black26 : Colors.black12,
             blurRadius: 4,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -53,7 +55,7 @@ class KdsHeader extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
                   child: IconButton(
-                    icon: const Icon(Icons.menu, color: AppColors.black500),
+                    icon: Icon(Icons.menu, color: theme.colorScheme.onSurface),
                     onPressed: onMenuPressed,
                     tooltip: 'Open navigation',
                   ),
@@ -64,12 +66,12 @@ class KdsHeader extends ConsumerWidget {
                 children: [
                   Text(
                     displayName,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.black500),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
                   ),
                   if (staffName != null && staffName.isNotEmpty)
                     Text(
                       'Staff: $staffName',
-                      style: const TextStyle(fontSize: 12, color: AppColors.gray700),
+                      style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
                     ),
                 ],
               ),
@@ -102,7 +104,7 @@ class KdsHeader extends ConsumerWidget {
                 builder: (context, snapshot) {
                   return Text(
                     DateFormat.jm().format(DateTime.now()),
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.gray800),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkTextSecondary : AppColors.gray800),
                   );
                 },
               ),

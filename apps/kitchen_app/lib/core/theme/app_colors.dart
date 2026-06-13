@@ -103,4 +103,13 @@ abstract final class AppColors {
   static const errorLight = Color(0xFFFEE2E2); // Red 100
   static const info = Color(0xFF06B6D4); // Cyan 500
   static const infoLight = Color(0xFFCFFAFE); // Cyan 100
+
+  // --- Dark theme tokens ---
+  static const darkSurface = Color(0xFF1E1E1E);
+  static const darkBackground = Color(0xFF121212);
+  static const darkElevated = Color(0xFF252525);
+  static const darkBorder = Color(0xFF333333);
+  static const darkBorderStrong = Color(0xFF444444);
+  static const darkTextPrimary = Color(0xFFF5F5F5);
+  static const darkTextSecondary = Color(0xFFB0B0B0);
 }

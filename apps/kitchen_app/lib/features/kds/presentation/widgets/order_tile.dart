@@ -18,6 +18,7 @@ class OrderTile extends StatefulWidget {
   final VoidCallback? onReject;
   final VoidCallback onTap;
   final Color accentColor;
+  final bool compact;
 
   const OrderTile({
     super.key,
@@ -28,6 +29,7 @@ class OrderTile extends StatefulWidget {
     required this.onTap,
     this.onReject,
     required this.accentColor,
+    this.compact = false,
   });
 
   @override
@@ -94,28 +96,31 @@ class _OrderTileState extends State<OrderTile> {
 
   bool get _isOverdue => _slaThresholdSeconds > 0 && _elapsed.inSeconds >= _slaThresholdSeconds;
 
+  bool _isDark(BuildContext context) => Theme.of(context).brightness == Brightness.dark;
+
   @override
   Widget build(BuildContext context) {
     final order = widget.order as Map<String, dynamic>;
     final orderNumber = order['orderNumber']?.toString() ?? '---';
     final items = (order['items'] as List<dynamic>?) ?? [];
     final totalQuantity = items.fold<int>(0, (sum, item) => sum + (item['quantity'] as int? ?? 1));
+    final isDark = _isDark(context);
 
     return GestureDetector(
       onTap: widget.onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: EdgeInsets.only(bottom: widget.compact ? 6 : 12),
         decoration: BoxDecoration(
-          color: AppColors.white50,
-          borderRadius: BorderRadius.circular(16),
+          color: isDark ? AppColors.darkSurface : AppColors.white50,
+          borderRadius: BorderRadius.circular(widget.compact ? 12 : 16),
           border: Border.all(
-            color: _isOverdue ? _urgencyColor.withValues(alpha: 0.6) : AppColors.gray200,
+            color: _isOverdue ? _urgencyColor.withValues(alpha: 0.6) : (isDark ? AppColors.darkBorder : AppColors.gray200),
             width: _isOverdue ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -133,7 +138,7 @@ class _OrderTileState extends State<OrderTile> {
                   color: _urgencyColor,
                 ),
               Padding(
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(widget.compact ? 10 : 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -143,12 +148,12 @@ class _OrderTileState extends State<OrderTile> {
                       children: [
                         Text(
                           '#$orderNumber',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w900,
-                            color: AppColors.textPrimary,
+                            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                             height: 1,
-                            fontFeatures: [FontFeature.tabularFigures()],
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -160,7 +165,7 @@ class _OrderTileState extends State<OrderTile> {
                     const SizedBox(height: 12),
 
                     // Second row: item summary.
-                    _buildItemSummary(items, totalQuantity),
+                    _buildItemSummary(items, totalQuantity, isDark),
                     const SizedBox(height: 14),
 
                     // Third row: primary CTA.
@@ -193,11 +198,11 @@ class _OrderTileState extends State<OrderTile> {
     );
   }
 
-  Widget _buildItemSummary(List<dynamic> items, int totalQuantity) {
+  Widget _buildItemSummary(List<dynamic> items, int totalQuantity, bool isDark) {
     if (items.isEmpty) {
       return Text(
         widget.order['itemsSummary']?.toString() ?? 'No items provided',
-        style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       );
@@ -214,10 +219,10 @@ class _OrderTileState extends State<OrderTile> {
       children: [
         Text(
           '$totalQuantity item${totalQuantity == 1 ? '' : 's'}',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            color: AppColors.gray700,
+            color: isDark ? AppColors.gray700 : AppColors.gray700,
           ),
         ),
         const SizedBox(height: 4),
@@ -228,10 +233,10 @@ class _OrderTileState extends State<OrderTile> {
             padding: const EdgeInsets.only(bottom: 2),
             child: Text(
               '$qty x $name',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -241,9 +246,9 @@ class _OrderTileState extends State<OrderTile> {
         if (remaining > 0)
           Text(
             '+ $remaining more',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppColors.gray700,
+              color: isDark ? AppColors.gray700 : AppColors.gray700,
             ),
           ),
       ],
@@ -257,7 +262,7 @@ class _OrderTileState extends State<OrderTile> {
       children: [
         if (showReject) ...[
           SizedBox(
-            height: 44,
+            height: widget.compact ? 36 : 44,
             child: OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.error,
@@ -274,7 +279,7 @@ class _OrderTileState extends State<OrderTile> {
         ],
         Expanded(
           child: SizedBox(
-            height: 44,
+            height: widget.compact ? 36 : 44,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: widget.accentColor,

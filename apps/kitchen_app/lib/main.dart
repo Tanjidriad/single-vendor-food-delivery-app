@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/bootstrap/app_bootstrap.dart';
 import 'core/config/api_host_resolver.dart';
 import 'core/router/app_router.dart';
+import 'core/services/kitchen_preferences.dart';
 import 'core/theme/kitchen_theme.dart';
 
 Future<void> main() async {
@@ -21,11 +22,14 @@ class KitchenApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final prefs = ref.watch(kitchenPreferencesProvider);
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Kitchen App',
       theme: KitchenTheme.lightTheme,
+      darkTheme: KitchenTheme.darkTheme,
+      themeMode: prefs.themeMode,
       routerConfig: router,
     );
   }

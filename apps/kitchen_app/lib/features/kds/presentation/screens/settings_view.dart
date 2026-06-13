@@ -35,6 +35,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     final user = authState.user;
     final prefs = ref.watch(kitchenPreferencesProvider);
     final printerReady = _printerConnected == true;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return SingleChildScrollView(
       child: Column(
@@ -42,17 +44,17 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         children: [
           Container(
             padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: AppColors.white50,
-              border: Border(bottom: BorderSide(color: AppColors.gray200)),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              border: Border(bottom: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.gray200)),
             ),
             child: Row(
               children: [
                 const Icon(Iconsax.setting_2, color: AppColors.pandaPink, size: 28),
                 const SizedBox(width: 12),
-                const Text(
+                Text(
                   'Settings',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.black500),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
                 ),
               ],
             ),
@@ -71,8 +73,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                       backgroundColor: AppColors.pandaPinkLight,
                       child: Icon(Iconsax.user, color: AppColors.pandaPink),
                     ),
-                    title: Text(user?['fullName'] ?? 'Kitchen Staff', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.black500)),
-                    subtitle: Text(user?['email'] ?? 'Kitchen account', style: const TextStyle(color: AppColors.gray700)),
+                    title: Text(user?['fullName'] ?? 'Kitchen Staff', style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+                    subtitle: Text(user?['email'] ?? 'Kitchen account', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.gray700)),
                   ),
                 ]),
                 
@@ -91,8 +93,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   ),
                   const Divider(height: 1, color: AppColors.gray200),
                   ListTile(
-                    leading: const Icon(Iconsax.link, color: AppColors.gray700),
-                    title: const Text('Sunmi Printer Status', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.black500)),
+                    leading: Icon(Iconsax.link, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
+                    title: Text('Sunmi Printer Status', style: TextStyle(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface)),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -146,6 +148,24 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 
                 const SizedBox(height: 24),
 
+                // Display
+                _buildSectionHeader('Display'),
+                _buildCard([
+                  _buildThemeModeTile(context, ref, prefs),
+                  const Divider(height: 1, color: AppColors.gray200),
+                  _buildSwitchTile(
+                    icon: Iconsax.maximize,
+                    title: 'Compact Density',
+                    subtitle: 'Smaller cards and padding for high-volume stores',
+                    value: prefs.compactDensity,
+                    onChanged: (v) => ref
+                        .read(kitchenPreferencesProvider.notifier)
+                        .setCompactDensity(v),
+                  ),
+                ]),
+
+                const SizedBox(height: 24),
+
                 // Notifications
                 _buildSectionHeader('Notifications'),
                 _buildCard([
@@ -197,10 +217,10 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 ),
                 
                 const SizedBox(height: 24),
-                const Center(
+                Center(
                   child: Text(
                     'Kitchen App v1.0.0',
-                    style: TextStyle(color: AppColors.gray500, fontSize: 13),
+                    style: TextStyle(color: isDark ? AppColors.gray700 : AppColors.gray500, fontSize: 13),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -213,12 +233,14 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   }
 
   Widget _buildSectionHeader(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.only(left: 8, bottom: 8),
       child: Text(
         title.toUpperCase(),
-        style: const TextStyle(
-          color: AppColors.gray700,
+        style: TextStyle(
+          color: isDark ? AppColors.darkTextSecondary : AppColors.gray700,
           fontWeight: FontWeight.bold,
           fontSize: 12,
           letterSpacing: 1.2,
@@ -228,18 +250,21 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   }
 
   Widget _buildCard(List<Widget> children) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white50,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: AppColors.gray200),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.gray200),
       ),
       child: Column(children: children),
     );
@@ -252,16 +277,123 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return SwitchListTile(
-      secondary: Icon(icon, color: AppColors.gray700),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.black500)),
-      subtitle: Text(subtitle, style: const TextStyle(color: AppColors.gray700, fontSize: 12)),
+      secondary: Icon(icon, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface)),
+      subtitle: Text(subtitle, style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.gray700, fontSize: 12)),
       value: value,
-      activeColor: AppColors.white50,
+      activeThumbColor: AppColors.white50,
       activeTrackColor: AppColors.success,
       inactiveThumbColor: AppColors.white50,
       inactiveTrackColor: AppColors.gray400,
       onChanged: onChanged,
+    );
+  }
+
+  Widget _buildThemeModeTile(BuildContext context, WidgetRef ref, KitchenPreferences prefs) {
+    final labels = {
+      ThemeMode.system: 'System',
+      ThemeMode.light: 'Light',
+      ThemeMode.dark: 'Dark',
+    };
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return ListTile(
+      leading: Icon(Iconsax.moon, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
+      title: Text('Theme', style: TextStyle(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface)),
+      subtitle: Text(labels[prefs.themeMode] ?? 'System', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.gray700, fontSize: 12)),
+      trailing: Icon(Iconsax.arrow_right_3, size: 16, color: isDark ? AppColors.gray700 : AppColors.gray500),
+      onTap: () async {
+        final selected = await showModalBottomSheet<ThemeMode>(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (ctx) => _ThemePicker(current: prefs.themeMode),
+        );
+        if (selected != null) {
+          await ref.read(kitchenPreferencesProvider.notifier).setThemeMode(selected);
+        }
+      },
+    );
+  }
+}
+
+class _ThemePicker extends StatelessWidget {
+  final ThemeMode current;
+
+  const _ThemePicker({required this.current});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final options = [
+      (ThemeMode.system, 'System', 'Match device setting'),
+      (ThemeMode.light, 'Light', 'Default bright theme'),
+      (ThemeMode.dark, 'Dark', 'High contrast for dim kitchens'),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.gray400,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Choose theme',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+              ),
+              const SizedBox(height: 8),
+              ...options.map((option) {
+                final (mode, title, subtitle) = option;
+                final selected = mode == current;
+                return ListTile(
+                  leading: Icon(
+                    mode == ThemeMode.dark
+                        ? Iconsax.moon
+                        : mode == ThemeMode.light
+                            ? Iconsax.sun_1
+                            : Iconsax.mobile,
+                    color: selected ? AppColors.pandaPink : (isDark ? AppColors.darkTextSecondary : AppColors.gray700),
+                  ),
+                  title: Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: selected ? AppColors.pandaPink : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  subtitle: Text(
+                    subtitle,
+                    style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
+                  ),
+                  trailing: selected
+                      ? const Icon(Iconsax.tick_circle, color: AppColors.pandaPink)
+                      : null,
+                  onTap: () => Navigator.pop(context, mode),
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -16,6 +16,7 @@ class KdsKanbanBoard extends StatelessWidget {
   final Widget Function(dynamic order) prepCardBuilder;
   final Widget Function(dynamic order) readyCardBuilder;
   final Future<void> Function() onRefresh;
+  final bool compact;
 
   const KdsKanbanBoard({
     super.key,
@@ -27,6 +28,7 @@ class KdsKanbanBoard extends StatelessWidget {
     required this.prepCardBuilder,
     required this.readyCardBuilder,
     required this.onRefresh,
+    this.compact = false,
   });
 
   bool get _hasOrders =>
@@ -66,6 +68,7 @@ class KdsKanbanBoard extends StatelessWidget {
             accentColor: AppColors.pandaPink,
             orders: newOrders,
             cardBuilder: newCardBuilder,
+            compact: compact,
           ),
         ),
         Expanded(
@@ -76,6 +79,7 @@ class KdsKanbanBoard extends StatelessWidget {
             accentColor: AppColors.warning,
             orders: prepOrders,
             cardBuilder: prepCardBuilder,
+            compact: compact,
           ),
         ),
         Expanded(
@@ -86,6 +90,7 @@ class KdsKanbanBoard extends StatelessWidget {
             accentColor: AppColors.success,
             orders: readyOrders,
             cardBuilder: readyCardBuilder,
+            compact: compact,
           ),
         ),
       ],
@@ -103,6 +108,7 @@ class KdsKanbanBoard extends StatelessWidget {
             accentColor: AppColors.pandaPink,
             orders: newOrders,
             cardBuilder: newCardBuilder,
+            compact: compact,
           ),
         ),
         Expanded(
@@ -116,6 +122,7 @@ class KdsKanbanBoard extends StatelessWidget {
                   accentColor: AppColors.warning,
                   orders: prepOrders,
                   cardBuilder: prepCardBuilder,
+                  compact: compact,
                 ),
               ),
               Expanded(
@@ -126,6 +133,7 @@ class KdsKanbanBoard extends StatelessWidget {
                   accentColor: AppColors.success,
                   orders: readyOrders,
                   cardBuilder: readyCardBuilder,
+                  compact: compact,
                 ),
               ),
             ],
@@ -145,6 +153,7 @@ class KdsKanbanBoard extends StatelessWidget {
       count: newOrders.length + prepOrders.length + readyOrders.length,
       accentColor: AppColors.pandaPink,
       orders: [...newOrders, ...prepOrders, ...readyOrders],
+      compact: compact,
       cardBuilder: (order) {
         final status = order['status']?.toString();
         if (status == 'PLACED' || status == 'ACCEPTED') {

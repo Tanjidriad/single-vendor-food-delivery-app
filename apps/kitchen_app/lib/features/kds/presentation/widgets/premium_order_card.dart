@@ -16,6 +16,7 @@ class PremiumOrderCard extends StatelessWidget {
   final String? secondaryActionText;
   final VoidCallback? onSecondaryAction;
   final Color accentColor;
+  final bool compact;
 
   const PremiumOrderCard({
     super.key,
@@ -27,6 +28,7 @@ class PremiumOrderCard extends StatelessWidget {
     this.secondaryActionText,
     this.onSecondaryAction,
     required this.accentColor,
+    this.compact = false,
   });
 
   void _openDetail(BuildContext context) {
@@ -57,6 +59,7 @@ class PremiumOrderCard extends StatelessWidget {
       onReject: onReject,
       onTap: () => _openDetail(context),
       accentColor: accentColor,
+      compact: compact,
     );
   }
 }

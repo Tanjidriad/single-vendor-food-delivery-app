@@ -12,6 +12,7 @@ class KdsKanbanColumn extends StatelessWidget {
   final List<dynamic> orders;
   final Widget Function(dynamic order) cardBuilder;
   final Widget? emptyState;
+  final bool compact;
 
   const KdsKanbanColumn({
     super.key,
@@ -22,25 +23,29 @@ class KdsKanbanColumn extends StatelessWidget {
     required this.orders,
     required this.cardBuilder,
     this.emptyState,
+    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.gray100,
-        borderRadius: BorderRadius.circular(16),
+        color: isDark ? AppColors.darkElevated : AppColors.gray100,
+        borderRadius: BorderRadius.circular(compact ? 12 : 16),
       ),
-      margin: const EdgeInsets.symmetric(horizontal: 8),
+      margin: EdgeInsets.symmetric(horizontal: compact ? 4 : 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(),
+          _buildHeader(context),
           Expanded(
             child: orders.isEmpty
-                ? (emptyState ?? _defaultEmptyState())
+                ? (emptyState ?? _defaultEmptyState(context))
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 12, vertical: compact ? 4 : 8),
                     itemCount: orders.length,
                     itemBuilder: (context, index) {
                       final order = orders[index];
@@ -56,11 +61,14 @@ class KdsKanbanColumn extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 16, vertical: compact ? 10 : 14),
       decoration: BoxDecoration(
-        color: AppColors.white50,
+        color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         border: Border(bottom: BorderSide(color: accentColor.withValues(alpha: 0.3))),
       ),
@@ -75,10 +83,10 @@ class KdsKanbanColumn extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
               ),
             ),
           ),
@@ -102,7 +110,7 @@ class KdsKanbanColumn extends StatelessWidget {
     );
   }
 
-  Widget _defaultEmptyState() {
+  Widget _defaultEmptyState(BuildContext context) {
     final (icon, headline, subtext) = switch (section) {
       KitchenSection.newOrders => (
           Icons.receipt_long,
@@ -126,19 +134,22 @@ class KdsKanbanColumn extends StatelessWidget {
         ),
     };
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 48, color: AppColors.gray400),
+            Icon(icon, size: 48, color: isDark ? AppColors.gray700 : AppColors.gray400),
             const SizedBox(height: 16),
             Text(
               headline,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppColors.gray700,
+              style: TextStyle(
+                color: isDark ? AppColors.darkTextSecondary : AppColors.gray700,
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
               ),
@@ -148,8 +159,8 @@ class KdsKanbanColumn extends StatelessWidget {
               Text(
                 subtext,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.gray600,
+                style: TextStyle(
+                  color: isDark ? AppColors.gray700 : AppColors.gray600,
                   fontSize: 13,
                   height: 1.4,
                 ),

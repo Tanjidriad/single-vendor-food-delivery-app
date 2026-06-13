@@ -65,6 +65,8 @@ Audit before coding — much of workflow Phase 1 from [`kitchen_workflow_timers_
 
 **Phase 0 task:** Run a short verification pass (manual + unit tests if present): history filter excludes active orders, reject → history not active, test-order toggle respected, timer anchors (`acceptedAt`, `readyAt`) match card display. Fix only gaps found — no greenfield rewrite.
 
+**Phase 0 prerequisite:** Inspect the auth JWT payload and login response to confirm `restaurantId` is available. If it is missing, add a small backend `/auth/me` or `/restaurant` lookup endpoint before Phase 1.1.
+
 ---
 
 ## Phase 1 — Launch trust (P0, ~1–2 days)
@@ -77,16 +79,19 @@ Must ship before pilot; blocks wrong-restaurant ops and silent print failures.
 - Load restaurant name from `GET /restaurant/:id` (JWT `restaurantId`) in [`kds_header.dart`](apps/kitchen_app/lib/features/kds/presentation/widgets/kds_header.dart) — replace `"Burger Palace"`.
 - Drive online toggle and all API calls from authenticated `restaurantId`, not `AppConfig.restaurantId`.
 - Persist staff session via existing auth providers; show staff label in header if available.
+- **Dev override:** Keep [`AppConfig.restaurantId`](apps/kitchen_app/lib/core/config/app_config.dart) as a debug fallback only (e.g. when running against a local backend), gated by `kDebugMode`. Do not use it for production identity.
 
 ### 1.2 Print failure feedback (UX plan §5 subset)
 
 - When auto-print on accept fails (KOT path), show non-blocking banner with **Retry** and **Skip** — do not leave kitchen thinking ticket printed.
 - Wire to existing print service / preferences in [`kitchen_preferences.dart`](apps/kitchen_app/lib/core/services/kitchen_preferences.dart).
+- For non-Sunmi devices, banner should explain "Sunmi printer not detected" rather than silently failing.
 
 ### 1.3 Sound on new order (UX plan §7 subset)
 
 - Optional toggle in Settings; default on for pilot.
-- Play on websocket / poll new order in [`active_orders_view.dart`](apps/kitchen_app/lib/features/kds/presentation/screens/active_orders_view.dart).
+- Wire toggle to the existing [`order_alert_service.dart`](apps/kitchen_app/lib/core/services/order_alert_service.dart) — do not rebuild audio playback.
+- Play on websocket `order:created` / poll new order in [`active_orders_view.dart`](apps/kitchen_app/lib/features/kds/presentation/screens/active_orders_view.dart).
 
 ---
 
@@ -180,12 +185,25 @@ UX plan §3 — **must be built** (toggle does not exist today).
 | Phase | Backend work |
 |-------|----------------|
 | 0 | Verify only; patch bugs in `OrderStatusService` / history query if audit fails |
+| 0 | If JWT lacks `restaurantId`, add `/auth/me` or restaurant lookup endpoint |
 | 1 | None (existing restaurant + auth endpoints) |
 | 2–3 | None |
 | 4 | None |
 | Deferred §6 | Schema + filter endpoints for station |
 
 ~**90% Flutter-only** for launch scope.
+
+---
+
+## Version control rhythm
+
+Commit after each phase and push to GitHub. This keeps the backup current and lets you revert one phase without losing earlier work.
+
+```bash
+git add .
+git commit -m "Phase X: brief description"
+git push origin main
+```
 
 ---
 

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:kitchen_app/features/kds/presentation/widgets/kds_kanban_board.dart';
 import 'package:kitchen_app/features/kds/presentation/widgets/mobile_tab_selector.dart';
 import 'package:kitchen_app/features/kds/presentation/widgets/premium_order_card.dart';
 import 'package:kitchen_app/features/kds/presentation/widgets/returned_food_panel.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../domain/order_workflow.dart';
 import '../providers/kds_provider.dart';
 
 class ActiveOrdersView extends ConsumerStatefulWidget {
@@ -20,7 +22,7 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
   @override
   Widget build(BuildContext context) {
     // Keep the stream active so it can process socket events reactively
-    ref.listen(kdsEventStreamProvider, (_, __) {});
+    ref.listen(kdsEventStreamProvider, (a, b) {});
 
     final kdsState = ref.watch(kdsProvider);
     final newOrders = ref.watch(kdsNewOrdersProvider);
@@ -28,54 +30,172 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
     final readyOrders = ref.watch(kdsReadyOrdersProvider);
     final returnedOrders = ref.watch(kdsReturnedOrdersProvider);
 
+    final width = MediaQuery.sizeOf(context).width;
+    final useKanban = width >= 720;
+
     return Column(
       children: [
         ReturnedFoodPanel(orders: returnedOrders),
-        MobileTabSelector(
-          activeTab: _activeTab,
-          onTabChange: (i) => setState(() => _activeTab = i),
-          newCount: newOrders.length,
-          prepCount: prepOrders.length,
-          readyCount: readyOrders.length,
-        ),
+        if (!useKanban)
+          MobileTabSelector(
+            activeTab: _activeTab,
+            onTabChange: (i) => setState(() => _activeTab = i),
+            newCount: newOrders.length,
+            prepCount: prepOrders.length,
+            readyCount: readyOrders.length,
+          ),
         Expanded(
-          child:
-              kdsState.isLoading &&
-                  newOrders.isEmpty &&
-                  prepOrders.isEmpty &&
-                  readyOrders.isEmpty
-              ? const Center(
-                  child: CircularProgressIndicator(color: AppColors.pandaPink),
-                )
-              : RefreshIndicator(
-                  color: AppColors.pandaPink,
+          child: useKanban
+              ? KdsKanbanBoard(
+                  isLoading: kdsState.isLoading,
+                  newOrders: newOrders,
+                  prepOrders: prepOrders,
+                  readyOrders: readyOrders,
+                  newCardBuilder: (order) => _buildOrderCard(
+                    order,
+                    section: KitchenSection.newOrders,
+                  ),
+                  prepCardBuilder: (order) => _buildOrderCard(
+                    order,
+                    section: KitchenSection.preparing,
+                  ),
+                  readyCardBuilder: (order) => _buildOrderCard(
+                    order,
+                    section: KitchenSection.ready,
+                  ),
                   onRefresh: () => ref.read(kdsProvider.notifier).fetchOrders(),
-                  child: _buildList(newOrders, prepOrders, readyOrders),
-                ),
+                )
+              : _buildMobileList(newOrders, prepOrders, readyOrders),
         ),
       ],
     );
   }
 
-  Widget _buildList(
+  Widget _buildOrderCard(
+    dynamic order, {
+    required KitchenSection section,
+  }) {
+    String? nextStatus;
+    String actionText = '';
+    Color accentColor = AppColors.pandaPink;
+
+    switch (section) {
+      case KitchenSection.newOrders:
+        accentColor = AppColors.pandaPink;
+        if (order['status'] == 'PLACED') {
+          nextStatus = 'ACCEPTED';
+          actionText = 'Accept Order';
+        } else {
+          nextStatus = 'PREPARING';
+          actionText = 'Start Preparing';
+        }
+      case KitchenSection.preparing:
+        accentColor = AppColors.warning;
+        nextStatus = 'READY_FOR_PICKUP';
+        actionText = 'Mark Ready';
+      case KitchenSection.ready:
+        accentColor = AppColors.success;
+        nextStatus = null;
+        actionText = '';
+      default:
+        break;
+    }
+
+    final assignment = order['assignment'];
+    final assignmentStatus = assignment is Map
+        ? assignment['status']?.toString()
+        : null;
+    final canSendPathao = section == KitchenSection.ready &&
+        order['status'] == 'READY_FOR_PICKUP' &&
+        order['deliveryService'] == null &&
+        (assignmentStatus == null ||
+            assignmentStatus == 'EXPIRED' ||
+            assignmentStatus == 'REJECTED' ||
+            assignmentStatus == 'CANCELLED');
+
+    return PremiumOrderCard(
+      order: order,
+      nextStatus: nextStatus,
+      actionText: actionText,
+      accentColor: accentColor,
+      secondaryActionText: canSendPathao ? 'Send to Pathao' : null,
+      onSecondaryAction: canSendPathao
+          ? () => _showPathaoDialog(context, order['id'] as String)
+          : null,
+      onReject: order['status'] == 'PLACED'
+          ? () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Reject Order?'),
+                  content: const Text(
+                      'Are you sure you want to reject this order?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        ref
+                            .read(kdsProvider.notifier)
+                            .rejectOrder(order['id'], 'Rejected by kitchen');
+                      },
+                      child: const Text('Reject',
+                          style: TextStyle(color: AppColors.error)),
+                    ),
+                  ],
+                ),
+              );
+            }
+          : null,
+      onAction: () {
+        if (nextStatus != null) {
+          ref
+              .read(kdsProvider.notifier)
+              .updateOrderStatus(order['id'], nextStatus);
+        }
+      },
+    );
+  }
+
+  Widget _buildMobileList(
+    List<dynamic> newOrders,
+    List<dynamic> prepOrders,
+    List<dynamic> readyOrders,
+  ) {
+    final isLoading = ref.watch(kdsProvider).isLoading;
+
+    if (isLoading &&
+        newOrders.isEmpty &&
+        prepOrders.isEmpty &&
+        readyOrders.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.pandaPink),
+      );
+    }
+
+    return RefreshIndicator(
+      color: AppColors.pandaPink,
+      onRefresh: () => ref.read(kdsProvider.notifier).fetchOrders(),
+      child: _buildMobileTabContent(newOrders, prepOrders, readyOrders),
+    );
+  }
+
+  Widget _buildMobileTabContent(
     List<dynamic> newOrders,
     List<dynamic> prepOrders,
     List<dynamic> readyOrders,
   ) {
     List<dynamic> currentOrders;
-    String? defaultNextStatus;
-    String defaultActionText = '';
 
     if (_activeTab == 0) {
       currentOrders = newOrders;
-      // Handled dynamically per order
     } else if (_activeTab == 1) {
       currentOrders = prepOrders;
-      defaultNextStatus = 'READY_FOR_PICKUP';
-      defaultActionText = 'Mark Ready';
     } else {
       currentOrders = readyOrders;
-      defaultNextStatus = null; // Handled by rider
     }
 
     if (currentOrders.isEmpty) {
@@ -89,7 +209,8 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.receipt_long, size: 64, color: AppColors.gray400),
+                    Icon(Icons.receipt_long,
+                        size: 64, color: AppColors.gray400),
                     const SizedBox(height: 16),
                     const Text(
                       'No orders here',
@@ -114,76 +235,12 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
       itemCount: currentOrders.length,
       itemBuilder: (context, index) {
         final order = currentOrders[index];
-        
-        String? nextStatus = defaultNextStatus;
-        String actionText = defaultActionText;
-        
-        if (_activeTab == 0) {
-          if (order['status'] == 'PLACED') {
-            nextStatus = 'ACCEPTED';
-            actionText = 'Accept Order';
-          } else {
-            nextStatus = 'PREPARING';
-            actionText = 'Start Preparing';
-          }
-        }
-        
-        final assignment = order['assignment'];
-        final assignmentStatus = assignment is Map
-            ? assignment['status']?.toString()
-            : null;
-        final canSendPathao = _activeTab == 2 &&
-            order['status'] == 'READY_FOR_PICKUP' &&
-            order['deliveryService'] == null &&
-            (assignmentStatus == null ||
-                assignmentStatus == 'EXPIRED' ||
-                assignmentStatus == 'REJECTED' ||
-                assignmentStatus == 'CANCELLED');
-
-        return PremiumOrderCard(
-              order: order,
-              nextStatus: nextStatus,
-              actionText: actionText,
-              accentColor: AppColors.pandaPink,
-              secondaryActionText:
-                  canSendPathao ? 'Send to Pathao' : null,
-              onSecondaryAction: canSendPathao
-                  ? () => _showPathaoDialog(context, order['id'] as String)
-                  : null,
-              onReject: order['status'] == 'PLACED'
-                  ? () {
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Reject Order?'),
-                          content: const Text('Are you sure you want to reject this order?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(ctx);
-                                ref
-                                    .read(kdsProvider.notifier)
-                                    .rejectOrder(order['id'], 'Rejected by kitchen');
-                              },
-                              child: const Text('Reject', style: TextStyle(color: AppColors.error)),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                  : null,
-              onAction: () {
-                if (nextStatus != null) {
-                  ref
-                      .read(kdsProvider.notifier)
-                      .updateOrderStatus(order['id'], nextStatus);
-                }
-              },
-            )
+        final section = _activeTab == 0
+            ? KitchenSection.newOrders
+            : _activeTab == 1
+                ? KitchenSection.preparing
+                : KitchenSection.ready;
+        return _buildOrderCard(order, section: section)
             .animate(key: ValueKey(order['id']))
             .fadeIn(duration: 300.ms)
             .slideY(begin: 0.1, end: 0);

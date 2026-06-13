@@ -10,12 +10,14 @@ class KdsHeader extends ConsumerWidget {
   final bool isConnected;
   final bool isRestaurantActive;
   final ValueChanged<bool> onToggleOnlineStatus;
+  final VoidCallback? onMenuPressed;
 
   const KdsHeader({
     super.key,
     required this.isConnected,
     required this.isRestaurantActive,
     required this.onToggleOnlineStatus,
+    this.onMenuPressed,
   });
 
   @override
@@ -47,6 +49,15 @@ class KdsHeader extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              if (onMenuPressed != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: IconButton(
+                    icon: const Icon(Icons.menu, color: AppColors.black500),
+                    onPressed: onMenuPressed,
+                    tooltip: 'Open navigation',
+                  ),
+                ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -75,7 +86,7 @@ class KdsHeader extends ConsumerWidget {
                   const SizedBox(width: 8),
                   CupertinoSwitch(
                     value: isRestaurantActive,
-                    activeColor: AppColors.success,
+                    activeTrackColor: AppColors.success,
                     onChanged: onToggleOnlineStatus,
                   ),
                 ],

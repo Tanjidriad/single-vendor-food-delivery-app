@@ -19,13 +19,41 @@ class KdsBoardScreen extends ConsumerStatefulWidget {
 
 class _KdsBoardScreenState extends ConsumerState<KdsBoardScreen> {
   int _currentIndex = 0;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  static const _destinations = [
+    (
+      icon: Iconsax.clipboard_text,
+      selectedIcon: Iconsax.clipboard_text,
+      label: 'Orders',
+    ),
+    (
+      icon: Iconsax.chart,
+      selectedIcon: Iconsax.chart,
+      label: 'Stats',
+    ),
+    (
+      icon: Iconsax.menu_board,
+      selectedIcon: Iconsax.menu_board,
+      label: 'Menu',
+    ),
+    (
+      icon: Iconsax.setting_2,
+      selectedIcon: Iconsax.setting_2,
+      label: 'Settings',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
     final kdsState = ref.watch(kdsProvider);
+    final width = MediaQuery.sizeOf(context).width;
+    final useDrawer = width >= 900;
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppColors.background,
+      drawer: useDrawer ? _buildDrawer() : null,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -37,6 +65,8 @@ class _KdsBoardScreenState extends ConsumerState<KdsBoardScreen> {
                 onToggleOnlineStatus: (bool value) {
                   ref.read(kdsProvider.notifier).toggleOnlineStatus(value);
                 },
+                onMenuPressed:
+                    useDrawer ? () => _scaffoldKey.currentState?.openDrawer() : null,
               ),
             if (kdsState.lastPrintError != null)
               _buildPrintFailureBanner(kdsState.lastPrintError!),
@@ -46,42 +76,97 @@ class _KdsBoardScreenState extends ConsumerState<KdsBoardScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white50,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
+      bottomNavigationBar: useDrawer
+          ? null
+          : Container(
+              decoration: BoxDecoration(
+                color: AppColors.white50,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: NavigationBar(
+                backgroundColor: AppColors.white50,
+                indicatorColor: AppColors.pandaPinkLight,
+                selectedIndex: _currentIndex,
+                onDestinationSelected: (index) =>
+                    setState(() => _currentIndex = index),
+                destinations: _destinations
+                    .map(
+                      (d) => NavigationDestination(
+                        icon: Icon(d.icon),
+                        selectedIcon: Icon(d.selectedIcon,
+                            color: AppColors.pandaPink),
+                        label: d.label,
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
-          ],
-        ),
-        child: NavigationBar(
-          backgroundColor: AppColors.white50,
-          indicatorColor: AppColors.pandaPinkLight,
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (index) => setState(() => _currentIndex = index),
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Iconsax.clipboard_text),
-              selectedIcon: Icon(Iconsax.clipboard_text, color: AppColors.pandaPink),
-              label: 'Orders',
+    );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      child: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: AppColors.gray200),
+                ),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.restaurant, color: AppColors.pandaPink, size: 32),
+                  SizedBox(width: 12),
+                  Text(
+                    'Kitchen OS',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.black500,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            NavigationDestination(
-              icon: Icon(Iconsax.chart),
-              selectedIcon: Icon(Iconsax.chart, color: AppColors.pandaPink),
-              label: 'Stats',
-            ),
-            NavigationDestination(
-              icon: Icon(Iconsax.menu_board),
-              selectedIcon: Icon(Iconsax.menu_board, color: AppColors.pandaPink),
-              label: 'Menu',
-            ),
-            NavigationDestination(
-              icon: Icon(Iconsax.setting_2),
-              selectedIcon: Icon(Iconsax.setting_2, color: AppColors.pandaPink),
-              label: 'Settings',
+            Expanded(
+              child: ListView.builder(
+                itemCount: _destinations.length,
+                itemBuilder: (context, index) {
+                  final d = _destinations[index];
+                  final selected = index == _currentIndex;
+                  return ListTile(
+                    leading: Icon(
+                      d.icon,
+                      color: selected ? AppColors.pandaPink : AppColors.gray700,
+                    ),
+                    title: Text(
+                      d.label,
+                      style: TextStyle(
+                        color: selected
+                            ? AppColors.pandaPink
+                            : AppColors.black500,
+                        fontWeight:
+                            selected ? FontWeight.bold : FontWeight.w600,
+                      ),
+                    ),
+                    selected: selected,
+                    selectedTileColor: AppColors.pandaPinkLight,
+                    onTap: () {
+                      setState(() => _currentIndex = index);
+                      Navigator.of(context).pop();
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -95,7 +180,8 @@ class _KdsBoardScreenState extends ConsumerState<KdsBoardScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          const Icon(Iconsax.printer_slash, color: AppColors.warning, size: 22),
+          const Icon(Iconsax.printer_slash,
+              color: AppColors.warning, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -108,12 +194,16 @@ class _KdsBoardScreenState extends ConsumerState<KdsBoardScreen> {
             ),
           ),
           TextButton(
-            onPressed: () => ref.read(kdsProvider.notifier).retryLastKitchenTicket(),
-            child: const Text('Retry', style: TextStyle(fontWeight: FontWeight.bold)),
+            onPressed: () =>
+                ref.read(kdsProvider.notifier).retryLastKitchenTicket(),
+            child: const Text('Retry',
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
           TextButton(
-            onPressed: () => ref.read(kdsProvider.notifier).dismissPrintFailure(),
-            child: const Text('Skip', style: TextStyle(color: AppColors.gray700)),
+            onPressed: () =>
+                ref.read(kdsProvider.notifier).dismissPrintFailure(),
+            child: const Text('Skip',
+                style: TextStyle(color: AppColors.gray700)),
           ),
         ],
       ),

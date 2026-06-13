@@ -135,6 +135,13 @@ class KdsNotifier extends Notifier<KdsState> {
 
   @override
   KdsState build() {
+    // Re-fetch orders whenever kitchen preferences change (e.g. showTestOrders toggle).
+    ref.listen(kitchenPreferencesProvider, (previous, next) {
+      if (previous?.showTestOrders != next.showTestOrders) {
+        Future.microtask(fetchOrders);
+      }
+    });
+
     // Re-fetch restaurant status whenever the authenticated user changes
     // (e.g. after login or app cold start with a saved token).
     ref.listen(authProvider, (previous, next) {
@@ -190,14 +197,11 @@ class KdsNotifier extends Notifier<KdsState> {
       final prefs = ref.read(kitchenPreferencesProvider);
 
       final active = allOrders.where((o) {
-        if (!prefs.showTestOrders &&
-            (o['status'] == 'IGNORED_TEST' ||
-                o['isTest'] == true ||
-                o['ignoreInReporting'] == true)) {
-          return false;
-        }
         final section = OrderWorkflowMapper.getSection(
-          OrderWorkflowMapper.getCanonicalStatus(o),
+          OrderWorkflowMapper.getCanonicalStatus(
+            o,
+            includeTestOrders: prefs.showTestOrders,
+          ),
         );
         return section == KitchenSection.newOrders ||
             section == KitchenSection.preparing ||
@@ -289,14 +293,11 @@ class KdsNotifier extends Notifier<KdsState> {
       final prefs = ref.read(kitchenPreferencesProvider);
 
       final active = allOrders.where((o) {
-        if (!prefs.showTestOrders &&
-            (o['status'] == 'IGNORED_TEST' ||
-                o['isTest'] == true ||
-                o['ignoreInReporting'] == true)) {
-          return false;
-        }
         final section = OrderWorkflowMapper.getSection(
-          OrderWorkflowMapper.getCanonicalStatus(o),
+          OrderWorkflowMapper.getCanonicalStatus(
+            o,
+            includeTestOrders: prefs.showTestOrders,
+          ),
         );
         return section == KitchenSection.newOrders ||
             section == KitchenSection.preparing ||

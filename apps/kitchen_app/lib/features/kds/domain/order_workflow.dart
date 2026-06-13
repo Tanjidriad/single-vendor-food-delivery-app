@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// The single source of truth for normalized order status semantics.
 enum CanonicalOrderStatus {
   pendingKitchenAcceptance,
@@ -38,8 +36,14 @@ enum TimerType {
 
 class OrderWorkflowMapper {
   /// Maps the backend raw status and metadata to our CanonicalOrderStatus.
-  static CanonicalOrderStatus getCanonicalStatus(Map<String, dynamic> order) {
-    if (order['isTest'] == true || order['ignoreInReporting'] == true) {
+  /// When [includeTestOrders] is true, test orders are mapped by status so they
+  /// can appear in active KDS sections; otherwise they are forced to ignored.
+  static CanonicalOrderStatus getCanonicalStatus(
+    Map<String, dynamic> order, {
+    bool includeTestOrders = false,
+  }) {
+    if (!includeTestOrders &&
+        (order['isTest'] == true || order['ignoreInReporting'] == true)) {
       return CanonicalOrderStatus.ignoredTestOrder;
     }
 
@@ -93,7 +97,6 @@ class OrderWorkflowMapper {
         return KitchenSection.ignored;
       case CanonicalOrderStatus.logistics:
       case CanonicalOrderStatus.unknown:
-      default:
         return KitchenSection.hidden;
     }
   }

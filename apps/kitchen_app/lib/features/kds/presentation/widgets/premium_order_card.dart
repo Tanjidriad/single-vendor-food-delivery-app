@@ -89,7 +89,10 @@ class PremiumOrderCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Builder(builder: (context) {
                   final orderMap = order as Map<String, dynamic>;
-                  final canonical = OrderWorkflowMapper.getCanonicalStatus(orderMap);
+                  final canonical = OrderWorkflowMapper.getCanonicalStatus(
+                    orderMap,
+                    includeTestOrders: true,
+                  );
                   final timerType = OrderWorkflowMapper.getTimerType(canonical);
                   if (timerType == TimerType.none) return const SizedBox.shrink();
 

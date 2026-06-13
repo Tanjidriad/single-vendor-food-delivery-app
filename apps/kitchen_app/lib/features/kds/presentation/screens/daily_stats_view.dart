@@ -18,7 +18,10 @@ final dailyStatsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref
   final startOfDay = DateTime(now.year, now.month, now.day);
   
   final todaysCompleted = orders.where((o) {
-    final canonical = OrderWorkflowMapper.getCanonicalStatus(o);
+    final canonical = OrderWorkflowMapper.getCanonicalStatus(
+      o,
+      includeTestOrders: prefs.showTestOrders,
+    );
     if (OrderWorkflowMapper.getSection(canonical) != KitchenSection.history) {
       return false;
     }
@@ -69,6 +72,7 @@ class DailyStatsView extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error loading stats: $err')),
         data: (stats) {
+          final prefs = ref.watch(kitchenPreferencesProvider);
           final completed = stats['completedOrders'] as int;
           final avgPrep = stats['avgPrepTime'] as int;
           
@@ -152,7 +156,10 @@ class DailyStatsView extends ConsumerWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                OrderWorkflowMapper.getCanonicalStatus(order).name.replaceAll('ByKitchen', '').replaceAll('ByCustomer', '').replaceAll('BySystem', '').replaceAllMapped(RegExp(r'[A-Z]'), (m) => ' ${m.group(0)}').toUpperCase(),
+                                OrderWorkflowMapper.getCanonicalStatus(
+                                  order,
+                                  includeTestOrders: prefs.showTestOrders,
+                                ).name.replaceAll('ByKitchen', '').replaceAll('ByCustomer', '').replaceAll('BySystem', '').replaceAllMapped(RegExp(r'[A-Z]'), (m) => ' ${m.group(0)}').toUpperCase(),
                                 style: TextStyle(
                                   color: order['status'] == 'REJECTED' || order['status'] == 'CANCELLED' ? AppColors.error : AppColors.success,
                                   fontWeight: FontWeight.w600,

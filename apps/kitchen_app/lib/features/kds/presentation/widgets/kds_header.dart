@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../providers/restaurant_provider.dart';
 
 class KdsHeader extends ConsumerWidget {
   final bool isConnected;
@@ -20,6 +20,15 @@ class KdsHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final restaurantAsync = ref.watch(restaurantProvider);
+    final displayName = restaurantAsync.when(
+      data: (s) => s.displayName,
+      loading: () => 'Kitchen',
+      error: (error, stackTrace) => 'Kitchen',
+    );
+    final user = ref.watch(authProvider).user;
+    final staffName = user?['fullName']?.toString();
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: const BoxDecoration(
@@ -38,9 +47,20 @@ class KdsHeader extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Burger Palace',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.black500),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    displayName,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.black500),
+                  ),
+                  if (staffName != null && staffName.isNotEmpty)
+                    Text(
+                      'Staff: $staffName',
+                      style: const TextStyle(fontSize: 12, color: AppColors.gray700),
+                    ),
+                ],
               ),
               Row(
                 children: [

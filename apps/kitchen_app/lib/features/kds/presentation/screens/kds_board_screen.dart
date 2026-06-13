@@ -38,6 +38,8 @@ class _KdsBoardScreenState extends ConsumerState<KdsBoardScreen> {
                   ref.read(kdsProvider.notifier).toggleOnlineStatus(value);
                 },
               ),
+            if (kdsState.lastPrintError != null)
+              _buildPrintFailureBanner(kdsState.lastPrintError!),
             Expanded(
               child: _buildBody(),
             ),
@@ -83,6 +85,37 @@ class _KdsBoardScreenState extends ConsumerState<KdsBoardScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPrintFailureBanner(String message) {
+    return Container(
+      color: AppColors.warningLight,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          const Icon(Iconsax.printer_slash, color: AppColors.warning, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: AppColors.black500,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => ref.read(kdsProvider.notifier).retryLastKitchenTicket(),
+            child: const Text('Retry', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          TextButton(
+            onPressed: () => ref.read(kdsProvider.notifier).dismissPrintFailure(),
+            child: const Text('Skip', style: TextStyle(color: AppColors.gray700)),
+          ),
+        ],
       ),
     );
   }

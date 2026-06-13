@@ -7,6 +7,7 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/services/kitchen_preferences.dart';
 import '../../../../core/services/order_alert_service.dart';
 import '../../../../core/services/print_service.dart';
+import '../../../auth/providers/auth_provider.dart';
 import '../../domain/order_workflow.dart';
 
 final kdsProvider = NotifierProvider<KdsNotifier, KdsState>(() {
@@ -78,6 +79,8 @@ class KdsState {
   final bool isConnected;
   final bool isRestaurantActive;
   final DateTime? lastSuccessfulFetchAt;
+  final String? lastPrintError;
+  final Map<String, dynamic>? lastFailedOrder;
 
   KdsState({
     this.orders = const [],
@@ -85,6 +88,8 @@ class KdsState {
     this.isConnected = false,
     this.isRestaurantActive = true,
     this.lastSuccessfulFetchAt,
+    this.lastPrintError,
+    this.lastFailedOrder,
   });
 
   /// Socket connected, or a recent REST poll succeeded (orders still flow).
@@ -101,6 +106,9 @@ class KdsState {
     bool? isConnected,
     bool? isRestaurantActive,
     DateTime? lastSuccessfulFetchAt,
+    String? lastPrintError,
+    Map<String, dynamic>? lastFailedOrder,
+    bool clearPrintError = false,
   }) {
     return KdsState(
       orders: orders ?? this.orders,
@@ -109,6 +117,8 @@ class KdsState {
       isRestaurantActive: isRestaurantActive ?? this.isRestaurantActive,
       lastSuccessfulFetchAt:
           lastSuccessfulFetchAt ?? this.lastSuccessfulFetchAt,
+      lastPrintError: clearPrintError ? null : (lastPrintError ?? this.lastPrintError),
+      lastFailedOrder: clearPrintError ? null : (lastFailedOrder ?? this.lastFailedOrder),
     );
   }
 }
@@ -125,6 +135,19 @@ class KdsNotifier extends Notifier<KdsState> {
 
   @override
   KdsState build() {
+    // Re-fetch restaurant status whenever the authenticated user changes
+    // (e.g. after login or app cold start with a saved token).
+    ref.listen(authProvider, (previous, next) {
+      final prevId = _extractRestaurantId(previous?.user);
+      final nextId = _extractRestaurantId(next.user);
+      if (prevId != nextId && next.status == AuthStatus.authenticated) {
+        Future.microtask(() {
+          fetchRestaurantStatus();
+          fetchOrders();
+        });
+      }
+    });
+
     Future.microtask(() {
       fetchRestaurantStatus();
       fetchOrders();
@@ -203,9 +226,37 @@ class KdsNotifier extends Notifier<KdsState> {
     return !oldIds.containsAll(freshIds) || !freshIds.containsAll(oldIds);
   }
 
+  String? _extractRestaurantId(Map<String, dynamic>? user) {
+    if (user == null) return null;
+
+    final candidates = [
+      user['restaurantId'],
+      user['restaurant']?['id'],
+    ];
+    for (final value in candidates) {
+      if (value != null && value.toString().isNotEmpty) {
+        return value.toString();
+      }
+    }
+    if (kDebugMode && AppConfig.restaurantId.isNotEmpty) {
+      return AppConfig.restaurantId;
+    }
+    return null;
+  }
+
+  String? get _authenticatedRestaurantId {
+    return _extractRestaurantId(ref.read(authProvider).user);
+  }
+
   Future<void> fetchRestaurantStatus() async {
+    final restaurantId = _authenticatedRestaurantId;
+    if (restaurantId == null || restaurantId.isEmpty) {
+      print('[KDS] No authenticated restaurantId; skipping status fetch.');
+      return;
+    }
+
     try {
-      final res = await _apiClient.get('/restaurant/${AppConfig.restaurantId}');
+      final res = await _apiClient.get('/restaurant/$restaurantId');
       if (res.data != null && res.data['isActive'] != null) {
         state = state.copyWith(isRestaurantActive: res.data['isActive']);
       }
@@ -400,7 +451,40 @@ class KdsNotifier extends Notifier<KdsState> {
     if (!prefs.autoPrint) return;
     final order = await _fetchOrderDetail(orderId);
     if (order == null) return;
-    await ref.read(printServiceProvider).printKitchenTicket(order);
+    try {
+      await ref.read(printServiceProvider).printKitchenTicket(order);
+      state = state.copyWith(clearPrintError: true);
+    } catch (e) {
+      final message = _printErrorMessage(e);
+      state = state.copyWith(
+        lastPrintError: message,
+        lastFailedOrder: order,
+      );
+      if (kDebugMode) debugPrint('[KDS] Print failed: $message');
+    }
+  }
+
+  String _printErrorMessage(Object error) {
+    final text = error.toString().toLowerCase();
+    if (text.contains('sunmi') || text.contains('printer')) {
+      return 'Sunmi printer not detected. Ticket not printed.';
+    }
+    return 'Kitchen ticket could not be printed.';
+  }
+
+  Future<void> retryLastKitchenTicket() async {
+    final order = state.lastFailedOrder;
+    if (order == null) return;
+    try {
+      await ref.read(printServiceProvider).printKitchenTicket(order);
+      state = state.copyWith(clearPrintError: true);
+    } catch (e) {
+      state = state.copyWith(lastPrintError: _printErrorMessage(e));
+    }
+  }
+
+  void dismissPrintFailure() {
+    state = state.copyWith(clearPrintError: true);
   }
 
   Future<void> updateOrderStatus(String orderId, String newStatus) async {

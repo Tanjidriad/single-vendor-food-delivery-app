@@ -72,7 +72,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                       child: Icon(Iconsax.user, color: AppColors.pandaPink),
                     ),
                     title: Text(user?['fullName'] ?? 'Kitchen Staff', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.black500)),
-                    subtitle: Text(user?['email'] ?? 'staff@kitchen.com', style: const TextStyle(color: AppColors.gray700)),
+                    subtitle: Text(user?['email'] ?? 'Kitchen account', style: const TextStyle(color: AppColors.gray700)),
                   ),
                 ]),
                 

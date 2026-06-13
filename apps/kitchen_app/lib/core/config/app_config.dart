@@ -12,8 +12,9 @@ class AppConfig {
   static const bool enableNetworkLogging = kDebugMode;
 
   /// Override at build time: `--dart-define=RESTAURANT_ID=...`
+  /// Debug-only fallback; production must use the authenticated user's restaurant.
   static const String restaurantId = String.fromEnvironment(
     'RESTAURANT_ID',
-    defaultValue: '46c52268-2146-4543-ab10-92dd34e53d3a',
+    defaultValue: kDebugMode ? '46c52268-2146-4543-ab10-92dd34e53d3a' : '',
   );
 }

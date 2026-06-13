@@ -103,21 +103,60 @@ class KdsKanbanColumn extends StatelessWidget {
   }
 
   Widget _defaultEmptyState() {
+    final (icon, headline, subtext) = switch (section) {
+      KitchenSection.newOrders => (
+          Icons.receipt_long,
+          'No new orders',
+          'New incoming orders will appear here.',
+        ),
+      KitchenSection.preparing => (
+          Icons.restaurant,
+          'Nothing preparing',
+          'Accepted orders move here while being prepared.',
+        ),
+      KitchenSection.ready => (
+          Icons.check_circle_outline,
+          'Nothing ready',
+          'Finished orders waiting for pickup show here.',
+        ),
+      _ => (
+          Icons.receipt_long,
+          'No ${title.toLowerCase()}',
+          '',
+        ),
+    };
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.receipt_long, size: 48, color: AppColors.gray400),
-          const SizedBox(height: 12),
-          Text(
-            'No ${title.toLowerCase()}',
-            style: TextStyle(
-              color: AppColors.gray700,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 48, color: AppColors.gray400),
+            const SizedBox(height: 16),
+            Text(
+              headline,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.gray700,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-        ],
+            if (subtext.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                subtext,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.gray600,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

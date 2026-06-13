@@ -128,6 +128,7 @@ class KdsNotifier extends Notifier<KdsState> {
   IO.Socket? _socket;
   Timer? _pollTimer;
   Timer? _reconnectTimer;
+  Timer? _debounceTimer;
   int _socketReconnectAttempt = 0;
 
   final _eventController = StreamController<Map<String, dynamic>>.broadcast();
@@ -165,6 +166,7 @@ class KdsNotifier extends Notifier<KdsState> {
     ref.onDispose(() {
       _pollTimer?.cancel();
       _reconnectTimer?.cancel();
+      _debounceTimer?.cancel();
       _socket?.disconnect();
       _socket?.dispose();
       _eventController.close();
@@ -369,7 +371,7 @@ class KdsNotifier extends Notifier<KdsState> {
         debugPrint('[KDS Socket] order:status.changed received');
       }
       _emitEvent(data);
-      fetchOrders();
+      _debouncedFetchOrders();
     });
 
     _socket?.on('order:created', (data) {
@@ -378,7 +380,7 @@ class KdsNotifier extends Notifier<KdsState> {
       }
       _emitEvent(data);
       unawaited(_onNewOrderSignal(data));
-      fetchOrders();
+      _debouncedFetchOrders();
     });
 
     _socket?.connect();
@@ -395,6 +397,14 @@ class KdsNotifier extends Notifier<KdsState> {
     };
     _socketReconnectAttempt++;
     _reconnectTimer = Timer(Duration(seconds: seconds), () => _initSocket());
+  }
+
+  /// Bust rapid socket events into a single fetch to avoid UI churn.
+  void _debouncedFetchOrders() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      fetchOrders();
+    });
   }
 
   Future<void> dispatchToPathao(

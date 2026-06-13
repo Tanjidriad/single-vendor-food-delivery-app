@@ -261,25 +261,28 @@ class _OrderTileState extends State<OrderTile> {
     return Row(
       children: [
         if (showReject) ...[
-          SizedBox(
-            height: widget.compact ? 36 : 44,
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: const BorderSide(color: AppColors.error),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+          Expanded(
+            child: SizedBox(
+              height: 48,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.error,
+                  side: const BorderSide(color: AppColors.error),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+                onPressed: widget.onReject,
+                icon: const Icon(Iconsax.close_circle, size: 16),
+                label: const Text('Reject', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
               ),
-              onPressed: widget.onReject,
-              icon: const Icon(Iconsax.close_circle, size: 16),
-              label: const Text('Reject', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
             ),
           ),
           const SizedBox(width: 10),
         ],
         Expanded(
+          flex: showReject ? 2 : 1,
           child: SizedBox(
-            height: widget.compact ? 36 : 44,
+            height: 48,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: widget.accentColor,

@@ -81,7 +81,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 const SizedBox(height: 24),
                 
                 // Hardware & Printing
-                _buildSectionHeader('Hardware & Printing'),
+                _buildSectionHeader('Print'),
                 _buildCard([
                   _buildSwitchTile(
                     icon: Iconsax.printer,
@@ -166,8 +166,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
                 const SizedBox(height: 24),
 
-                // Notifications
-                _buildSectionHeader('Notifications'),
+                // Alerts
+                _buildSectionHeader('Alerts'),
                 _buildCard([
                   _buildSwitchTile(
                     icon: Iconsax.notification_bing,
@@ -178,7 +178,13 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         .read(kitchenPreferencesProvider.notifier)
                         .setSoundEnabled(v),
                   ),
-                  const Divider(height: 1, color: AppColors.gray200),
+                ]),
+
+                const SizedBox(height: 24),
+
+                // Test Orders
+                _buildSectionHeader('Test Orders'),
+                _buildCard([
                   _buildSwitchTile(
                     icon: Iconsax.warning_2,
                     title: 'Show Test Orders',

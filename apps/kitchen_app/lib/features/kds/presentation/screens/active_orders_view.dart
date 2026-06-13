@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:kitchen_app/features/kds/presentation/widgets/kds_kanban_board.dart';
@@ -160,6 +161,10 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
           : null,
       onAction: () {
         if (nextStatus != null) {
+          if (section == KitchenSection.newOrders ||
+              nextStatus == 'READY_FOR_PICKUP') {
+            HapticFeedback.lightImpact();
+          }
           ref
               .read(kdsProvider.notifier)
               .updateOrderStatus(order['id'], nextStatus);

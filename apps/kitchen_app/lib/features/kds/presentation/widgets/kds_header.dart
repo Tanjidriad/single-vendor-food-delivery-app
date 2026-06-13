@@ -86,10 +86,14 @@ class KdsHeader extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  CupertinoSwitch(
-                    value: isRestaurantActive,
-                    activeTrackColor: AppColors.success,
-                    onChanged: onToggleOnlineStatus,
+                  Semantics(
+                    label: isRestaurantActive ? 'Pause taking orders' : 'Start taking orders',
+                    button: true,
+                    child: CupertinoSwitch(
+                      value: isRestaurantActive,
+                      activeTrackColor: AppColors.success,
+                      onChanged: onToggleOnlineStatus,
+                    ),
                   ),
                 ],
               ),

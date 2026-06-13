@@ -1,0 +1,3 @@
+# Auto-generated when the API starts (npm run start:dev).
+# Re-run the Flutter app after starting the backend on a physical device.
+http://192.168.0.116:3000/api/v1

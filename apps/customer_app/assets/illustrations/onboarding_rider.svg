@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 350" fill="none">
+  <!-- Background soft green blob -->
+  <path d="M60 160 C60 80, 150 40, 230 60 C310 80, 350 140, 330 220 C310 300, 230 320, 160 300 C90 280, 60 240, 60 160 Z" fill="#EBF5EE" opacity="0.8"/>
+
+  <!-- Road path lines (Speed indicators) -->
+  <line x1="50" y1="290" x2="350" y2="290" stroke="#E8E8E8" stroke-width="4" stroke-linecap="round"/>
+  <line x1="120" y1="305" x2="280" y2="305" stroke="#E8E8E8" stroke-width="3" stroke-linecap="round" stroke-dasharray="10 15"/>
+
+  <!-- Bicycle Wheels -->
+  <!-- Back Wheel -->
+  <circle cx="120" cy="245" r="42" fill="none" stroke="#2E2E2E" stroke-width="6"/>
+  <circle cx="120" cy="245" r="32" fill="none" stroke="#6BB03C" stroke-width="2"/>
+  <circle cx="120" cy="245" r="6" fill="#2E2E2E"/>
+  <!-- Spokes Back Wheel -->
+  <path d="M120 203 L120 287 M78 245 L162 245" stroke="#9C9C9C" stroke-width="1.5"/>
+
+  <!-- Front Wheel -->
+  <circle cx="280" cy="245" r="42" fill="none" stroke="#2E2E2E" stroke-width="6"/>
+  <circle cx="280" cy="245" r="32" fill="none" stroke="#6BB03C" stroke-width="2"/>
+  <circle cx="280" cy="245" r="6" fill="#2E2E2E"/>
+  <!-- Spokes Front Wheel -->
+  <path d="M280 203 L280 287 M238 245 L322 245" stroke="#9C9C9C" stroke-width="1.5"/>
+
+  <!-- Bicycle Frame -->
+  <path d="M120 245 L175 165 L250 165 L280 245 Z" fill="none" stroke="#2E2E2E" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M120 245 L190 245 L250 165" fill="none" stroke="#2E2E2E" stroke-width="5" stroke-linejoin="round"/>
+  <!-- Seat post & Saddle -->
+  <line x1="175" y1="165" x2="165" y2="135" stroke="#2E2E2E" stroke-width="5"/>
+  <path d="M150 135 L180 135 C185 135, 185 130, 175 130 L155 130 Z" fill="#2E2E2E"/>
+
+  <!-- Handlebar Post & Fork -->
+  <line x1="280" y1="245" x2="250" y2="135" stroke="#2E2E2E" stroke-width="5"/>
+  <path d="M240 135 L260 135 M240 135 C235 135, 235 125, 245 125 L255 125" stroke="#2E2E2E" stroke-width="4" fill="none"/>
+
+  <!-- Green Delivery Carrier Box (on the back rack) -->
+  <rect x="75" y="115" width="60" height="60" rx="8" fill="#5A9E2E"/>
+  <rect x="70" y="105" width="70" height="12" rx="4" fill="#3D6B1F"/>
+  <!-- Box straps -->
+  <rect x="90" y="117" width="8" height="58" fill="#2E2E2E" opacity="0.3"/>
+  <rect x="112" y="117" width="8" height="58" fill="#2E2E2E" opacity="0.3"/>
+
+  <!-- Rider Body & Clothing -->
+  <!-- Legs (pedaling pose) -->
+  <path d="M170 145 L195 195 L175 235" fill="none" stroke="#6BB03C" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Shoe -->
+  <path d="M165 235 L185 240 L180 245 L160 240 Z" fill="#2E2E2E"/>
+
+  <!-- Torso (leaning forward) -->
+  <path d="M175 135 Q205 105 240 120" fill="none" stroke="#5A9E2E" stroke-width="20" stroke-linecap="round"/>
+
+  <!-- Arms holding handlebar -->
+  <path d="M225 105 L250 130" fill="none" stroke="#FAD2C0" stroke-width="8" stroke-linecap="round"/>
+  <path d="M220 105 L250 130" fill="none" stroke="#6BB03C" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Neck & Head -->
+  <line x1="230" y1="105" x2="238" y2="90" stroke="#FAD2C0" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="242" cy="78" r="16" fill="#FAD2C0"/>
+
+  <!-- Green Cap/Helmet -->
+  <path d="M224 75 C224 60, 260 60, 260 75 Z" fill="#3D6B1F"/>
+  <path d="M255 75 L268 78 L265 83 L250 80 Z" fill="#3D6B1F"/> <!-- Cap Visor -->
+
+  <!-- Face details -->
+  <!-- Eye -->
+  <circle cx="250" cy="76" r="1.5" fill="#2E2E2E"/>
+  <!-- Smile -->
+  <path d="M250 83 Q254 85 256 81" stroke="#2E2E2E" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+
+  <!-- Location Bubble above the rider -->
+  <path d="M220 35 C220 20, 240 20, 240 35 C240 45, 230 52, 230 55 C228 52, 220 45, 220 35 Z" fill="#6BB03C"/>
+  <circle cx="230" cy="33" r="4" fill="#FFFFFF"/>
+</svg>

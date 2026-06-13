@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 350" fill="none">
+  <!-- Background soft green blob -->
+  <path d="M80 150 C80 70, 160 30, 240 50 C320 70, 350 140, 340 220 C330 300, 250 320, 170 300 C90 280, 80 230, 80 150 Z" fill="#EBF5EE" opacity="0.8"/>
+
+  <!-- Sparkles/Stars around (Green & Gold theme) -->
+  <!-- Left Star -->
+  <path d="M100 120 L103 125 L108 126 L104 130 L105 135 L100 132 L95 135 L96 130 L92 126 L97 125 Z" fill="#6BB03C"/>
+  <!-- Top Sparkle -->
+  <path d="M220 50 L222 56 L228 58 L222 60 L220 66 L218 60 L212 58 L218 56 Z" fill="#89C468"/>
+  <!-- Right Sparkle -->
+  <path d="M320 120 L322 124 L327 125 L323 129 L324 134 L320 131 L316 134 L317 129 L313 125 L318 124 Z" fill="#6BB03C"/>
+
+  <!-- Character Back/Body -->
+  <path d="M180 310 L340 310 L330 220 C330 200, 310 170, 260 170 C210 170, 190 200, 190 220 Z" fill="#EBF5EE"/>
+  <!-- Light Green Shirt -->
+  <path d="M210 210 L310 210 L300 310 L220 310 Z" fill="#89C468"/>
+  <!-- Neck -->
+  <path d="M250 140 L270 140 L270 170 L250 170 Z" fill="#FAD2C0"/>
+
+  <!-- Head -->
+  <circle cx="260" cy="115" r="32" fill="#FAD2C0"/>
+  <!-- Hair: Black, bob style -->
+  <path d="M225 115 C225 80, 295 80, 295 115 C295 130, 290 145, 290 145 C290 145, 285 125, 280 120 C275 110, 245 110, 240 120 C235 125, 230 145, 230 145 C230 140, 225 130, 225 115 Z" fill="#2E2E2E"/>
+  
+  <!-- Party Hat -->
+  <path d="M240 85 L280 85 L260 35 Z" fill="#6BB03C"/>
+  <!-- Hat Stripes -->
+  <path d="M245 80 L255 50 M265 82 L270 60" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  <!-- Pom Pom on top of Hat -->
+  <circle cx="260" cy="33" r="6" fill="#89C468"/>
+
+  <!-- Face details -->
+  <!-- Eyes -->
+  <circle cx="248" cy="112" r="2.5" fill="#2E2E2E"/>
+  <circle cx="272" cy="112" r="2.5" fill="#2E2E2E"/>
+  <!-- Smile -->
+  <path d="M254 122 Q260 128 266 122" stroke="#2E2E2E" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <!-- Blush -->
+  <circle cx="238" cy="118" r="5" fill="#F49A9A" opacity="0.6"/>
+  <circle cx="282" cy="118" r="5" fill="#F49A9A" opacity="0.6"/>
+
+  <!-- Left Hand holding cake plate -->
+  <path d="M200 240 Q180 220 220 200 L240 220 Z" fill="#FAD2C0"/>
+  <!-- Right Hand holding cake plate -->
+  <path d="M320 240 Q340 200 300 200 L280 220 Z" fill="#FAD2C0"/>
+
+  <!-- The Cake Plate -->
+  <ellipse cx="260" cy="200" rx="65" ry="12" fill="#E8E8E8" stroke="#D0D0D0" stroke-width="2"/>
+
+  <!-- Stylyzed Chocolate/Green Birthday Cake -->
+  <!-- Bottom layer -->
+  <path d="M210 180 C210 185, 230 190, 260 190 C290 190, 310 185, 310 180 L310 145 C310 140, 290 135, 260 135 C230 135, 210 140, 210 145 Z" fill="#3D2514"/>
+  <!-- Green frosting lines / drips -->
+  <path d="M210 145 C220 148, 230 152, 240 148 C250 145, 260 155, 270 148 C280 142, 290 150, 310 145" fill="none" stroke="#6BB03C" stroke-width="6" stroke-linecap="round"/>
+  <!-- Cake toppings (stars) -->
+  <path d="M230 160 L233 162 L238 162 L234 165 L235 170 L230 167 L225 170 L226 165 L222 162 L227 162 Z" fill="#6BB03C"/>
+  <path d="M280 162 L283 164 L288 164 L284 167 L285 172 L280 169 L275 172 L276 167 L272 164 L277 164 Z" fill="#89C468"/>
+
+  <!-- Candle on top -->
+  <rect x="257" y="110" width="6" height="25" fill="#6BB03C" rx="2"/>
+  <path d="M260 108 L260 100" stroke="#FF9D00" stroke-width="2"/>
+  <!-- Candle Flame -->
+  <path d="M260 102 C257 102, 255 96, 260 90 C265 96, 263 102, 260 102 Z" fill="#FF9D00"/>
+</svg>

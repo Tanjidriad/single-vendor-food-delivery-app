@@ -1,0 +1,3 @@
+﻿  warning: could not transcribe C:\Users\riads\Desktop\Food_delivery\apps\kitchen_app\assets\sounds\new_order.wav: Video transcription requires faster-whisper. Run: pip install 'graphifyy[video]'
+  warning: could not transcribe C:\Users\riads\Desktop\Food_delivery\apps\rider_app\assets\sounds\alert.wav: Video transcription requires faster-whisper. Run: pip install 'graphifyy[video]'
+[]

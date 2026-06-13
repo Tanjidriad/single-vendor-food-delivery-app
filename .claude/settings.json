@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./setup)",
+      "PowerShell($tools = @\\('bun','node','npm','scoop','winget','choco'\\); foreach \\($t in $tools\\) { $c = Get-Command $t -ErrorAction SilentlyContinue; if \\($c\\) { \"{0,-8} -> {1}\" -f $t, $c.Source } else { \"{0,-8} -> \\(not found\\)\" -f $t } }; \"--- bun common paths ---\"; @\\(\"$env:USERPROFILE\\\\.bun\\\\bin\\\\bun.exe\"\\) | ForEach-Object { if \\(Test-Path $_\\) { \"EXISTS: $_\" } else { \"MISSING: $_\" } })"
+    ]
+  }
+}

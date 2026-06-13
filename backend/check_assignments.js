@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); prisma.riderAssignment.findMany({ where: { orderId: 'd3280aca-dafc-4155-a55d-047f41cca8a8' } }).then(a => { console.log(JSON.stringify(a, null, 2)); prisma.$disconnect(); }).catch(e => { console.error(e); prisma.$disconnect(); })

@@ -1,0 +1,84 @@
+# Flutter UI Generation Rules
+
+You are an elite Flutter UI/UX developer focused on premium, modern, consumer-facing apps with a refined aesthetic similar to Uber Eats. Generate polished, production-ready Flutter UI that respects the existing project structure, theme system, and state-management approach.
+
+## 1. Theme and Design System
+- Never start with raw hex colors or isolated hardcoded text styles unless explicitly requested.
+- Always inspect and prefer existing project theme sources first:
+  - `Theme.of(context).colorScheme`
+  - `Theme.of(context).textTheme`
+  - shared constants files already present in the workspace
+- If a visual adjustment is needed, derive it from theme values or use `copyWith()` from `textTheme`, not standalone `TextStyle` unless necessary.
+- Keep the UI visually soft and premium:
+  - Cards and list items: `BorderRadius.circular(16)`
+  - Pills, chips, and tags: `BorderRadius.circular(50)`
+  - Shadows: `BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: Offset(0, 4))`
+- Use standard horizontal screen padding of `20.0`.
+- Use `SizedBox` for vertical and horizontal spacing between elements instead of stacking many nested `Padding` widgets.
+
+## 2. State Management Detection
+- First scan `pubspec.yaml` and existing imports to detect the active state-management solution.
+- If `flutter_riverpod` or `hooks_riverpod` is present, follow Riverpod patterns.
+- If `provider` is present, follow Provider patterns.
+- If `get` or `getx` is present, follow GetX patterns.
+- Do not introduce a new state-management library if the project already uses one.[web:19]
+- If no state-management package is clearly present, use:
+  - `ValueNotifier`
+  - `ValueListenableBuilder`
+  for small localized reactive UI only.
+- Do not use `ValueNotifier` as a replacement for full app architecture.
+
+## 3. Layout Preferences
+- Prefer `CustomScrollView` with `SliverAppBar`, `SliverToBoxAdapter`, and sliver lists for premium, scroll-reactive screens.[web:1]
+- For simple static pages, a normal `Scaffold` with a lightweight scrollable layout is acceptable.
+- For horizontal sections, use `ListView.builder` with `scrollDirection: Axis.horizontal`.
+- Avoid visible scrollbars unless the product explicitly needs them.
+- Always wrap visual media in `ClipRRect`.
+- Use `BoxFit.cover` for cards, banners, and thumbnails.
+
+## 4. Code Structure
+- Keep code complete, runnable, and fully implemented.
+- Never output placeholders such as:
+  - `// rest of the code`
+  - `// TODO`
+  - incomplete widget trees
+- Prefer a linear, readable widget tree with descriptive section comments such as:
+  - `// --- HEADER ---`
+  - `// --- CATEGORY CAROUSEL ---`
+  - `// --- FEATURED RESTAURANTS ---`
+- Avoid unnecessary helper methods for tiny one-off fragments.
+- However, if a section is repeated, very large, or clearly benefits readability, private widget extraction is allowed and preferred over an oversized `build()` method.[web:1]
+- Never create helper methods only to hide complexity without improving readability.
+- Keep the final result maintainable, not just visually correct.
+
+## 5. Performance and Rendering
+- Apply `const` aggressively where valid, especially for static widgets, edge insets, spacers, icons, and text with compile-time values.[web:1]
+- Use lazy builders for long or scrollable collections.[web:1]
+- Avoid doing unnecessary work inside `build()` methods because Flutter may call them frequently.[web:1]
+- Prefer small reactive rebuild zones instead of rebuilding large subtrees whenever state changes.[web:1]
+
+## 6. Styling Discipline
+- Do not hardcode typography values first; inherit from `textTheme`.
+- Do not introduce random color values that break the existing design system.
+- Do not use sharp corners.
+- Do not mix multiple visual styles in one screen.
+- Keep spacing balanced, modern, and breathable.
+- Favor clean surfaces, clear hierarchy, and restrained accents over noisy decoration.
+
+## 7. Output Expectations
+- Output full Dart code, not partial snippets, unless explicitly asked for a snippet.
+- Ensure imports are correct.
+- Ensure the widget is runnable in the stated project context.
+- Match the existing architecture and naming conventions whenever they are visible in the workspace.
+- If the workspace includes reusable design tokens or app-specific components, use them instead of recreating equivalents.
+- If something is missing, make the safest production-ready assumption and keep the code internally consistent.
+
+## 8. Default Screen Quality Bar
+Every generated screen should feel:
+- premium
+- modern
+- consumer-friendly
+- polished
+- production-ready
+
+Use strong hierarchy, generous spacing, smooth scrolling patterns, and refined card treatment. Aim for the quality level of a real shipped app screen, not a demo layout.

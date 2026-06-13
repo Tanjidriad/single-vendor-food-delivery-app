@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 350" fill="none">
+  <!-- Background soft green blob -->
+  <path d="M70 120 C70 50, 160 30, 240 50 C320 70, 350 130, 340 200 C330 270, 260 310, 180 300 C100 290, 70 190, 70 120 Z" fill="#EBF5EE" opacity="0.8"/>
+  
+  <!-- Table/Counter top -->
+  <path d="M40 290 L360 290 C370 290, 380 295, 380 300 L380 310 L20 310 L20 300 C20 295, 30 290, 40 290 Z" fill="#F0F0F0"/>
+
+  <!-- Stove Top (Black rectangle with rounded corners) -->
+  <rect x="100" y="240" width="200" height="50" rx="8" fill="#2E2E2E"/>
+  <!-- Burner indicators/circles -->
+  <ellipse cx="140" cy="265" rx="25" ry="12" fill="none" stroke="#5E5E5E" stroke-width="3"/>
+  <ellipse cx="260" cy="265" rx="20" ry="10" fill="none" stroke="#5E5E5E" stroke-width="2"/>
+  
+  <!-- Green Cooking Pot -->
+  <path d="M210 195 L310 195 L310 250 C310 260, 290 268, 260 268 C230 268, 210 260, 210 250 Z" fill="#5A9E2E"/>
+  <rect x="200" y="185" width="120" height="10" rx="4" fill="#3D6B1F"/>
+  <!-- Pot handle -->
+  <path d="M190 205 C190 195, 205 195, 205 205" stroke="#3D6B1F" stroke-width="4" stroke-linecap="round" fill="none"/>
+  
+  <!-- Steaming details (dashed wave lines) -->
+  <path d="M240 170 Q245 150 235 130 T240 100" stroke="#89C468" stroke-width="3" stroke-linecap="round" fill="none" stroke-dasharray="4 4" opacity="0.7"/>
+  <path d="M270 175 Q275 155 265 135 T270 105" stroke="#89C468" stroke-width="3" stroke-linecap="round" fill="none" stroke-dasharray="4 4" opacity="0.7"/>
+
+  <!-- Character Back/Body -->
+  <path d="M120 310 L280 310 L270 230 C270 210, 250 175, 200 175 C150 175, 130 210, 130 230 Z" fill="#E1EFE6"/>
+  <!-- Green Apron -->
+  <path d="M150 215 L250 215 L245 310 L155 310 Z" fill="#6BB03C"/>
+  <path d="M150 215 C150 200, 160 185, 200 185 C240 185, 250 200, 250 215" fill="#6BB03C"/>
+  <!-- Apron neck strap -->
+  <path d="M175 185 C175 140, 225 140, 225 185" stroke="#3D6B1F" stroke-width="4" fill="none"/>
+  <!-- Neck -->
+  <path d="M190 145 L210 145 L210 165 L190 165 Z" fill="#FAD2C0"/>
+
+  <!-- Head -->
+  <circle cx="200" cy="120" r="32" fill="#FAD2C0"/>
+  <!-- Hair: Black, sleek style tied up -->
+  <path d="M165 120 C165 85, 235 85, 235 120 C235 130, 230 140, 230 145 C230 145, 225 130, 225 125 C220 115, 180 115, 175 125 C175 130, 170 145, 170 145 C170 140, 165 130, 165 120 Z" fill="#2E2E2E"/>
+  <!-- Hair Bun on top -->
+  <circle cx="200" cy="80" r="16" fill="#2E2E2E"/>
+  <!-- Scrunchie (Green band under bun) -->
+  <rect x="188" y="90" width="24" height="6" rx="3" fill="#6BB03C"/>
+  <!-- Side hair strands -->
+  <path d="M168 120 L165 150 M232 120 L235 150" stroke="#2E2E2E" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Face details -->
+  <!-- Eyes -->
+  <circle cx="188" cy="115" r="2.5" fill="#2E2E2E"/>
+  <circle cx="212" cy="115" r="2.5" fill="#2E2E2E"/>
+  <!-- Eyebrows -->
+  <path d="M182 108 Q188 106 193 110 M207 110 Q212 106 218 108" stroke="#2E2E2E" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <!-- Smile -->
+  <path d="M194 128 Q200 134 206 128" stroke="#2E2E2E" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <!-- Cheeks (Blush) -->
+  <circle cx="178" cy="122" r="5" fill="#F49A9A" opacity="0.6"/>
+  <circle cx="222" cy="122" r="5" fill="#F49A9A" opacity="0.6"/>
+
+  <!-- Left Arm (Apron area down to table) -->
+  <path d="M130 200 Q110 230 135 255 L165 240 Z" fill="#FAD2C0"/>
+  <!-- Right Arm (holding spoon) -->
+  <path d="M270 200 Q290 230 255 255 L230 240 Z" fill="#FAD2C0"/>
+  
+  <!-- Whisk/Spoon in hand -->
+  <path d="M230 245 L225 210 Q220 205 215 215 L220 250 Z" fill="#9C9C9C"/>
+  <ellipse cx="213" cy="205" rx="8" ry="12" fill="none" stroke="#9C9C9C" stroke-width="2"/>
+  <line x1="213" y1="195" x2="213" y2="215" stroke="#9C9C9C" stroke-width="1.5"/>
+
+  <!-- Speech bubble "Hi!" in green on the top left -->
+  <path d="M80 70 C80 50, 130 50, 130 70 C130 85, 110 90, 100 95 C98 96, 95 102, 95 102 L92 94 C85 92, 80 85, 80 70 Z" fill="#6BB03C"/>
+  <text x="94" y="76" font-family="'Outfit', 'Inter', sans-serif" font-weight="bold" font-size="14" fill="#FFFFFF">Hi!</text>
+</svg>

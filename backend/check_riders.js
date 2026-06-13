@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); prisma.riderProfile.findMany({ select: { id: true, isOnline: true, approvalStatus: true } }).then(u => { console.log(JSON.stringify(u, null, 2)); prisma.$disconnect(); }).catch(e => { console.error(e); prisma.$disconnect(); })

@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\riads\\\\Desktop\\\\Food_delivery\\\\apps\\\\admin_app\\\\lib\" -Recurse -File)",
+      "Bash(Select-Object -First 30)",
+      "Bash(xargs grep -l \"customers\\\\|user\")",
+      "Bash(flutter pub *)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter test *)",
+      "Bash(npx --yes skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max)",
+      "WebFetch(domain:www.behance.net)",
+      "Bash(npm run *)",
+      "Bash(npx prisma *)",
+      "Bash(powershell -NoProfile -Command 'Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }')",
+      "Bash(git clone *)",
+      "Bash(echo \"---EXIT:$?---\")",
+      "Read(//c/Users/riads/.claude/skills/gstack/**)"
+    ]
+  }
+}

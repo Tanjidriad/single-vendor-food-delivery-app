@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,14 +13,15 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   bootstrapFlutterApp();
+  await dotenv.load(fileName: '.env');
   final prefs = await SharedPreferences.getInstance();
   await ApiHostResolver.init(prefs);
 
-  const mapboxToken = String.fromEnvironment('MAPBOX_ACCESS_TOKEN');
-  if (mapboxToken.isEmpty) {
+  final mapboxToken = dotenv.env['MAPBOX_ACCESS_TOKEN'];
+  if (mapboxToken == null || mapboxToken.isEmpty) {
     throw StateError(
-      'MAPBOX_ACCESS_TOKEN is not set. Pass it at build time: '
-      'flutter run --dart-define=MAPBOX_ACCESS_TOKEN=YOUR_TOKEN',
+      'MAPBOX_ACCESS_TOKEN is not set. Add it to apps/customer_app/.env '
+      '(copy from .env.example)',
     );
   }
   MapboxOptions.setAccessToken(mapboxToken);

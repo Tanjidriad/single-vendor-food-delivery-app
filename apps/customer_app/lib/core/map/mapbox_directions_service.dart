@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'models/app_map_route_point.dart';
 
@@ -12,11 +13,11 @@ class MapboxDirectionsService {
       'https://api.mapbox.com/directions/v5/mapbox/driving';
 
   static String get _accessToken {
-    const token = String.fromEnvironment('MAPBOX_ACCESS_TOKEN');
-    if (token.isEmpty) {
+    final token = dotenv.env['MAPBOX_ACCESS_TOKEN'];
+    if (token == null || token.isEmpty) {
       throw StateError(
-        'MAPBOX_ACCESS_TOKEN is not set. Pass it at build time: '
-        'flutter run --dart-define=MAPBOX_ACCESS_TOKEN=YOUR_TOKEN',
+        'MAPBOX_ACCESS_TOKEN is not set. Add it to apps/customer_app/.env '
+        '(copy from .env.example)',
       );
     }
     return token;

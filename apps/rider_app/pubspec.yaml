@@ -27,6 +27,7 @@ dependencies:
   socket_io_client: ^3.1.4
   url_launcher: ^6.3.1
   logger: ^2.7.0
+  flutter_dotenv: ^5.2.1
 
 dev_dependencies:
   flutter_test:
@@ -38,5 +39,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - .env
     - assets/dev_api_host.txt
     - assets/sounds/

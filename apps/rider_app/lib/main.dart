@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,6 +11,7 @@ import 'core/map/mapbox/mapbox_bootstrap.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   bootstrapFlutterApp();
+  await dotenv.load(fileName: '.env');
   bootstrapMapbox();
   final prefs = await SharedPreferences.getInstance();
   await ApiHostResolver.init(prefs);

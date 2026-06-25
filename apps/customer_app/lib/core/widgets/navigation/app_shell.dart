@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_icons.dart';
 
+import '../../network/api_client.dart';
+import '../../realtime/socket_service.dart';
 import '../../theme/app_breakpoints.dart';
 import '../../theme/app_colors.dart';
 import '../commerce/floating_cart_bar.dart';
@@ -17,13 +19,46 @@ import '../../../features/home/presentation/widgets/zone_takeover.dart';
 /// still manage addresses and account settings.
 const int _profileBranchIndex = 3;
 
-class AppShell extends ConsumerWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // On resume, recover a socket that may have dropped while backgrounded so
+    // live order tracking keeps updating. ensureConnected is a no-op when the
+    // socket is already healthy.
+    if (state == AppLifecycleState.resumed) {
+      final token = ref.read(authTokenProvider);
+      if (token != null && token.isNotEmpty) {
+        ref.read(socketServiceProvider).ensureConnected(token);
+      }
+    }
+  }
+
+  StatefulNavigationShell get navigationShell => widget.navigationShell;
+
+  @override
+  Widget build(BuildContext context) {
     final layout = AppBreakpoints.of(context);
     final isDesktop = layout == AppLayoutSize.desktop;
 

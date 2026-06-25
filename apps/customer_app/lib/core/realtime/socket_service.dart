@@ -90,6 +90,16 @@ class SocketService {
     _socket?.off('rider:location.updated');
   }
 
+  bool get isConnected => _socket?.connected ?? false;
+
+  /// Reconnects only when the socket is not currently connected — used by the
+  /// app-lifecycle observer on resume so a backgrounded socket recovers without
+  /// churning a healthy connection.
+  void ensureConnected(String token) {
+    if (isConnected) return;
+    reconnectWithToken(token);
+  }
+
   void reconnectWithToken(String token) {
     final orderId = _activeOrderId;
     connect(token);

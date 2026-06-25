@@ -1,10 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
-
-
 import '../../../../core/network/api_client.dart';
+import '../../../../core/storage/token_storage.dart';
 
 import '../../../../core/realtime/socket_service.dart';
 
@@ -29,14 +26,6 @@ import '../../domain/usecases/register_usecase.dart';
 const _kAccessToken = 'access_token';
 
 const _kRefreshToken = 'refresh_token';
-
-
-
-final secureStorageProvider = Provider<FlutterSecureStorage>(
-
-  (ref) => const FlutterSecureStorage(),
-
-);
 
 
 

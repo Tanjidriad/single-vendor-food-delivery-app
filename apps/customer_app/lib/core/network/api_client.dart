@@ -3,14 +3,13 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../config/app_config.dart';
 import '../constants/api_endpoints.dart';
+import '../errors/failures.dart';
 import '../realtime/socket_service.dart';
+import '../storage/token_storage.dart';
 import 'retry_interceptor.dart';
-
-Completer<String?>? _tokenRefreshCompleter;
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
@@ -30,26 +29,6 @@ final dioProvider = Provider<Dio>((ref) {
 
 /// In-memory access token for authenticated API calls.
 final authTokenProvider = StateProvider<String?>((ref) => null);
-
-const _kAccessToken = 'access_token';
-const _kRefreshToken = 'refresh_token';
-
-/// Schedules provider writes outside Dio interceptor/async gaps so Riverpod
-/// does not assert during [apiClientProvider] rebuilds.
-void _scheduleAuthUpdate(Ref ref, String? accessToken) {
-  Future.microtask(() {
-    ref.read(authTokenProvider.notifier).state = accessToken;
-  });
-}
-
-Future<void> _scheduleSessionClear(Ref ref) async {
-  unawaited(Future.microtask(() async {
-    const storage = FlutterSecureStorage();
-    await storage.delete(key: _kAccessToken);
-    await storage.delete(key: _kRefreshToken);
-    ref.read(authTokenProvider.notifier).state = null;
-  }));
-}
 
 final apiClientProvider = Provider<Dio>((ref) {
   final baseDio = ref.watch(dioProvider);
@@ -76,13 +55,13 @@ final apiClientProvider = Provider<Dio>((ref) {
         }
 
         try {
-          final newAccessToken = await _refreshAccessToken(ref);
+          final newAccessToken = await ref.read(tokenRefresherProvider).refresh();
           final retryOptions = error.requestOptions;
           retryOptions.headers['Authorization'] = 'Bearer $newAccessToken';
           final retryResponse = await client.fetch(retryOptions);
           return handler.resolve(retryResponse);
         } catch (_) {
-          await _scheduleSessionClear(ref);
+          await ref.read(tokenRefresherProvider).clearSession();
           return handler.next(error);
         }
       },
@@ -97,61 +76,95 @@ final apiClientProvider = Provider<Dio>((ref) {
   return client;
 });
 
-Future<String> _refreshAccessToken(Ref ref) async {
-  if (_tokenRefreshCompleter != null) {
-    final existing = await _tokenRefreshCompleter!.future;
-    if (existing == null || existing.isEmpty) {
-      throw StateError('Token refresh failed');
+/// Coordinates access-token refresh. De-duplicates concurrent 401s so only one
+/// network refresh runs at a time, and persists the rotated tokens.
+final tokenRefresherProvider =
+    Provider<TokenRefresher>((ref) => TokenRefresher(ref));
+
+class TokenRefresher {
+  TokenRefresher(this._ref);
+
+  final Ref _ref;
+
+  /// In-flight refresh shared by concurrent callers (replaces the previous
+  /// top-level mutable global, so the dedup state is scoped + testable).
+  Completer<String?>? _inFlight;
+
+  /// Refreshes the access token, returning the new value. Concurrent callers
+  /// await the same in-flight refresh rather than triggering several.
+  Future<String> refresh() async {
+    final existing = _inFlight;
+    if (existing != null) {
+      final token = await existing.future;
+      if (token == null || token.isEmpty) {
+        throw const AuthFailure('Token refresh failed.');
+      }
+      return token;
     }
-    return existing;
+
+    final completer = Completer<String?>();
+    _inFlight = completer;
+    try {
+      final tokenStorage = _ref.read(tokenStorageProvider);
+      final refreshToken = await tokenStorage.readRefreshToken();
+      if (refreshToken == null || refreshToken.isEmpty) {
+        completer.complete(null);
+        throw const AuthFailure('No refresh token.');
+      }
+
+      final refreshDio = Dio(
+        BaseOptions(
+          baseUrl: AppConfig.apiBaseUrl,
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
+
+      final response = await refreshDio.post<Map<String, dynamic>>(
+        ApiEndpoints.authRefresh,
+        data: {'refreshToken': refreshToken},
+      );
+
+      final newAccessToken = response.data?['accessToken'] as String?;
+      final newRefreshToken = response.data?['refreshToken'] as String?;
+      if (newAccessToken == null || newRefreshToken == null) {
+        completer.complete(null);
+        throw const ServerFailure('Invalid refresh response.');
+      }
+
+      await tokenStorage.writeTokens(
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      );
+      _scheduleAuthUpdate(newAccessToken);
+      // Reconnect the socket with the new token, deferred off the async gap.
+      unawaited(Future.microtask(() {
+        _ref.read(socketServiceProvider).reconnectWithToken(newAccessToken);
+      }));
+      completer.complete(newAccessToken);
+      return newAccessToken;
+    } catch (_) {
+      if (!completer.isCompleted) completer.complete(null);
+      rethrow;
+    } finally {
+      _inFlight = null;
+    }
   }
 
-  _tokenRefreshCompleter = Completer<String?>();
-  try {
-    const storage = FlutterSecureStorage();
-    final refreshToken = await storage.read(key: _kRefreshToken);
-
-    if (refreshToken == null || refreshToken.isEmpty) {
-      _tokenRefreshCompleter!.complete(null);
-      throw StateError('No refresh token');
-    }
-
-    final refreshDio = Dio(
-      BaseOptions(
-        baseUrl: AppConfig.apiBaseUrl,
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 10),
-        headers: {'Content-Type': 'application/json'},
-      ),
-    );
-
-    final response = await refreshDio.post<Map<String, dynamic>>(
-      ApiEndpoints.authRefresh,
-      data: {'refreshToken': refreshToken},
-    );
-
-    final newAccessToken = response.data?['accessToken'] as String?;
-    final newRefreshToken = response.data?['refreshToken'] as String?;
-
-    if (newAccessToken == null || newRefreshToken == null) {
-      _tokenRefreshCompleter!.complete(null);
-      throw StateError('Invalid refresh response');
-    }
-
-    await storage.write(key: _kAccessToken, value: newAccessToken);
-    await storage.write(key: _kRefreshToken, value: newRefreshToken);
-    _scheduleAuthUpdate(ref, newAccessToken);
-    unawaited(Future.microtask(() {
-      ref.read(socketServiceProvider).reconnectWithToken(newAccessToken);
+  /// Clears the persisted session after an unrecoverable auth failure.
+  Future<void> clearSession() async {
+    unawaited(Future.microtask(() async {
+      await _ref.read(tokenStorageProvider).clear();
+      _ref.read(authTokenProvider.notifier).state = null;
     }));
-    _tokenRefreshCompleter!.complete(newAccessToken);
-    return newAccessToken;
-  } catch (e) {
-    if (!(_tokenRefreshCompleter?.isCompleted ?? true)) {
-      _tokenRefreshCompleter!.complete(null);
-    }
-    rethrow;
-  } finally {
-    _tokenRefreshCompleter = null;
+  }
+
+  /// Schedules the in-memory token write outside the Dio interceptor/async gap
+  /// so Riverpod does not assert during provider rebuilds.
+  void _scheduleAuthUpdate(String? accessToken) {
+    Future.microtask(() {
+      _ref.read(authTokenProvider.notifier).state = accessToken;
+    });
   }
 }

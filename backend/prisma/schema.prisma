@@ -224,6 +224,7 @@ model RiderProfile {
   id                  String   @id @default(uuid())
   userId              String   @unique
   fullName            String
+  avatarUrl           String?
   vehicleType         String?
   vehicleModel        String?
   vehicleRegistration String?
@@ -247,6 +248,7 @@ model RiderProfile {
   ledgerEntries      RiderLedgerEntry[]
   payouts            RiderPayout[]
   codSettlements     CodSettlement[]
+  orderRejections    RiderOrderRejection[]
 }
 
 model RefreshToken {
@@ -259,7 +261,7 @@ model RefreshToken {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
+  @@index([userId, tokenHash])
   @@index([expiresAt])
 }
 
@@ -440,6 +442,10 @@ model Coupon {
   startsAt       DateTime?
   endsAt         DateTime?
   isActive       Boolean   @default(true)
+  // Targeting — universal vs. individual coupons
+  perUserLimit     Int?     // max redemptions per customer (null = unlimited)
+  newCustomersOnly Boolean  @default(false) // valid only on a customer's first order
+  targetUserId     String?  // restrict to a single customer (null = everyone)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -453,6 +459,7 @@ model Coupon {
 model Order {
   id                String        @id @default(uuid())
   orderNumber       String        @unique
+  dailySerial       Int?          // Sequential per-restaurant-per-day counter (resets daily). Display as #001, #042. orderNumber stays the permanent unique id.
   restaurantId      String
   branchId          String?
   customerId        String
@@ -517,6 +524,8 @@ model Order {
   statusHistory OrderStatusHistory[]
   payment      Payment?
   assignment   RiderAssignment?
+  messages     Message[]
+  riderRejections RiderOrderRejection[]
   review       Review?
   placementIdempotency OrderPlacementIdempotency?
   deliveryExceptions   DeliveryException[]
@@ -531,6 +540,18 @@ model Order {
   @@index([parentOrderId])
   @@index([customerId, createdAt])
   @@index([customerId, status])
+}
+
+/// Atomic per-restaurant-per-day counter backing Order.dailySerial.
+/// One row per (restaurant, calendar day); incremented inside the order-creation
+/// transaction so concurrent orders never collide on the same serial.
+model DailyOrderCounter {
+  id           String   @id @default(uuid())
+  restaurantId String
+  day          String   // Local calendar day key, e.g. "2026-06-23"
+  count        Int      @default(0)
+
+  @@unique([restaurantId, day])
 }
 
 model OrderItem {
@@ -660,6 +681,39 @@ model RiderAssignment {
   rider RiderProfile @relation(fields: [riderId], references: [id])
 
   @@index([riderId, status])
+}
+
+/// A chat message exchanged between the customer and the assigned rider for a
+/// specific order. [senderRole] lets clients render bubbles (own vs. other)
+/// without resolving sender identity; [senderId] is the sender's User id.
+model Message {
+  id         String    @id @default(uuid())
+  orderId    String
+  senderId   String
+  senderRole UserRole
+  body       String
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+}
+
+/// Durable record that a rider declined (or let expire) an order, used to keep
+/// that rider out of re-offers for the same order during a cooldown window.
+/// Survives the deletion/replacement of the active RiderAssignment row.
+model RiderOrderRejection {
+  id        String   @id @default(uuid())
+  orderId   String
+  riderId   String
+  reason    String   @default("REJECTED") // REJECTED | EXPIRED
+  createdAt DateTime @default(now())
+
+  order Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  rider RiderProfile @relation(fields: [riderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, riderId, createdAt])
 }
 
 model RiderLocation {

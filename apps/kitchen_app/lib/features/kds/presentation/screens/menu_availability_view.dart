@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../providers/menu_provider.dart';
+import '../widgets/kitchen_header.dart';
 
 class MenuAvailabilityView extends ConsumerWidget {
   const MenuAvailabilityView({super.key});
@@ -12,22 +13,9 @@ class MenuAvailabilityView extends ConsumerWidget {
 
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: AppColors.white50,
-            border: Border(bottom: BorderSide(color: AppColors.gray200)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.menu_book, color: AppColors.pandaPink, size: 28),
-              const SizedBox(width: 12),
-              const Text(
-                'Menu Availability',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.black500),
-              ),
-            ],
-          ),
+        const KitchenHeader(
+          title: 'Menu availability',
+          subtitle: 'Toggle items in or out of stock',
         ),
         Expanded(
           child: menuState.when(

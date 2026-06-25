@@ -53,8 +53,8 @@ class AppListTileShimmerList extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: count,
-      separatorBuilder: (_, __) => const SizedBox(height: 4),
-      itemBuilder: (_, __) => AppListTileShimmer(imageSize: imageSize),
+      separatorBuilder: (_, _) => const SizedBox(height: 4),
+      itemBuilder: (_, _) => AppListTileShimmer(imageSize: imageSize),
     );
   }
 }

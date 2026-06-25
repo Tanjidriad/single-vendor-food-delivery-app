@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/map_dio_exception.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_endpoints.dart';
 
@@ -20,11 +22,9 @@ class OrdersRepository {
       final response = await _apiClient.post(
         ApiEndpoints.acceptAssignment(assignmentId),
       );
-      return response.data as Map<String, dynamic>;
+      return _asMap(response.data, 'Could not accept the assignment.');
     } on DioException catch (e) {
-      final message = _extractErrorMessage(e);
-      debugPrint('Error accepting assignment: $message');
-      throw Exception(message);
+      throw mapDioException(e);
     }
   }
 
@@ -34,11 +34,9 @@ class OrdersRepository {
       final response = await _apiClient.post(
         ApiEndpoints.rejectAssignment(assignmentId),
       );
-      return response.data as Map<String, dynamic>;
+      return _asMap(response.data, 'Could not reject the assignment.');
     } on DioException catch (e) {
-      final message = _extractErrorMessage(e);
-      debugPrint('Error rejecting assignment: $message');
-      throw Exception(message);
+      throw mapDioException(e);
     }
   }
 
@@ -48,11 +46,9 @@ class OrdersRepository {
       final response = await _apiClient.get(
         ApiEndpoints.orderById(orderId),
       );
-      return response.data as Map<String, dynamic>;
+      return _asMap(response.data, 'Order not found.');
     } on DioException catch (e) {
-      final message = _extractErrorMessage(e);
-      debugPrint('Error fetching order: $message');
-      throw Exception(message);
+      throw mapDioException(e);
     }
   }
 
@@ -67,14 +63,12 @@ class OrdersRepository {
         ApiEndpoints.updateOrderStatus(orderId),
         data: {
           'status': status,
-          if (note != null) 'note': note,
+          'note': ?note,
         },
       );
-      return response.data as Map<String, dynamic>;
+      return _asMap(response.data, 'Could not update the order status.');
     } on DioException catch (e) {
-      final message = _extractErrorMessage(e);
-      debugPrint('Error updating order status: $message');
-      throw Exception(message);
+      throw mapDioException(e);
     }
   }
 
@@ -90,19 +84,20 @@ class OrdersRepository {
         ApiEndpoints.verifyDelivery(orderId),
         data: {
           'otp': otp,
-          if (dropoffPhotoUrl != null) 'dropoffPhotoUrl': dropoffPhotoUrl,
-          if (pickupExperience != null) 'pickupExperience': pickupExperience,
+          'dropoffPhotoUrl': ?dropoffPhotoUrl,
+          'pickupExperience': ?pickupExperience,
         },
       );
-      return response.data as Map<String, dynamic>;
+      return _asMap(response.data, 'Could not verify the delivery code.');
     } on DioException catch (e) {
-      final message = _extractErrorMessage(e);
-      debugPrint('Error verifying delivery OTP: $message');
-      throw Exception(message);
+      throw mapDioException(e);
     }
   }
 
   /// Pending offers awaiting accept/reject (reconnect recovery).
+  ///
+  /// Intentionally swallows errors and returns an empty list: this runs during
+  /// reconnect and must never surface an error to the rider.
   Future<List<Map<String, dynamic>>> fetchPendingAssignments() async {
     try {
       debugPrint('[AssignBridge] GET ${ApiEndpoints.pendingAssignments}');
@@ -115,8 +110,7 @@ class OrdersRepository {
           .map((e) => Map<String, dynamic>.from(e))
           .toList();
     } on DioException catch (e) {
-      final message = _extractErrorMessage(e);
-      debugPrint('[AssignBridge] fetchPending DioError: $message (status=${e.response?.statusCode})');
+      debugPrint('[AssignBridge] fetchPending DioError: ${e.message} (status=${e.response?.statusCode})');
       return [];
     }
   }
@@ -136,11 +130,9 @@ class OrdersRepository {
           'foodReturned': foodReturned,
         },
       );
-      return response.data as Map<String, dynamic>;
+      return _asMap(response.data, 'Could not report the delivery exception.');
     } on DioException catch (e) {
-      final message = _extractErrorMessage(e);
-      debugPrint('Error reporting delivery exception: $message');
-      throw Exception(message);
+      throw mapDioException(e);
     }
   }
 
@@ -151,21 +143,18 @@ class OrdersRepository {
         ApiEndpoints.orders,
         queryParameters: {'page': page, 'limit': limit},
       );
-      return response.data as List<dynamic>;
+      final data = response.data;
+      return data is List ? data : const [];
     } on DioException catch (e) {
-      final message = _extractErrorMessage(e);
-      debugPrint('Error listing orders: $message');
-      throw Exception(message);
+      throw mapDioException(e);
     }
   }
 
-  String _extractErrorMessage(DioException e) {
-    if (e.response?.data is Map) {
-      final message = e.response?.data['message'];
-      if (message != null) {
-        return message is List ? message.first.toString() : message.toString();
-      }
-    }
-    return e.message ?? 'Request failed';
+  /// Coerces a response body into a JSON object, or throws a [ServerFailure]
+  /// with [emptyError] when the body is missing / the wrong shape.
+  Map<String, dynamic> _asMap(Object? data, String emptyError) {
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) return Map<String, dynamic>.from(data);
+    throw ServerFailure(emptyError);
   }
 }

@@ -5,6 +5,9 @@ import {
   NotFoundException,
   Logger,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { DISPATCH_QUEUE, NOTIFICATIONS_QUEUE } from '../../common/queues/queue.constants';
 import {
   AssignmentStatus,
   CancelledBy,
@@ -17,6 +20,7 @@ import {
   UserRole,
 } from '@prisma/client';
 import { generateOrderNumber } from '../../common/utils/order-number.util';
+import { nextDailySerial } from '../../common/utils/daily-serial.util';
 import { round2 } from '../../common/utils/money.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RealtimeService } from '../../gateways/realtime.service';
@@ -37,6 +41,7 @@ import {
 } from './dto/resolve-exception.dto';
 import { FoodDispositionDto } from './dto/food-disposition.dto';
 import { DispatchService } from '../dispatch/dispatch.service';
+import { PathaoService } from '../dispatch/pathao.service';
 import { OrderStatusService } from './order-status.service';
 import { RefundsService } from '../payments/refunds.service';
 import { CodSettlementService } from '../earnings/cod-settlement.service';
@@ -71,10 +76,13 @@ export class OrdersService {
     private notifications: NotificationsService,
     private printEvents: PrintEventsService,
     private dispatchService: DispatchService,
+    private pathaoService: PathaoService,
     private orderStatusService: OrderStatusService,
     private refundsService: RefundsService,
     private riderLedger: RiderLedgerService,
     private codSettlement: CodSettlementService,
+    @InjectQueue(DISPATCH_QUEUE) private dispatchQueue: Queue,
+    @InjectQueue(NOTIFICATIONS_QUEUE) private notificationsQueue: Queue,
   ) {}
 
   async placeOrder(customerId: string, dto: PlaceOrderDto) {
@@ -206,6 +214,41 @@ export class OrdersService {
       if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
         throw new BadRequestException('Coupon usage limit reached');
       }
+      // ── Targeting rules (individual / new-customer coupons) ──
+      if (coupon.targetUserId && coupon.targetUserId !== customerId) {
+        throw new BadRequestException(
+          'This coupon is reserved for a specific customer',
+        );
+      }
+      if (coupon.newCustomersOnly) {
+        const priorOrders = await this.prisma.order.count({
+          where: {
+            customerId,
+            status: {
+              notIn: [
+                OrderStatus.IGNORED_TEST,
+                OrderStatus.REJECTED,
+                OrderStatus.CANCELLED,
+              ],
+            },
+          },
+        });
+        if (priorOrders > 0) {
+          throw new BadRequestException(
+            'This coupon is valid on your first order only',
+          );
+        }
+      }
+      if (coupon.perUserLimit) {
+        const timesUsed = await this.prisma.order.count({
+          where: { customerId, couponId: coupon.id },
+        });
+        if (timesUsed >= coupon.perUserLimit) {
+          throw new BadRequestException(
+            'You have reached the usage limit for this coupon',
+          );
+        }
+      }
       if (coupon.minOrderAmount && subtotal < coupon.minOrderAmount) {
         throw new BadRequestException(
           `Minimum order ${coupon.minOrderAmount} required for this coupon`,
@@ -258,9 +301,11 @@ export class OrdersService {
     });
 
     const order = await this.prisma.$transaction(async (tx) => {
+      const dailySerial = await nextDailySerial(tx, dto.restaurantId);
       const created = await tx.order.create({
         data: {
           orderNumber: generateOrderNumber(),
+          dailySerial,
           restaurantId: dto.restaurantId,
           customerId,
           couponId,
@@ -369,6 +414,37 @@ export class OrdersService {
       paymentMethod: order.paymentMethod,
       paymentStatus: order.paymentStatus,
     });
+
+    // Push to on-shift restaurant staff so a backgrounded KDS tablet still
+    // alerts on a new order (fire-and-forget; never blocks order placement).
+    void this.notifyRestaurantStaffOfNewOrder(order);
+  }
+
+  /// Enqueues an FCM push for every staff user of the order's restaurant.
+  private async notifyRestaurantStaffOfNewOrder(order: {
+    id: string;
+    orderNumber: string;
+    grandTotal: number;
+    restaurantId: string;
+  }) {
+    try {
+      const staff = await this.prisma.user.findMany({
+        where: { restaurantId: order.restaurantId, role: { in: STAFF_ROLES } },
+        select: { id: true },
+      });
+      await Promise.all(
+        staff.map((s) =>
+          this.notificationsQueue.add('send', {
+            userId: s.id,
+            title: 'New order',
+            body: `Order ${order.orderNumber} · ৳${order.grandTotal}`,
+            data: { type: 'order:created', orderId: order.id },
+          }),
+        ),
+      );
+    } catch (err) {
+      this.logger.warn(`Failed to enqueue kitchen push: ${err}`);
+    }
   }
 
   async findOne(user: JwtPayload, orderId: string) {
@@ -397,7 +473,15 @@ export class OrdersService {
           include: {
             rider: {
               include: {
-                user: true,
+                user: {
+                  select: {
+                    id: true,
+                    phone: true,
+                    email: true,
+                    role: true,
+                    status: true,
+                  },
+                },
                 locations: {
                   orderBy: { recordedAt: 'desc' },
                   take: 1,
@@ -448,7 +532,12 @@ export class OrdersService {
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
-        include: { items: true, assignment: true, payment: true },
+        include: {
+          items: true,
+          assignment: { include: { rider: true } },
+          payment: true,
+          restaurant: { select: { name: true, city: true } },
+        },
       });
     }
     if (user.role === UserRole.RIDER && user.riderProfileId) {
@@ -519,22 +608,19 @@ export class OrdersService {
 
     if (dto.status === OrderStatus.READY_FOR_PICKUP) {
       if (!order.assignment || order.assignment.status === AssignmentStatus.EXPIRED || order.assignment.status === AssignmentStatus.REJECTED) {
-        void this.dispatchService
-          .autoAssign(user, orderId)
-          .then((assignment) => {
-            this.logger.log(
-              `Auto-assigned rider ${assignment.riderId} for ready order ${orderId}`,
-            );
-          })
-          .catch((err: unknown) => {
-            const message = err instanceof Error ? err.message : String(err);
-            this.logger.warn(`Failed to auto-assign order ${orderId} at ready: ${message}`);
-            this.realtime.emitToRoom(`restaurant:${order.restaurantId}`, 'order:dispatch.failed', {
-              orderId,
-              phase: 'READY_FOR_PICKUP',
-              reason: message,
-            });
-          });
+        await this.dispatchQueue.add('auto-assign', {
+          userId: user.sub,
+          userRole: user.role,
+          restaurantId: order.restaurantId,
+          riderProfileId: user.riderProfileId,
+          orderId,
+          phase: 'READY_FOR_PICKUP',
+        }, {
+          jobId: `auto-assign:${orderId}`,
+          priority: 1,
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 2000 },
+        });
       }
     }
 
@@ -606,12 +692,12 @@ export class OrdersService {
     this.broadcastStatus(updated);
 
     if (dto.status === OrderStatus.ON_THE_WAY && deliveryOtp) {
-      void this.notifications.sendToUser(
-        order.customerId,
-        'Delivery OTP',
-        `Your delivery code is ${deliveryOtp}`,
-        { type: 'order:delivery.otp', orderId: order.id },
-      );
+      await this.notificationsQueue.add('send', {
+        userId: order.customerId,
+        title: 'Delivery OTP',
+        body: `Your delivery code is ${deliveryOtp}`,
+        data: { type: 'order:delivery.otp', orderId: order.id },
+      });
     }
 
     return updated;
@@ -638,12 +724,12 @@ export class OrdersService {
       payload,
     );
     const customerMessage = this.customerStatusMessage(order);
-    void this.notifications.sendToUser(
-      order.customerId,
-      customerMessage.title,
-      customerMessage.body,
-      { type: 'order:status.changed', orderId: order.id, status: order.status },
-    );
+    this.notificationsQueue.add('send', {
+      userId: order.customerId,
+      title: customerMessage.title,
+      body: customerMessage.body,
+      data: { type: 'order:status.changed', orderId: order.id, status: order.status },
+    }).catch((err) => this.logger.warn(`Failed to enqueue notification: ${err}`));
   }
 
   private customerStatusMessage(order: {
@@ -699,23 +785,19 @@ export class OrdersService {
       prepMinutes,
     });
 
-    // Auto-assign rider after order is accepted.
-    void this.dispatchService
-      .autoAssign(user, orderId)
-      .then((assignment) => {
-        this.logger.log(
-          `Auto-assigned rider ${assignment.riderId} for accepted order ${orderId}`,
-        );
-      })
-      .catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : String(err);
-        this.logger.warn(`Failed to auto-assign order ${orderId}: ${message}`);
-        this.realtime.emitToRoom(`restaurant:${order.restaurantId}`, 'order:dispatch.failed', {
-          orderId,
-          phase: 'ORDER_ACCEPTED',
-          reason: message,
-        });
-      });
+    await this.dispatchQueue.add('auto-assign', {
+      userId: user.sub,
+      userRole: user.role,
+      restaurantId: order.restaurantId,
+      riderProfileId: user.riderProfileId,
+      orderId,
+      phase: 'ORDER_ACCEPTED',
+    }, {
+      jobId: `auto-assign:${orderId}`,
+      priority: 5,
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 2000 },
+    });
 
     return order;
   }
@@ -799,6 +881,122 @@ export class OrdersService {
     return orders;
   }
 
+  /**
+   * Aggregated kitchen stats for the stats screen. Returns the current period
+   * plus the comparable previous period (for deltas) in a single query.
+   * period: 'today' (default) | 'week' (last 7 days) | 'month' (last 30 days).
+   */
+  async getKitchenStats(user: JwtPayload, period = 'today', includeTest = false) {
+    if (!STAFF_ROLES.includes(user.role)) throw new ForbiddenException();
+    const p = ['today', 'week', 'month'].includes(period) ? period : 'today';
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const dayMs = 24 * 60 * 60 * 1000;
+    const span = p === 'week' ? 7 : p === 'month' ? 30 : 1;
+
+    const curEnd = new Date(startOfToday.getTime() + dayMs); // end of today
+    const curStart = new Date(curEnd.getTime() - span * dayMs);
+    const prevEnd = curStart;
+    const prevStart = new Date(curStart.getTime() - span * dayMs);
+
+    const settings = await this.prisma.restaurantSettings.findUnique({
+      where: { restaurantId: user.restaurantId as string },
+      select: { slaPrepSeconds: true },
+    });
+    const slaPrepMinutes = Math.round((settings?.slaPrepSeconds ?? 1200) / 60);
+
+    const orders = await this.prisma.order.findMany({
+      where: {
+        restaurantId: user.restaurantId as string,
+        ...(includeTest ? {} : { isTest: false, ignoreInReporting: false }),
+        createdAt: { gte: prevStart, lt: curEnd },
+      },
+      include: { items: true },
+    });
+
+    const inRange = (d: Date, s: Date, e: Date) => d >= s && d < e;
+    const cur = orders.filter((o) => inRange(o.createdAt, curStart, curEnd));
+    const prev = orders.filter((o) => inRange(o.createdAt, prevStart, prevEnd));
+
+    const netSalesOf = (list: typeof orders) =>
+      list
+        .filter((o) => o.status === OrderStatus.DELIVERED)
+        .reduce((s, o) => s + o.subtotal + o.taxAmount + o.packagingFee, 0);
+
+    const completed = cur.filter((o) => o.status === OrderStatus.DELIVERED);
+    const cancelled = cur.filter(
+      (o) => o.status === OrderStatus.CANCELLED || o.status === OrderStatus.REJECTED,
+    );
+
+    let prepSum = 0;
+    let prepN = 0;
+    for (const o of completed) {
+      if (o.acceptedAt && o.readyAt) {
+        prepSum += (o.readyAt.getTime() - o.acceptedAt.getTime()) / 60000;
+        prepN++;
+      }
+    }
+    const avgPrepMinutes = prepN ? Math.round(prepSum / prepN) : 0;
+
+    let online = 0;
+    let cash = 0;
+    for (const o of completed) {
+      if (o.paymentMethod === PaymentMethod.COD) {
+        cash += o.grandTotal;
+      } else {
+        online += o.grandTotal;
+      }
+    }
+
+    // Bar series: 24 hourly buckets for "today", otherwise one bucket per day.
+    let series: { label: string; value: number }[];
+    if (p === 'today') {
+      const buckets = new Array<number>(24).fill(0);
+      for (const o of cur) buckets[o.createdAt.getHours()]++;
+      series = buckets.map((value, h) => ({ label: String(h), value }));
+    } else {
+      const buckets = new Array<number>(span).fill(0);
+      for (const o of cur) {
+        const idx = Math.floor((o.createdAt.getTime() - curStart.getTime()) / dayMs);
+        if (idx >= 0 && idx < span) buckets[idx]++;
+      }
+      series = buckets.map((value, i) => {
+        const d = new Date(curStart.getTime() + i * dayMs);
+        return { label: d.toISOString().slice(0, 10), value };
+      });
+    }
+
+    const itemCounts = new Map<string, number>();
+    for (const o of cur) {
+      for (const it of o.items) {
+        const name = it.name || 'Item';
+        itemCounts.set(name, (itemCounts.get(name) ?? 0) + it.quantity);
+      }
+    }
+    const topItems = [...itemCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }));
+
+    const netSales = netSalesOf(cur);
+    return {
+      period: p,
+      netSales: round2(netSales),
+      netSalesPrev: round2(netSalesOf(prev)),
+      orders: cur.length,
+      ordersPrev: prev.length,
+      completed: completed.length,
+      cancelled: cancelled.length,
+      avgOrderValue: completed.length ? round2(netSales / completed.length) : 0,
+      avgPrepMinutes,
+      slaPrepMinutes,
+      paymentSplit: { online: round2(online), cash: round2(cash) },
+      series,
+      topItems,
+    };
+  }
+
   async reorder(user: JwtPayload, orderId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
@@ -866,6 +1064,40 @@ export class OrdersService {
       );
     }
 
+    // ── Auto-create Pathao parcel if no manual tracking ID was provided ──────
+    let resolvedTrackingId = dto.trackingId?.trim() || undefined;
+    let resolvedTrackingUrl = dto.trackingUrl?.trim() || undefined;
+
+    if (
+      dto.deliveryService === 'Pathao Parcel' &&
+      !resolvedTrackingId
+    ) {
+      try {
+        const pathaoResult = await this.pathaoService.createOrder({
+          merchantOrderId: order.orderNumber,
+          recipientName:    order.customerName,
+          recipientPhone:   order.customerPhone,
+          recipientAddress: order.deliveryAddress ?? 'Dhaka',
+          // COD orders: Pathao collects the full grand total at the door.
+          // Online / prepaid orders: nothing to collect.
+          amountToCollect:
+            order.paymentMethod === 'COD' ? Math.round(order.grandTotal) : 0,
+          itemDescription: `Order ${order.orderNumber} — food delivery`,
+        });
+        resolvedTrackingId  = pathaoResult.consignmentId;
+        resolvedTrackingUrl = `https://parcel.pathao.com/tracking/${pathaoResult.consignmentId}`;
+        this.logger.log(
+          `Pathao parcel auto-created for order ${order.orderNumber}: consignment=${pathaoResult.consignmentId}`,
+        );
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err);
+        this.logger.error(`Pathao order creation failed for ${orderId}: ${reason}`);
+        throw new BadRequestException(
+          `Could not create Pathao parcel: ${reason}`,
+        );
+      }
+    }
+
     const updated = await this.prisma.$transaction(async (tx) => {
       // Cancel any pending local rider assignment
       if (
@@ -884,8 +1116,8 @@ export class OrdersService {
         data: {
           status: OrderStatus.ON_THE_WAY,
           deliveryService: dto.deliveryService,
-          trackingId: dto.trackingId,
-          trackingUrl: dto.trackingUrl,
+          trackingId: resolvedTrackingId,
+          trackingUrl: resolvedTrackingUrl,
         },
         include: { items: { include: { addons: true } } },
       });
@@ -894,7 +1126,7 @@ export class OrdersService {
         data: {
           orderId,
           status: OrderStatus.ON_THE_WAY,
-          note: `Dispatched via ${dto.deliveryService} — Tracking: ${dto.trackingId}`,
+          note: `Dispatched via ${dto.deliveryService} — Tracking: ${resolvedTrackingId ?? 'N/A'}`,
           changedBy: user.sub,
         },
       });
@@ -904,19 +1136,18 @@ export class OrdersService {
 
     this.broadcastStatus(updated);
 
-    // Notify customer about external delivery
-    void this.notifications.sendToUser(
-      order.customerId,
-      'Order shipped!',
-      `Your order ${order.orderNumber} is on the way via ${dto.deliveryService}. Track: ${dto.trackingId}`,
-      {
+    await this.notificationsQueue.add('send', {
+      userId: order.customerId,
+      title: 'Order shipped!',
+      body: `Your order ${order.orderNumber} is on the way via ${dto.deliveryService}. Track: ${resolvedTrackingId ?? ''}`,
+      data: {
         type: 'order:dispatched.external',
         orderId: order.id,
         deliveryService: dto.deliveryService,
-        trackingId: dto.trackingId,
-        trackingUrl: dto.trackingUrl ?? '',
+        trackingId: resolvedTrackingId ?? '',
+        trackingUrl: resolvedTrackingUrl ?? '',
       },
-    );
+    });
 
     return updated;
   }
@@ -1267,7 +1498,16 @@ export class OrdersService {
           OrderStatus.READY_FOR_PICKUP,
           { note: dto.note ?? 'Re-dispatch after delivery exception' },
         );
-        void this.dispatchService.autoAssign(user, orderId).catch(() => undefined);
+        await this.dispatchQueue.add('auto-assign', {
+          userId: user.sub, userRole: user.role,
+          restaurantId: user.restaurantId, riderProfileId: user.riderProfileId,
+          orderId, phase: 'REASSIGN',
+        }, {
+          jobId: `auto-assign:${orderId}`,
+          priority: 1,
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 2000 },
+        });
         this.broadcastStatus(updated);
         return updated;
       }
@@ -1336,9 +1576,11 @@ export class OrdersService {
   ) {
     const orderNumber = generateOrderNumber();
     const clone = await this.prisma.$transaction(async (tx) => {
+      const dailySerial = await nextDailySerial(tx, source.restaurantId);
       const created = await tx.order.create({
         data: {
           orderNumber,
+          dailySerial,
           restaurantId: source.restaurantId,
           branchId: source.branchId,
           customerId: source.customerId,

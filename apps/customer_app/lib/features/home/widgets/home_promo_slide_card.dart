@@ -18,7 +18,7 @@ class HomePromoSlideCard extends StatelessWidget {
   });
 
   final String title;
-  final String imageUrl;
+  final String? imageUrl;
   final Color backgroundColor;
   final String ctaLabel;
   final VoidCallback? onTap;

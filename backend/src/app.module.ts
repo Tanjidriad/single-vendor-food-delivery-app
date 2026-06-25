@@ -1,10 +1,14 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { LoggerModule } from 'nestjs-pino';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import { BullModule } from '@nestjs/bullmq';
 import configuration from './config/configuration';
 import { validateEnv } from './config/env.validation';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -12,6 +16,7 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { RealtimeModule } from './gateways/realtime.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { AppConfigModule } from './modules/app-config/app-config.module';
 import { AddressesModule } from './modules/addresses/addresses.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ComplaintsModule } from './modules/complaints/complaints.module';
@@ -23,6 +28,7 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
 import { DevModule } from './modules/dev/dev.module';
 import { HealthModule } from './modules/health/health.module';
 import { MenuModule } from './modules/menu/menu.module';
+import { MessagesModule } from './modules/messages/messages.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
@@ -45,15 +51,53 @@ import { UsersModule } from './modules/users/users.module';
       load: [configuration],
       validate: validateEnv,
     }),
+    LoggerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        pinoHttp: {
+          level: config.get('nodeEnv') === 'production' ? 'info' : 'debug',
+          transport:
+            config.get('nodeEnv') !== 'production'
+              ? { target: 'pino-pretty', options: { colorize: true } }
+              : undefined,
+        },
+      }),
+    }),
     ScheduleModule.forRoot(),
-    ThrottlerModule.forRoot([{ ttl: 60000, limit: 200 }]),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const redisUrl = config.get<string>('redisUrl');
+        return {
+          throttlers: [{ ttl: 60000, limit: 200 }],
+          ...(redisUrl
+            ? { storage: new ThrottlerStorageRedisService(redisUrl) }
+            : {}),
+        };
+      },
+    }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: {
+          url: config.get<string>('redisUrl') ?? 'redis://localhost:6379',
+          maxRetriesPerRequest: null,
+        },
+      }),
+    }),
+    PrometheusModule.register({ defaultMetrics: { enabled: true } }),
     PrismaModule,
     AdminModule,
+    AppConfigModule,
     AuthModule,
     DevModule,
     HealthModule,
     UsersModule,
     DevicesModule,
+    MessagesModule,
     NotificationsModule,
     RestaurantModule,
     RestaurantAdminModule,
@@ -83,6 +127,7 @@ import { UsersModule } from './modules/users/users.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestIdMiddleware).forRoutes('*');
+    consumer.apply(RequestIdMiddleware).forRoutes('(.*)');
+
   }
 }

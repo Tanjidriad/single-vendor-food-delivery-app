@@ -5,14 +5,17 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/router/route_paths.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/formatters/formatter.dart';
 import '../../data/orders_repository.dart';
 import '../providers/order_tracking_provider.dart';
 import '../providers/tracking_route_provider.dart';
 import '../widgets/delivery_otp_card.dart';
 import '../widgets/enhanced_eta_card.dart';
 import '../widgets/external_tracking_card.dart';
+import '../widgets/order_chat_sheet.dart';
 import '../widgets/order_status_timeline.dart';
+import '../widgets/tracking_delivery_failed_card.dart';
+import '../widgets/tracking_order_summary.dart';
+import '../widgets/tracking_rider_card.dart';
 import '../../../../core/widgets/feedback/app_error_state.dart';
 import '../../../../core/widgets/map/app_map_view.dart';
 import '../utils/tracking_map_markers.dart';
@@ -309,7 +312,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                           status == 'RETURNED_TO_RESTAURANT')
                         Padding(
                           padding: const EdgeInsets.only(bottom: 24),
-                          child: _DeliveryFailedCard(order: order),
+                          child: TrackingDeliveryFailedCard(order: order),
                         ),
                       OrderStatusTimeline(currentStatus: status),
                       const SizedBox(height: 24),
@@ -323,9 +326,16 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        _RiderCard(
+                        TrackingRiderCard(
                           rider: rider,
                           onCall: () => _callRider(rider.phone),
+                          onMessage: rider.isAssigned
+                              ? () => OrderChatSheet.show(
+                                    context,
+                                    orderId: widget.orderId,
+                                    riderName: rider.name ?? rider.title,
+                                  )
+                              : null,
                         ),
                         const SizedBox(height: 24),
                       ],
@@ -356,72 +366,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFF3F4F6)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (final raw in items)
-                              if (raw is Map<String, dynamic>)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          '${raw['quantity']}x ${raw['name']}',
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            color: Color(0xFF4B5563),
-                                          ),
-                                        ),
-                                      ),
-                                      Text(
-                                        AppFormatter.formatCurrency(
-                                          orderItemLineTotal(raw),
-                                        ),
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Color(0xFF111827),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            const Divider(height: 24, color: Color(0xFFF3F4F6)),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Total',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF111827),
-                                  ),
-                                ),
-                                Text(
-                                  AppFormatter.formatCurrency(
-                                    orderGrandTotal(order),
-                                  ),
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                      TrackingOrderSummary(items: items, order: order),
                       if (isExternalDelivery && status == 'ON_THE_WAY') ...[
                         const SizedBox(height: 24),
                         SizedBox(
@@ -464,132 +409,6 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
           ),
         );
       },
-    );
-  }
-}
-
-class _RiderCard extends StatelessWidget {
-  const _RiderCard({required this.rider, required this.onCall});
-
-  final OrderRiderInfo rider;
-  final VoidCallback onCall;
-
-  @override
-  Widget build(BuildContext context) {
-    final canContact = rider.isAssigned && rider.phone != null;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF3F4F6)),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: rider.isAssigned
-                ? AppColors.primary.withValues(alpha: 0.12)
-                : const Color(0xFFE5E7EB),
-            child: Icon(
-              Icons.person,
-              color: rider.isAssigned ? AppColors.primary : const Color(0xFF9CA3AF),
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  rider.title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-                Text(
-                  rider.subtitle,
-                  style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
-                ),
-              ],
-            ),
-          ),
-          InkWell(
-            onTap: canContact ? onCall : null,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: canContact
-                    ? AppColors.primary.withValues(alpha: 0.1)
-                    : const Color(0xFFE5E7EB).withValues(alpha: 0.5),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.call,
-                color: canContact ? AppColors.primary : const Color(0xFF9CA3AF),
-                size: 20,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DeliveryFailedCard extends StatelessWidget {
-  const _DeliveryFailedCard({required this.order});
-
-  final Map<String, dynamic> order;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final paymentMethod = order['paymentMethod'] as String? ?? 'COD';
-    final paymentStatus = order['paymentStatus'] as String? ?? 'PENDING';
-    final prepaid =
-        paymentMethod == 'ONLINE' && paymentStatus == 'PAID';
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.error_outline, color: AppColors.error),
-              const SizedBox(width: 8),
-              Text(
-                'Delivery issue',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF111827),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            prepaid
-                ? "We couldn't complete your delivery. Your refund is being processed — you'll hear from us within 24 hours."
-                : "We couldn't complete your delivery. You were not charged for this order. Our team is resolving this now.",
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFF4B5563),
-              height: 1.45,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

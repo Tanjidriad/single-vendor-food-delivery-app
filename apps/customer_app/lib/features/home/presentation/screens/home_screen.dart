@@ -1,5 +1,6 @@
 import 'package:customer_app/features/home/presentation/widgets/floating_active_order_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -15,6 +16,7 @@ import '../../widgets/home_filter_chip.dart';
 import '../../widgets/home_offer_card.dart';
 import '../../widgets/home_promo_banner_carousel.dart';
 import '../../widgets/section_header.dart';
+import '../../../orders/presentation/providers/orders_providers.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -30,8 +32,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final items = <Map<String, dynamic>>[];
     for (final cat in categories) {
       final c = cat as Map<String, dynamic>;
-      if (_selectedCategoryId != null && c['id'] != _selectedCategoryId)
+      if (_selectedCategoryId != null && c['id'] != _selectedCategoryId) {
         continue;
+      }
       final categoryName = c['name'] as String? ?? '';
       final menuItems = c['menuItems'] as List<dynamic>? ?? [];
       for (final m in menuItems) {
@@ -148,6 +151,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ref.invalidate(menuProvider);
               ref.invalidate(featuredMenuProvider);
               ref.invalidate(bannersProvider);
+              ref.invalidate(ordersListProvider);
             },
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(
@@ -307,7 +311,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           item: items[i],
                           deliveryMeta: deliveryMeta,
                         ),
-                      ),
+                      )
+                          .animate()
+                          .fadeIn(
+                            delay: Duration(milliseconds: 80 * (i.clamp(0, 5))),
+                            duration: 400.ms,
+                          )
+                          .slideY(
+                            begin: 0.06,
+                            end: 0,
+                            delay: Duration(milliseconds: 80 * (i.clamp(0, 5))),
+                            duration: 400.ms,
+                            curve: Curves.easeOut,
+                          ),
                       childCount: items.length,
                     ),
                   );

@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+import { AcceptOrderDto } from './dto/accept-order.dto';
 import { CancelOrderDto } from './dto/cancel-order.dto';
 import { DispatchExternalDto } from './dto/dispatch-external.dto';
 import { PlaceOrderDto } from './dto/place-order.dto';
@@ -24,6 +25,7 @@ import { VerifyDeliveryDto } from './dto/verify-delivery.dto';
 import { DeliveryExceptionDto } from './dto/delivery-exception.dto';
 import { ResolveExceptionDto } from './dto/resolve-exception.dto';
 import { FoodDispositionDto } from './dto/food-disposition.dto';
+import { RejectOrderDto } from './dto/reject-order.dto';
 import { OrdersService } from './orders.service';
 
 @ApiTags('orders')
@@ -70,14 +72,28 @@ export class OrdersController {
     );
   }
 
+  @Get('kitchen/stats')
+  @Roles(UserRole.OWNER, UserRole.MANAGER, UserRole.CASHIER, UserRole.KITCHEN)
+  getKitchenStats(
+    @CurrentUser() user: JwtPayload,
+    @Query('period') period?: string,
+    @Query('includeTest') includeTest?: string,
+  ) {
+    return this.ordersService.getKitchenStats(
+      user,
+      period,
+      includeTest === 'true',
+    );
+  }
+
   @Post(':id/accept')
   @Roles(UserRole.OWNER, UserRole.MANAGER, UserRole.CASHIER, UserRole.KITCHEN)
   accept(
     @CurrentUser() user: JwtPayload,
     @Param('id') id: string,
-    @Body() body: { prepMinutes?: number },
+    @Body() dto: AcceptOrderDto,
   ) {
-    return this.ordersService.acceptOrder(user, id, body?.prepMinutes);
+    return this.ordersService.acceptOrder(user, id, dto.prepMinutes);
   }
 
   @Post(':id/reject')
@@ -85,9 +101,9 @@ export class OrdersController {
   reject(
     @CurrentUser() user: JwtPayload,
     @Param('id') id: string,
-    @Body() body: { note?: string },
+    @Body() dto: RejectOrderDto,
   ) {
-    return this.ordersService.rejectOrder(user, id, body?.note);
+    return this.ordersService.rejectOrder(user, id, dto.note);
   }
 
   @Post(':id/cancel')

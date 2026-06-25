@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/formatters/formatter.dart';
 
 class EnhancedEtaCard extends StatefulWidget {
   final Map<String, dynamic> order;

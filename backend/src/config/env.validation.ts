@@ -45,6 +45,16 @@ export function validateEnv(config: Record<string, unknown>) {
       );
     }
 
+    const redisUrl = config.REDIS_URL as string | undefined;
+    if (!redisUrl || redisUrl.trim().length === 0) {
+      errors.push('REDIS_URL is required in production (rate-limiting, job queues)');
+    }
+
+    const sentryDsn = config.SENTRY_DSN as string | undefined;
+    if (!sentryDsn || sentryDsn.trim().length === 0) {
+      errors.push('SENTRY_DSN is required in production (error monitoring)');
+    }
+
     const hasSms =
       typeof config.TWILIO_ACCOUNT_SID === 'string' &&
       config.TWILIO_ACCOUNT_SID.trim().length > 0 &&

@@ -1,0 +1,38 @@
+name: Rider App CI
+
+on:
+  push:
+    paths:
+      - 'apps/rider_app/**'
+      - '.github/workflows/rider-app-ci.yml'
+      - 'analysis_options.yaml'
+  pull_request:
+    paths:
+      - 'apps/rider_app/**'
+      - '.github/workflows/rider-app-ci.yml'
+      - 'analysis_options.yaml'
+
+defaults:
+  run:
+    working-directory: apps/rider_app
+
+jobs:
+  analyze-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter --version
+
+      # .env is declared as a pubspec asset but gitignored; create an empty one
+      # so asset bundling during `flutter test` succeeds in CI.
+      - run: touch .env
+
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test

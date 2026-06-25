@@ -3,29 +3,29 @@ import 'package:flutter/material.dart';
 abstract final class AppColors {
   AppColors._();
 
-  // Primary Scale
-  static const primary50 = Color(0xFFEDF6EE);
-  static const primary100 = Color(0xFFC7E3CB);
-  static const primary200 = Color(0xFFACD5B2);
-  static const primary300 = Color(0xFF86C28E);
-  static const primary400 = Color(0xFF6FB679);
-  static const primary500 = Color(0xFF4BA457);
-  static const primary600 = Color(0xFF44954F);
-  static const primary700 = Color(0xFF35743E);
-  static const primary800 = Color(0xFF295A30);
-  static const primary900 = Color(0xFF204525);
+  // Primary Scale (Red — derived from brand #D21F3C)
+  static const primary50 = Color(0xFFFDF2F4);
+  static const primary100 = Color(0xFFFCE4E8);
+  static const primary200 = Color(0xFFF9C5CD);
+  static const primary300 = Color(0xFFF49AAA);
+  static const primary400 = Color(0xFFED6A81);
+  static const primary500 = Color(0xFFD21F3C);
+  static const primary600 = Color(0xFFB91A33);
+  static const primary700 = Color(0xFF9A1629);
+  static const primary800 = Color(0xFF801425);
+  static const primary900 = Color(0xFF6E1324);
 
-  // Secondary Scale
-  static const secondary50 = Color(0xFFEBF6EE);
-  static const secondary100 = Color(0xFFC0E4CA);
-  static const secondary200 = Color(0xFFA2D7B0);
-  static const secondary300 = Color(0xFF77C58C);
-  static const secondary400 = Color(0xFF05A357);
-  static const secondary500 = Color(0xFF34A853);
-  static const secondary600 = Color(0xFF2F994C);
-  static const secondary700 = Color(0xFF25773B);
-  static const secondary800 = Color(0xFF1D5C2E);
-  static const secondary900 = Color(0xFF164723);
+  // Accent Scale (Green — for success states and secondary callouts)
+  static const accent50 = Color(0xFFEBF6EE);
+  static const accent100 = Color(0xFFC0E4CA);
+  static const accent200 = Color(0xFFA2D7B0);
+  static const accent300 = Color(0xFF77C58C);
+  static const accent400 = Color(0xFF05A357);
+  static const accent500 = Color(0xFF34A853);
+  static const accent600 = Color(0xFF2F994C);
+  static const accent700 = Color(0xFF25773B);
+  static const accent800 = Color(0xFF1D5C2E);
+  static const accent900 = Color(0xFF164723);
 
   // White Scale
   static const white50 = Color(0xFFFFFFFF);
@@ -78,8 +78,8 @@ abstract final class AppColors {
   // --- Semantic (Figma 215:1135 + app-wide) ---
   /// Main CTA — Switched to Brutalist Red.
   static const primary = brutalistRed;
-  static const primaryDark = Color(0xFFA1162C);
-  static const primaryLight = Color(0xFFF9E4E7);
+  static const primaryDark = primary700;
+  static const primaryLight = primary100;
 
   static const surface = white50;
   static const background = gray100;
@@ -91,8 +91,8 @@ abstract final class AppColors {
   static const textDisabled = gray800;
   static const onPrimary = white50;
 
-  static const success = secondary600;
-  static const successLight = secondary50;
+  static const success = accent600;
+  static const successLight = accent50;
   static const warning = Color(0xFFE9C46A);
   static const warningLight = Color(0xFFFFF9E5);
   static const error = Color(0xFFD62828);

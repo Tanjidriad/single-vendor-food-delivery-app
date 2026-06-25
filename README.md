@@ -8,7 +8,8 @@ Location: [`backend/`](backend/)
 
 - NestJS 11 + PostgreSQL (Prisma) + JWT + Socket.IO
 - Auth, menu, orders, delivery fee, dispatch, devices, notifications
-- Swagger docs at `/api/docs`
+- Swagger docs at `/api/docs` (development only)
+- Full API reference: [`docs/api/API_DOCUMENTATION.md`](docs/api/API_DOCUMENTATION.md)
 
 **Quick start:** see [`docs/SETUP.md`](docs/SETUP.md)
 

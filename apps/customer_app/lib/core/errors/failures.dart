@@ -8,6 +8,11 @@ sealed class Failure extends Equatable {
 
   @override
   List<Object?> get props => [message];
+
+  /// UI-facing string. Lets helpers like `friendlyErrorMessage` and
+  /// `error.toString()` surface the human message instead of the type name.
+  @override
+  String toString() => message;
 }
 
 final class ServerFailure extends Failure {

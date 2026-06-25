@@ -17,4 +17,14 @@ class RoutePaths {
   // Full-screen flows pushed over the shell.
   static const String incomingOrder = '/incoming-order';
   static const String activeDelivery = '/active-delivery';
+
+  // Profile stack & secondary screens (root navigator).
+  static const String performance = '/performance';
+  static const String cash = '/cash';
+  static const String notifications = '/notifications';
+  static const String profileEdit = '/profile/edit';
+  static const String help = '/help';
+  static const String deliveredDetail = '/delivered/:orderId';
+
+  static String deliveredDetailFor(String orderId) => '/delivered/$orderId';
 }

@@ -19,6 +19,9 @@ class ApiClient {
   String? _cachedRefreshToken;
   bool _isRefreshing = false;
   final List<_RetryRequest> _pendingRequests = [];
+  final _tokenRefreshedController = StreamController<void>.broadcast();
+
+  Stream<void> get tokenRefreshedStream => _tokenRefreshedController.stream;
 
   ApiClient() {
     _dio = Dio(BaseOptions(
@@ -86,6 +89,9 @@ class ApiClient {
         final newRefreshToken = response.data['refreshToken'] as String?;
         if (newAccessToken != null && newRefreshToken != null) {
           await saveTokens(newAccessToken, newRefreshToken);
+          if (!_tokenRefreshedController.isClosed) {
+            _tokenRefreshedController.add(null);
+          }
           final retryResponse = await _retryRequest(error.requestOptions, newAccessToken);
           _resolvePending(newAccessToken);
           return retryResponse;

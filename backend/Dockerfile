@@ -8,6 +8,7 @@ RUN npm ci
 
 COPY . .
 RUN npx prisma generate && npm run build
+RUN npm prune --omit=dev
 
 # --- Production ---
 FROM node:22-alpine AS runner
@@ -26,7 +27,10 @@ COPY --from=builder /app/prisma ./prisma
 USER app
 EXPOSE 3000
 
+# Liveness only — a DB/Redis outage must not make Docker restart the container
+# (a restart won't fix a downstream dependency). Use /health/ready for the
+# orchestrator's readiness probe to route traffic.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:3000/api/v1/health || exit 1
+  CMD wget -qO- http://127.0.0.1:3000/api/v1/health/live || exit 1
 
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]

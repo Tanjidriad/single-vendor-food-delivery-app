@@ -1,1 +1,5 @@
-include: package:flutter_lints/flutter.yaml
+# Rider app analyzer config.
+#
+# Shared rules live in the repo-root analysis_options.yaml so customer_app and
+# rider_app stay consistent. Add app-specific overrides below the include.
+include: ../../analysis_options.yaml

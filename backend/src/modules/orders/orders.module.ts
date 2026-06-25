@@ -1,4 +1,6 @@
 import { RealtimeModule } from '../../gateways/realtime.module';
+import { BullModule } from '@nestjs/bullmq';
+import { DISPATCH_QUEUE, NOTIFICATIONS_QUEUE } from '../../common/queues/queue.constants';
 import { DeliveryFeeModule } from '../delivery-fee/delivery-fee.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PrintEventsModule } from '../print-events/print-events.module';
@@ -20,6 +22,10 @@ import { TimerPolicyService } from './timer-policy.service';
     DispatchModule,
     EarningsModule,
     forwardRef(() => PaymentsModule),
+    BullModule.registerQueue(
+      { name: DISPATCH_QUEUE },
+      { name: NOTIFICATIONS_QUEUE },
+    ),
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrderStatusService, TimerPolicyService],

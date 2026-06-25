@@ -6,8 +6,12 @@ import {
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { DISPATCH_QUEUE } from '../../common/queues/queue.constants';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { acquireCronLock } from '../../common/utils/redis-lock.util';
 import {
   AssignmentStatus,
   OrderStatus,
@@ -21,6 +25,14 @@ import { RealtimeService } from '../../gateways/realtime.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { AssignRiderDto } from './dto/assign-rider.dto';
+
+const SAFE_USER_SELECT = {
+  id: true,
+  phone: true,
+  email: true,
+  role: true,
+  status: true,
+} as const;
 
 @Injectable()
 export class DispatchService implements OnModuleInit {
@@ -40,6 +52,7 @@ export class DispatchService implements OnModuleInit {
     private config: ConfigService,
     private realtime: RealtimeService,
     private notifications: NotificationsService,
+    @InjectQueue(DISPATCH_QUEUE) private dispatchQueue: Queue,
   ) {}
 
   /** Expired NOTIFIED rows must not block new dispatch or pending recovery. */
@@ -102,9 +115,9 @@ export class DispatchService implements OnModuleInit {
     }
   }
 
-  /** Crash-safe fallback: sweep for expired assignments every 30 seconds */
   @Cron(CronExpression.EVERY_30_SECONDS)
   async sweepExpiredAssignments() {
+    if (!(await acquireCronLock(this.config, 'sweep-expired-assignments', 25))) return;
     const expired = await this.prisma.riderAssignment.findMany({
       where: {
         status: AssignmentStatus.NOTIFIED,
@@ -194,7 +207,7 @@ export class DispatchService implements OnModuleInit {
   ) {
     const rider = await tx.riderProfile.findUnique({
       where: { id: riderProfileId },
-      include: { user: true },
+      include: { user: { select: SAFE_USER_SELECT } },
     });
     if (!rider?.isOnline) {
       throw new BadRequestException('Rider is not online');
@@ -222,7 +235,7 @@ export class DispatchService implements OnModuleInit {
       },
       include: {
         order: true,
-        rider: { include: { user: true } },
+        rider: { include: { user: { select: SAFE_USER_SELECT } } },
       },
     });
 
@@ -248,6 +261,7 @@ export class DispatchService implements OnModuleInit {
         },
         expiresAt,
       ),
+      order.restaurantId,
     );
     this.logger.log(
       `Assignment created: order=${order.id} riderProfile=${rider.id} riderUser=${rider.user.id} assignment=${assignment.id}`,
@@ -255,8 +269,8 @@ export class DispatchService implements OnModuleInit {
 
     await this.notifications.sendToUser(
       rider.user.id,
-      'New delivery assigned',
-      `Order ${order.orderNumber} — respond before timeout`,
+      'New order offer',
+      `৳${estimatedPayout} payout · Order ${order.orderNumber} — respond before it expires`,
       {
         type: 'assignment:created',
         orderId: order.id,
@@ -403,7 +417,7 @@ export class DispatchService implements OnModuleInit {
     if (accepted.count === 0) {
       const current = await this.prisma.riderAssignment.findUnique({
         where: { id: assignmentId },
-        include: { order: true, rider: { include: { user: true } } },
+        include: { order: true, rider: { include: { user: { select: SAFE_USER_SELECT } } } },
       });
       if (current?.status === AssignmentStatus.ACCEPTED) {
         return current;
@@ -414,13 +428,16 @@ export class DispatchService implements OnModuleInit {
 
     const updated = await this.prisma.riderAssignment.findUniqueOrThrow({
       where: { id: assignmentId },
-      include: { order: true, rider: { include: { user: true } } },
+      include: { order: true, rider: { include: { user: { select: SAFE_USER_SELECT } } } },
     });
 
     this.realtime.emitAssignmentAccepted(updated.orderId, {
       assignmentId: updated.id,
       riderId: updated.riderId,
-    });
+      riderName: updated.rider?.fullName,
+      orderId: updated.orderId,
+      orderNumber: updated.order?.orderNumber,
+    }, updated.order?.restaurantId);
 
     return updated;
   }
@@ -467,7 +484,17 @@ export class DispatchService implements OnModuleInit {
 
     this.realtime.emitAssignmentRejected(updated.orderId, {
       assignmentId: updated.id,
-    });
+      orderId: updated.orderId,
+      orderNumber: updated.order?.orderNumber,
+    }, updated.order?.restaurantId);
+
+    // Durable rejection record so this rider is kept out of re-offers for this
+    // order during the cooldown window (survives the assignment row deletion).
+    await this.recordRejection(updated.orderId, assignment.riderId, 'REJECTED');
+
+    this.reassignAfterFailure(assignmentId, updated.orderId, assignment.riderId).catch(
+      (err) => this.logger.debug(`Reassign after rejection failed: ${err}`),
+    );
 
     return updated;
   }
@@ -498,9 +525,11 @@ export class DispatchService implements OnModuleInit {
   }
 
   private scheduleExpiry(assignmentId: string, delayMs: number) {
-    setTimeout(() => {
-      void this.expireIfStillPending(assignmentId);
-    }, delayMs);
+    this.dispatchQueue
+      .add('expire-assignment', { assignmentId }, { delay: delayMs })
+      .catch((err) =>
+        this.logger.warn(`Failed to enqueue expiry for ${assignmentId}: ${err}`),
+      );
   }
 
   private static readonly RIDER_ONLINE_RETRY_CAP = 3;
@@ -523,9 +552,20 @@ export class DispatchService implements OnModuleInit {
       OrderStatus.READY_FOR_PICKUP,
     ];
 
+    const cooldownCutoff = new Date(
+      Date.now() - DispatchService.REJECTION_COOLDOWN_MINUTES * 60_000,
+    );
     const orders = await this.prisma.order.findMany({
       where: {
         status: { in: assignableStatuses },
+        // Don't re-offer an order this rider declined/expired within cooldown,
+        // even after the assignment row was deleted on exhaustion.
+        riderRejections: {
+          none: {
+            riderId: riderProfileId,
+            createdAt: { gt: cooldownCutoff },
+          },
+        },
         OR: [
           { assignment: null },
           { assignment: { status: AssignmentStatus.EXPIRED } },
@@ -538,7 +578,7 @@ export class DispatchService implements OnModuleInit {
         ],
       },
       include: { restaurant: true, assignment: true },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: [{ status: 'desc' }, { createdAt: 'asc' }],
       take: DispatchService.RIDER_ONLINE_RETRY_CAP,
     });
 
@@ -596,13 +636,61 @@ export class DispatchService implements OnModuleInit {
     return count >= 3;
   }
 
-  private async findAvailableRider(now: Date, tx?: Prisma.TransactionClient, excludeRiderId?: string) {
+  private static readonly LOCATION_STALENESS_MINUTES = 10;
+
+  /// How long a rider who rejected (or timed out on) an order is kept out of
+  /// re-offers for that same order. After the window they become eligible again
+  /// so a stuck order can still self-heal (the hybrid policy).
+  private static readonly REJECTION_COOLDOWN_MINUTES = 10;
+
+  /// Rider ids that declined/expired [orderId] within the cooldown window and
+  /// should therefore be excluded from re-offers of that order right now.
+  private async cooledDownRiderIds(
+    orderId: string,
+    now: Date,
+    tx?: Prisma.TransactionClient,
+  ): Promise<string[]> {
+    const cutoff = new Date(
+      now.getTime() - DispatchService.REJECTION_COOLDOWN_MINUTES * 60_000,
+    );
+    const rows = await (tx ?? this.prisma).riderOrderRejection.findMany({
+      where: { orderId, createdAt: { gt: cutoff } },
+      select: { riderId: true },
+    });
+    return [...new Set(rows.map((r) => r.riderId))];
+  }
+
+  /// Records that [riderId] declined/expired [orderId]. Best-effort: a failure
+  /// to log must never block the reassignment flow.
+  private async recordRejection(
+    orderId: string,
+    riderId: string,
+    reason: 'REJECTED' | 'EXPIRED',
+  ) {
+    try {
+      await this.prisma.riderOrderRejection.create({
+        data: { orderId, riderId, reason },
+      });
+    } catch (err) {
+      this.logger.debug(`Failed to record rejection: ${err}`);
+    }
+  }
+
+  private async findAvailableRider(
+    now: Date,
+    tx?: Prisma.TransactionClient,
+    excludeRiderId?: string,
+    restaurant?: { latitude: number; longitude: number },
+    excludeRiderIds?: string[],
+  ) {
     const client = tx ?? this.prisma;
+    const excluded = new Set<string>(excludeRiderIds ?? []);
+    if (excludeRiderId) excluded.add(excludeRiderId);
     const riders = await client.riderProfile.findMany({
       where: {
         isOnline: true,
         canReceiveOffers: true,
-        ...(excludeRiderId ? { id: { not: excludeRiderId } } : {}),
+        ...(excluded.size > 0 ? { id: { notIn: [...excluded] } } : {}),
       },
       include: {
         _count: {
@@ -613,10 +701,54 @@ export class DispatchService implements OnModuleInit {
           },
         },
       },
-      orderBy: { updatedAt: 'asc' },
     });
-    
-    return riders.find((r) => r._count.assignments < 3);
+
+    const eligible = riders.filter((r) => r._count.assignments < 3);
+    if (eligible.length === 0) return undefined;
+    if (eligible.length === 1) return eligible[0];
+
+    if (!restaurant) {
+      eligible.sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime());
+      return eligible[0];
+    }
+
+    const cutoff = new Date(now.getTime() - DispatchService.LOCATION_STALENESS_MINUTES * 60_000);
+    const riderIds = eligible.map((r) => r.id);
+    const locations = await (tx ?? this.prisma).$queryRaw<
+      { riderId: string; latitude: number; longitude: number }[]
+    >`
+      SELECT DISTINCT ON ("riderId") "riderId", latitude, longitude
+      FROM "RiderLocation"
+      WHERE "riderId" = ANY(${riderIds}::uuid[])
+        AND "recordedAt" > ${cutoff}
+      ORDER BY "riderId", "recordedAt" DESC
+    `;
+
+    const locationMap = new Map(locations.map((l) => [l.riderId, l]));
+
+    const scored = eligible.map((r) => {
+      const loc = locationMap.get(r.id);
+      const distanceKm = loc
+        ? DispatchService.haversineKm(restaurant.latitude, restaurant.longitude, loc.latitude, loc.longitude)
+        : 999;
+      const loadFactor = r._count.assignments / 3;
+      return { rider: r, score: distanceKm * 0.6 + loadFactor * 0.4 };
+    });
+
+    scored.sort((a, b) => a.score - b.score);
+    return scored[0].rider;
+  }
+
+  private static haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
   private async offerOrderToRiderOnOnlineRetry(
@@ -653,6 +785,12 @@ export class DispatchService implements OnModuleInit {
       order.assignment?.status === AssignmentStatus.REJECTED
     ) {
       throw new BadRequestException('Rider declined this order');
+    }
+    // Durable cooldown guard — the assignment row may have been deleted on
+    // exhaustion, so also consult the rejection log.
+    const cooledDown = await this.cooledDownRiderIds(order.id, new Date());
+    if (cooledDown.includes(riderProfileId)) {
+      throw new BadRequestException('Rider is in cooldown for this order');
     }
     if (!this.isAssignmentReplaceable(order.assignment)) {
       throw new BadRequestException('Order already has a rider assignment');
@@ -706,7 +844,14 @@ export class DispatchService implements OnModuleInit {
       }
 
       const now = new Date();
-      const rider = await this.findAvailableRider(now, tx);
+      const cooledDown = await this.cooledDownRiderIds(orderId, now, tx);
+      const rider = await this.findAvailableRider(
+        now,
+        tx,
+        undefined,
+        order.restaurant,
+        cooledDown,
+      );
       if (!rider) {
         throw new BadRequestException('No online riders available');
       }
@@ -717,7 +862,7 @@ export class DispatchService implements OnModuleInit {
 
   async listAvailableRiders(restaurantId: string) {
     return this.prisma.riderProfile.findMany({
-      where: { isOnline: true },
+      where: { isOnline: true, canReceiveOffers: true },
       select: {
         id: true,
         fullName: true,
@@ -731,7 +876,7 @@ export class DispatchService implements OnModuleInit {
     });
   }
 
-  private async expireIfStillPending(assignmentId: string) {
+  async expireIfStillPending(assignmentId: string) {
     const now = new Date();
     const expired = await this.prisma.riderAssignment.updateMany({
       where: {
@@ -747,18 +892,37 @@ export class DispatchService implements OnModuleInit {
 
     const assignment = await this.prisma.riderAssignment.findUnique({
       where: { id: assignmentId },
-      include: { order: true },
+      include: { order: true, rider: true },
     });
     if (!assignment) {
       return;
     }
 
-    this.realtime.emitAssignmentExpired(assignment.orderId, {
-      assignmentId,
-    });
+    this.realtime.emitAssignmentExpired(
+      assignment.orderId,
+      {
+        assignmentId,
+        orderId: assignment.orderId,
+        orderNumber: assignment.order?.orderNumber,
+      },
+      assignment.order?.restaurantId,
+      assignment.rider?.userId,
+    );
 
+    // A timeout is also a (softer) decline — apply the same cooldown so the
+    // order doesn't immediately bounce back to a rider who didn't respond.
+    await this.recordRejection(assignment.orderId, assignment.riderId, 'EXPIRED');
+
+    await this.reassignAfterFailure(assignmentId, assignment.orderId, assignment.riderId);
+  }
+
+  private async reassignAfterFailure(
+    oldAssignmentId: string,
+    orderId: string,
+    excludeRiderId: string,
+  ) {
     const order = await this.prisma.order.findUnique({
-      where: { id: assignment.orderId },
+      where: { id: orderId },
       include: { restaurant: true, assignment: true },
     });
     if (
@@ -769,15 +933,32 @@ export class DispatchService implements OnModuleInit {
       return;
     }
 
-    await this.prisma.riderAssignment.delete({ where: { id: assignmentId } });
+    if (order.assignment?.id === oldAssignmentId) {
+      await this.prisma.riderAssignment.delete({ where: { id: oldAssignmentId } });
+    }
 
-    const nextRider = await this.findAvailableRider(new Date(), undefined, assignment.riderId);
+    const now = new Date();
+    const cooledDown = await this.cooledDownRiderIds(orderId, now);
+    const nextRider = await this.findAvailableRider(
+      now,
+      undefined,
+      excludeRiderId,
+      order.restaurant,
+      cooledDown,
+    );
     if (nextRider) {
       try {
         await this.createAssignment(order, nextRider.id, 'system:auto-reassign');
-      } catch {
-        // No rider available or order state changed
+      } catch (err) {
+        this.logger.debug(`Reassignment failed for order ${orderId}: ${err}`);
       }
+    } else {
+      this.logger.warn(`All riders exhausted for order ${orderId}`);
+      this.realtime.emitToRoom(
+        `restaurant:${order.restaurantId}`,
+        'order:dispatch.exhausted',
+        { orderId, orderNumber: order.orderNumber },
+      );
     }
   }
 
@@ -811,8 +992,10 @@ export class DispatchService implements OnModuleInit {
 
     this.realtime.emitAssignmentExpired(orderId, {
       assignmentId: order.assignment.id,
+      orderId,
+      orderNumber: order.orderNumber,
       reason: reason ?? 'force_unassign',
-    });
+    }, order.restaurantId);
 
     return { orderId, released: true };
   }

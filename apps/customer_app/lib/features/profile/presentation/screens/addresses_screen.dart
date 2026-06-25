@@ -82,7 +82,7 @@ class AddressesScreen extends ConsumerWidget {
                 ) : ListView.separated(
                   padding: const EdgeInsets.all(20),
                   itemCount: list.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (_, i) {
                     final a = list[i] as Map<String, dynamic>;
                     final id = a['id'] as String;
@@ -194,6 +194,24 @@ class AddressesScreen extends ConsumerWidget {
                                     IconButton(
                                       icon: const Icon(Icons.delete_outline),
                                       onPressed: () async {
+                                        final confirmed = await showDialog<bool>(
+                                          context: context,
+                                          builder: (ctx) => AlertDialog(
+                                            title: const Text('Delete address'),
+                                            content: Text('Remove "$label"? This cannot be undone.'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(ctx, false),
+                                                child: const Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(ctx, true),
+                                                child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                        if (confirmed != true) return;
                                         await ref
                                             .read(addressesRepositoryProvider)
                                             .delete(id);

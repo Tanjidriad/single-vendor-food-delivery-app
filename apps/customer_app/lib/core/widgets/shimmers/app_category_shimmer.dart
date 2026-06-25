@@ -18,8 +18,8 @@ class AppCategoryShimmer extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.zero,
         itemCount: itemCount,
-        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
-        itemBuilder: (_, __) => const Column(
+        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
+        itemBuilder: (_, _) => const Column(
           children: [
             AppShimmerEffect(width: 55, height: 55, radius: 55),
             SizedBox(height: AppSpacing.sm),

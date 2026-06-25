@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsPhoneNumber, IsString, Length } from 'class-validator';
+import { IsEmail, IsIn, IsOptional, IsPhoneNumber, IsString, Length } from 'class-validator';
 
 export class SendOtpDto {
   @ApiPropertyOptional()
@@ -13,7 +13,7 @@ export class SendOtpDto {
   email?: string;
 
   @ApiProperty({ enum: ['LOGIN', 'RESET_PASSWORD', 'VERIFY_PHONE'] })
-  @IsString()
+  @IsIn(['LOGIN', 'RESET_PASSWORD', 'VERIFY_PHONE'])
   purpose: 'LOGIN' | 'RESET_PASSWORD' | 'VERIFY_PHONE';
 }
 

@@ -131,7 +131,7 @@ class _VoucherSelectionSheetState extends ConsumerState<VoucherSelectionSheet> {
                     ListView.separated(
                       padding: const EdgeInsets.all(20),
                       itemCount: coupons.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 16),
+                      separatorBuilder: (_, _) => const SizedBox(height: 16),
                       itemBuilder: (context, index) {
                         final c = coupons[index] as Map<String, dynamic>;
                         final code = c['code'] as String;
@@ -161,8 +161,8 @@ class _VoucherSelectionSheetState extends ConsumerState<VoucherSelectionSheet> {
               loading: () => ListView.separated(
                 padding: const EdgeInsets.all(20),
                 itemCount: 4,
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
-                itemBuilder: (_, __) => const TShimmerEffect(
+                separatorBuilder: (_, _) => const SizedBox(height: 16),
+                itemBuilder: (_, _) => const TShimmerEffect(
                   width: double.infinity,
                   height: 110,
                   radius: 16,

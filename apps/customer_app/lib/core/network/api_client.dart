@@ -7,6 +7,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../config/app_config.dart';
 import '../constants/api_endpoints.dart';
+import '../realtime/socket_service.dart';
+import 'retry_interceptor.dart';
 
 Completer<String?>? _tokenRefreshCompleter;
 
@@ -41,12 +43,12 @@ void _scheduleAuthUpdate(Ref ref, String? accessToken) {
 }
 
 Future<void> _scheduleSessionClear(Ref ref) async {
-  Future.microtask(() async {
+  unawaited(Future.microtask(() async {
     const storage = FlutterSecureStorage();
     await storage.delete(key: _kAccessToken);
     await storage.delete(key: _kRefreshToken);
     ref.read(authTokenProvider.notifier).state = null;
-  });
+  }));
 }
 
 final apiClientProvider = Provider<Dio>((ref) {
@@ -86,6 +88,11 @@ final apiClientProvider = Provider<Dio>((ref) {
       },
     ),
   );
+
+  // Retries idempotent GETs on transient 5xx/network errors with backoff.
+  // Added after auth so 401 refresh runs first and only true transient
+  // failures reach the retry logic.
+  client.interceptors.add(retryInterceptor(client));
 
   return client;
 });
@@ -134,6 +141,9 @@ Future<String> _refreshAccessToken(Ref ref) async {
     await storage.write(key: _kAccessToken, value: newAccessToken);
     await storage.write(key: _kRefreshToken, value: newRefreshToken);
     _scheduleAuthUpdate(ref, newAccessToken);
+    unawaited(Future.microtask(() {
+      ref.read(socketServiceProvider).reconnectWithToken(newAccessToken);
+    }));
     _tokenRefreshCompleter!.complete(newAccessToken);
     return newAccessToken;
   } catch (e) {

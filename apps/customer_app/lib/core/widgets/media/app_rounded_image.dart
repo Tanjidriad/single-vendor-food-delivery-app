@@ -43,12 +43,12 @@ class AppRoundedImage extends StatelessWidget {
                 fit: fit,
                 width: width,
                 height: height,
-                placeholder: (_, __) => AppShimmerEffect(
+                placeholder: (_, _) => AppShimmerEffect(
                   width: width ?? double.infinity,
                   height: height ?? 190,
                   radius: borderRadius,
                 ),
-                errorWidget: (_, __, ___) => Container(
+                errorWidget: (_, _, _) => Container(
                   color: backgroundColor,
                   alignment: Alignment.center,
                   child: const Icon(Icons.broken_image_outlined),

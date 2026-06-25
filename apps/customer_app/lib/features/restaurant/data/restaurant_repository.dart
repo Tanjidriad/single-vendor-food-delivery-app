@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/errors/failures.dart';
+import '../../../core/errors/map_dio_exception.dart';
 import '../../../core/network/api_client.dart';
 
 final restaurantRepositoryProvider = Provider<RestaurantRepository>((ref) {
@@ -13,62 +15,79 @@ class RestaurantRepository {
 
   final Dio _dio;
 
-  Future<Map<String, dynamic>> getBySlug([String slug = AppConfig.restaurantSlug]) async {
-    final res = await _dio.get<Map<String, dynamic>>('/restaurant/slug/$slug');
-    return res.data!;
+  Future<Map<String, dynamic>> getBySlug([String slug = AppConfig.restaurantSlug]) {
+    return _getMap('/restaurant/slug/$slug', emptyError: 'Restaurant not found.');
   }
 
-  Future<Map<String, dynamic>> getById(String id) async {
-    final res = await _dio.get<Map<String, dynamic>>('/restaurant/$id');
-    return res.data!;
+  Future<Map<String, dynamic>> getById(String id) {
+    return _getMap('/restaurant/$id', emptyError: 'Restaurant not found.');
   }
 
-  Future<List<dynamic>> getMenu(String restaurantId) async {
-    final res = await _dio.get<List<dynamic>>('/menu/restaurant/$restaurantId');
-    return res.data ?? [];
+  Future<List<dynamic>> getMenu(String restaurantId) {
+    return _getList('/menu/restaurant/$restaurantId');
   }
 
-  Future<List<dynamic>> getFeatured(String restaurantId) async {
-    final res = await _dio.get<List<dynamic>>('/menu/restaurant/$restaurantId/featured');
-    return res.data ?? [];
+  Future<List<dynamic>> getFeatured(String restaurantId) {
+    return _getList('/menu/restaurant/$restaurantId/featured');
   }
 
-  Future<List<dynamic>> getBanners(String restaurantId) async {
-    final res = await _dio.get<List<dynamic>>('/menu/restaurant/$restaurantId/banners');
-    return res.data ?? [];
+  Future<List<dynamic>> getBanners(String restaurantId) {
+    return _getList('/menu/restaurant/$restaurantId/banners');
   }
 
-  Future<List<dynamic>> getRestaurantReviews(String restaurantId) async {
-    final res = await _dio.get<List<dynamic>>('/reviews/restaurant/$restaurantId');
-    return res.data ?? [];
+  Future<List<dynamic>> getRestaurantReviews(String restaurantId) {
+    return _getList('/reviews/restaurant/$restaurantId');
   }
 
-  Future<List<dynamic>> searchMenu(String restaurantId, String q) async {
-    final res = await _dio.get<List<dynamic>>(
+  Future<List<dynamic>> searchMenu(String restaurantId, String q) {
+    return _getList(
       '/menu/restaurant/$restaurantId/search',
-      queryParameters: {'q': q},
+      query: {'q': q},
     );
-    return res.data ?? [];
   }
 
   Future<List<dynamic>> filterMenu(
     String restaurantId, {
     String? categoryId,
     String? q,
-  }) async {
-    final res = await _dio.get<List<dynamic>>(
+  }) {
+    return _getList(
       '/menu/restaurant/$restaurantId/filter',
-      queryParameters: {
-        if (categoryId != null) 'categoryId': categoryId,
+      query: {
+        'categoryId': ?categoryId,
         if (q != null && q.isNotEmpty) 'q': q,
       },
     );
-    return res.data ?? [];
   }
 
-  Future<Map<String, dynamic>> getItem(String itemId) async {
-    final res = await _dio.get<Map<String, dynamic>>('/menu/items/$itemId');
-    return res.data!;
+  Future<Map<String, dynamic>> getItem(String itemId) {
+    return _getMap('/menu/items/$itemId', emptyError: 'Menu item not found.');
+  }
+
+  /// GET a JSON object, null-safe + [DioException] → [Failure].
+  Future<Map<String, dynamic>> _getMap(
+    String path, {
+    Map<String, dynamic>? query,
+    String emptyError = 'Something went wrong. Please try again.',
+  }) async {
+    try {
+      final res = await _dio.get<Map<String, dynamic>>(path, queryParameters: query);
+      final body = res.data;
+      if (body == null) throw ServerFailure(emptyError);
+      return body;
+    } on DioException catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  /// GET a JSON array, tolerating an empty body, + [DioException] → [Failure].
+  Future<List<dynamic>> _getList(String path, {Map<String, dynamic>? query}) async {
+    try {
+      final res = await _dio.get<List<dynamic>>(path, queryParameters: query);
+      return res.data ?? [];
+    } on DioException catch (e) {
+      throw mapDioException(e);
+    }
   }
 }
 

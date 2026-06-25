@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -59,6 +61,9 @@ class AppMapView extends StatefulWidget {
     required this.initialLongitude,
     required this.markers,
     this.route = const [],
+    this.zones = const [],
+    this.restaurantLatitude,
+    this.restaurantLongitude,
     this.onMapCreated,
     this.onTap,
     this.fitMarkersInView = true,
@@ -68,6 +73,15 @@ class AppMapView extends StatefulWidget {
   final double initialLongitude;
   final List<AppMapMarker> markers;
   final List<AppMapRoutePoint> route;
+
+  /// Active delivery zones from the backend. Each map may have
+  /// `maxDistanceKm` (radius) or `polygonGeo` (GeoJSON Polygon).
+  final List<Map<String, dynamic>> zones;
+
+  /// Restaurant origin — required to draw radius zones.
+  final double? restaurantLatitude;
+  final double? restaurantLongitude;
+
   final ValueChanged<AppMapController>? onMapCreated;
   final ValueChanged<AppMapMarker>? onTap;
   final bool fitMarkersInView;
@@ -95,6 +109,9 @@ class _AppMapViewState extends State<AppMapView> {
             widget.route != oldWidget.route)) {
       unawaited(_syncAnnotations());
     }
+    if (_styleLoaded && widget.zones != oldWidget.zones) {
+      unawaited(_syncZones());
+    }
   }
 
   Color _colorForMarker(AppMapMarker marker) {
@@ -107,7 +124,7 @@ class _AppMapViewState extends State<AppMapView> {
       case 'delivery':
         return const Color(0xFF3B82F6);
       default:
-        return AppColors.secondary500;
+        return AppColors.accent500;
     }
   }
 
@@ -206,6 +223,7 @@ class _AppMapViewState extends State<AppMapView> {
     _styleLoaded = true;
     _pointManager = await map.annotations.createPointAnnotationManager();
     _polylineManager = await map.annotations.createPolylineAnnotationManager();
+    await _syncZones();
     await _syncAnnotations();
   }
 
@@ -231,13 +249,9 @@ class _AppMapViewState extends State<AppMapView> {
       return;
     }
 
-    if (_pointManager == null) {
-      _pointManager = await map.annotations.createPointAnnotationManager();
-    }
-    if (_polylineManager == null) {
-      _polylineManager =
-          await map.annotations.createPolylineAnnotationManager();
-    }
+    _pointManager ??= await map.annotations.createPointAnnotationManager();
+    _polylineManager ??=
+        await map.annotations.createPolylineAnnotationManager();
 
     try {
       await _polylineManager?.deleteAll();
@@ -314,6 +328,114 @@ class _AppMapViewState extends State<AppMapView> {
       );
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Zone overlay — draws delivery zone boundaries using the Mapbox style API.
+  // Supports radius zones (maxDistanceKm) and polygon zones (polygonGeo).
+  // ---------------------------------------------------------------------------
+
+  Future<void> _syncZones() async {
+    final map = _mapboxMap;
+    if (map == null || !_styleLoaded) return;
+
+    // Remove previous layers/source if they exist.
+    try {
+      if (await map.style.styleLayerExists('zone-fill')) {
+        await map.style.removeStyleLayer('zone-fill');
+      }
+      if (await map.style.styleLayerExists('zone-border')) {
+        await map.style.removeStyleLayer('zone-border');
+      }
+      if (await map.style.styleSourceExists('zone-source')) {
+        await map.style.removeStyleSource('zone-source');
+      }
+    } catch (_) {}
+
+    if (widget.zones.isEmpty) return;
+
+    final features = <Map<String, dynamic>>[];
+
+    for (final zone in widget.zones) {
+      final polygonGeo = zone['polygonGeo'];
+      final maxDistKm = (zone['maxDistanceKm'] as num?)?.toDouble();
+
+      if (polygonGeo is Map) {
+        features.add({
+          'type': 'Feature',
+          'geometry': polygonGeo,
+          'properties': <String, dynamic>{},
+        });
+      } else if (maxDistKm != null &&
+          widget.restaurantLatitude != null &&
+          widget.restaurantLongitude != null) {
+        final ring = _circleRing(
+          widget.restaurantLatitude!,
+          widget.restaurantLongitude!,
+          maxDistKm,
+        );
+        features.add({
+          'type': 'Feature',
+          'geometry': {
+            'type': 'Polygon',
+            'coordinates': [ring],
+          },
+          'properties': <String, dynamic>{},
+        });
+      }
+    }
+
+    if (features.isEmpty) return;
+
+    final geoJson = jsonEncode({
+      'type': 'FeatureCollection',
+      'features': features,
+    });
+
+    await map.style.addSource(GeoJsonSource(id: 'zone-source', data: geoJson));
+    await map.style.addLayer(FillLayer(
+      id: 'zone-fill',
+      sourceId: 'zone-source',
+      fillColor: AppColors.primary.toARGB32(),
+      fillOpacity: 0.12,
+    ));
+    await map.style.addLayer(LineLayer(
+      id: 'zone-border',
+      sourceId: 'zone-source',
+      lineColor: AppColors.primary.toARGB32(),
+      lineWidth: 2.0,
+    ));
+  }
+
+  /// Approximates a geodesic circle as a closed ring of [steps] points.
+  /// Returns [[lng, lat], ...] in GeoJSON coordinate order.
+  static List<List<double>> _circleRing(
+    double centerLat,
+    double centerLng,
+    double radiusKm, {
+    int steps = 64,
+  }) {
+    const R = 6371.0;
+    final ring = <List<double>>[];
+    for (var i = 0; i <= steps; i++) {
+      final bearing = (2 * math.pi * i) / steps;
+      final d = radiusKm / R;
+      final lat1 = centerLat * math.pi / 180;
+      final lng1 = centerLng * math.pi / 180;
+      final lat2 = math.asin(
+        math.sin(lat1) * math.cos(d) +
+            math.cos(lat1) * math.sin(d) * math.cos(bearing),
+      );
+      final lng2 = lng1 +
+          math.atan2(
+            math.sin(bearing) * math.sin(d) * math.cos(lat1),
+            math.cos(d) - math.sin(lat1) * math.sin(lat2),
+          );
+      ring.add([lng2 * 180 / math.pi, lat2 * 180 / math.pi]);
+    }
+    return ring;
+  }
+
+  // ---------------------------------------------------------------------------
 
   Future<void> _fitCamera() async {
     final map = _mapboxMap;
@@ -402,7 +524,7 @@ class _AppMapViewState extends State<AppMapView> {
         MapWidget(
           key: const ValueKey('customer_app_map'),
           styleUri: MapboxStyles.STANDARD,
-          cameraOptions: CameraOptions(
+          viewport: CameraViewportState(
             center: Point(coordinates: center),
             zoom: 14.0,
           ),

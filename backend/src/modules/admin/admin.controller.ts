@@ -23,6 +23,7 @@ import {
   PaginationDto,
   UpdateUserStatusDto,
   UpdateRiderApprovalDto,
+  UpdateDocumentStatusDto,
   SuperAdminOrderQueryDto,
   SuperAdminRestaurantQueryDto,
 } from './dto/admin.dto';
@@ -126,8 +127,8 @@ export class AdminController {
 
   @ApiOperation({ summary: 'List all users' })
   @Get('users')
-  users(@Query() query: AdminUserQueryDto) {
-    return this.admin.listUsers(query);
+  users(@CurrentUser() user: JwtPayload, @Query() query: AdminUserQueryDto) {
+    return this.admin.listUsers(user, query);
   }
 
   @ApiOperation({ summary: 'Get single user detail' })
@@ -183,6 +184,15 @@ export class AdminController {
     @Body() dto: UpdateRiderApprovalDto,
   ) {
     return this.admin.updateRiderApprovalStatus(id, dto.status);
+  }
+
+  @ApiOperation({ summary: 'Approve or reject a single rider document' })
+  @Patch('riders/documents/:docId')
+  updateRiderDocument(
+    @Param('docId') docId: string,
+    @Body() dto: UpdateDocumentStatusDto,
+  ) {
+    return this.admin.updateRiderDocumentStatus(docId, dto.status);
   }
 
   @ApiOperation({ summary: 'List audit logs' })

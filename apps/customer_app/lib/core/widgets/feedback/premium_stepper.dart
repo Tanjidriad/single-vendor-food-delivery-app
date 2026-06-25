@@ -50,7 +50,7 @@ class PremiumStepper extends StatelessWidget {
               shape: BoxShape.circle,
               border: active ? null : Border.all(color: const Color(0xFFE5E7EB), width: 2),
               boxShadow: isCurrent ? [
-                BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))
+                BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))
               ] : null,
             ),
             alignment: Alignment.center,

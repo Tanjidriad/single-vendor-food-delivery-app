@@ -68,8 +68,8 @@ class AppHomeOfferCarouselShimmer extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: count,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (_, __) => AppHomeOfferCardShimmer(width: cardWidth, compact: true),
+        separatorBuilder: (_, _) => const SizedBox(width: 12),
+        itemBuilder: (_, _) => AppHomeOfferCardShimmer(width: cardWidth, compact: true),
       ),
     );
   }

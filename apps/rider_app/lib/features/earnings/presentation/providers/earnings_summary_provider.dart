@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -57,7 +59,7 @@ class EarningsSummaryNotifier extends AsyncNotifier<EarningsSummary> {
       final cachedSummary = EarningsSummary.fromJson(cached);
 
       // Kick off a background refresh (don't await)
-      Future.microtask(() async {
+      unawaited(Future.microtask(() async {
         try {
           final rawData = await repository.getRawEarnings(period: period);
           if (rawData != null) {
@@ -71,7 +73,7 @@ class EarningsSummaryNotifier extends AsyncNotifier<EarningsSummary> {
         } catch (e) {
           debugPrint('Background earnings refresh failed: $e');
         }
-      });
+      }));
 
       return cachedSummary;
     }

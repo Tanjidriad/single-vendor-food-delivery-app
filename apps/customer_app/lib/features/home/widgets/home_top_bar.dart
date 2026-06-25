@@ -7,6 +7,7 @@ import '../../../core/router/route_paths.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/media/app_food_image.dart';
 import '../../../features/cart/presentation/providers/cart_provider.dart';
+import '../../../features/notifications/presentation/providers/notifications_providers.dart';
 
 enum HomeTopBarVariant { surface, onPrimary }
 
@@ -29,6 +30,7 @@ class HomeTopBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cartCount = ref.watch(cartProvider).itemCount;
+    final hasUnread = ref.watch(unreadNotificationCountProvider) > 0;
     final subtitleColor = _onPrimary ? AppColors.onPrimary.withValues(alpha: 0.85) : AppColors.textSecondary;
     final titleColor = _onPrimary ? AppColors.onPrimary : AppColors.textPrimary;
     final chevronColor = _onPrimary ? AppColors.onPrimary : AppColors.primary;
@@ -81,8 +83,8 @@ class HomeTopBar extends ConsumerWidget {
         ),
         _CircleIconButton(
           icon: AppIcons.notification,
-          onTap: onNotificationsTap ?? () => context.go(RoutePaths.offers),
-          showBadge: true,
+          onTap: onNotificationsTap ?? () => context.push(RoutePaths.notifications),
+          showBadge: hasUnread,
           onPrimary: _onPrimary,
         ),
         const SizedBox(width: 8),

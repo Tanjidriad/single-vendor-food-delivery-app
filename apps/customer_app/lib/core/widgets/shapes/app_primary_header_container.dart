@@ -14,7 +14,13 @@ class AppPrimaryHeaderContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCurvedEdges(
       child: Container(
-        color: AppColors.black500,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppColors.primary800, AppColors.primary],
+          ),
+        ),
         child: Stack(
           children: [
             const Positioned(

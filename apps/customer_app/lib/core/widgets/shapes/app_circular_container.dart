@@ -35,7 +35,7 @@ class AppCircularContainer extends StatelessWidget {
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppColors.onPrimary.withValues(alpha: 0.1),
+        color: backgroundColor ?? AppColors.onPrimary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(radius),
         border: showBorder ? Border.all(color: borderColor) : null,
       ),

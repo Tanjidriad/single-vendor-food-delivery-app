@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { acquireCronLock } from '../../common/utils/redis-lock.util';
 import {
   FoodDisposition,
   OrderStatus,
@@ -18,6 +20,7 @@ export class TimerPolicyService {
 
   constructor(
     private prisma: PrismaService,
+    private config: ConfigService,
     private orderStatusService: OrderStatusService,
     private realtime: RealtimeService,
     private refundsService: RefundsService,
@@ -25,6 +28,7 @@ export class TimerPolicyService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   async checkSlaBreaches() {
+    if (!(await acquireCronLock(this.config, 'check-sla-breaches', 55))) return;
     this.logger.debug('Checking for SLA breaches...');
     const now = new Date();
 

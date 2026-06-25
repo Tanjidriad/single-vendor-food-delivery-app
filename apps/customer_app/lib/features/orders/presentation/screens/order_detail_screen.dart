@@ -31,13 +31,13 @@ class OrderDetailScreen extends ConsumerWidget {
       backgroundColor: isDark ? AppColors.background : AppColors.gray100,
       appBar: AppBar(
         title: orderAsync.when(
-          data: (o) => Text('Order #${o['orderNumber']}'),
+          data: (o) => Text('Order #${o.orderNumber ?? ''}'),
           loading: () => const Text('Order'),
-          error: (_, __) => const Text('Order'),
+          error: (_, _) => const Text('Order'),
         ),
       ),
       body: orderAsync.when(
-        data: (order) => _OrderBody(order: order, orderId: orderId),
+        data: (order) => _OrderBody(order: order.raw, orderId: orderId),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => AppErrorState(
           message: friendlyErrorMessage(e),

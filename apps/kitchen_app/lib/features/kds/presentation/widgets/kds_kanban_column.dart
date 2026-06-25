@@ -4,7 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../domain/order_workflow.dart';
 
 /// A single Kanban column for the Foodpanda-style KDS.
-class KdsKanbanColumn extends StatelessWidget {
+class KdsKanbanColumn extends StatefulWidget {
   final String title;
   final KitchenSection section;
   final int count;
@@ -13,6 +13,7 @@ class KdsKanbanColumn extends StatelessWidget {
   final Widget Function(dynamic order) cardBuilder;
   final Widget? emptyState;
   final bool compact;
+  final bool showBadge;
 
   const KdsKanbanColumn({
     super.key,
@@ -24,7 +25,42 @@ class KdsKanbanColumn extends StatelessWidget {
     required this.cardBuilder,
     this.emptyState,
     this.compact = false,
+    this.showBadge = false,
   });
+
+  @override
+  State<KdsKanbanColumn> createState() => _KdsKanbanColumnState();
+}
+
+class _KdsKanbanColumnState extends State<KdsKanbanColumn>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  int _previousCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _previousCount = widget.count;
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+  }
+
+  @override
+  void didUpdateWidget(KdsKanbanColumn oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.showBadge && widget.count > _previousCount) {
+      _pulseController.forward(from: 0);
+    }
+    _previousCount = widget.count;
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,22 +70,22 @@ class KdsKanbanColumn extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkElevated : AppColors.gray100,
-        borderRadius: BorderRadius.circular(compact ? 12 : 16),
+        borderRadius: BorderRadius.circular(widget.compact ? 12 : 16),
       ),
-      margin: EdgeInsets.symmetric(horizontal: compact ? 4 : 8),
+      margin: EdgeInsets.symmetric(horizontal: widget.compact ? 4 : 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(context),
           Expanded(
-            child: orders.isEmpty
-                ? (emptyState ?? _defaultEmptyState(context))
+            child: widget.orders.isEmpty
+                ? (widget.emptyState ?? _defaultEmptyState(context))
                 : ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 12, vertical: compact ? 4 : 8),
-                    itemCount: orders.length,
+                    padding: EdgeInsets.symmetric(horizontal: widget.compact ? 6 : 12, vertical: widget.compact ? 4 : 8),
+                    itemCount: widget.orders.length,
                     itemBuilder: (context, index) {
-                      final order = orders[index];
-                      return cardBuilder(order)
+                      final order = widget.orders[index];
+                      return widget.cardBuilder(order)
                           .animate(key: ValueKey(order['id']))
                           .fadeIn(duration: 300.ms)
                           .slideY(begin: 0.05, end: 0);
@@ -66,23 +102,23 @@ class KdsKanbanColumn extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 16, vertical: compact ? 10 : 14),
+      padding: EdgeInsets.symmetric(horizontal: widget.compact ? 12 : 16, vertical: widget.compact ? 10 : 14),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        border: Border(bottom: BorderSide(color: accentColor.withValues(alpha: 0.3))),
+        border: Border(bottom: BorderSide(color: widget.accentColor.withValues(alpha: 0.3))),
       ),
       child: Row(
         children: [
           Container(
             width: 10,
             height: 10,
-            decoration: BoxDecoration(color: accentColor, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: widget.accentColor, shape: BoxShape.circle),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              title,
+              widget.title,
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
@@ -90,28 +126,52 @@ class KdsKanbanColumn extends StatelessWidget {
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              '$count',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: accentColor,
+          if (widget.showBadge && widget.count > 0)
+            AnimatedBuilder(
+              animation: _pulseController,
+              builder: (context, child) {
+                final scale = 1.0 + (_pulseController.value * 0.2 * (1 - _pulseController.value));
+                return Transform.scale(scale: scale, child: child);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: widget.accentColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${widget.count}',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.white50,
+                  ),
+                ),
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: widget.accentColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${widget.count}',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: widget.accentColor,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
   }
 
   Widget _defaultEmptyState(BuildContext context) {
-    final (icon, headline, subtext) = switch (section) {
+    final (icon, headline, subtext) = switch (widget.section) {
       KitchenSection.newOrders => (
           Icons.receipt_long,
           'No new orders',
@@ -129,7 +189,7 @@ class KdsKanbanColumn extends StatelessWidget {
         ),
       _ => (
           Icons.receipt_long,
-          'No ${title.toLowerCase()}',
+          'No ${widget.title.toLowerCase()}',
           '',
         ),
     };

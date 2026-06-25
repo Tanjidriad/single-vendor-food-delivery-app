@@ -31,7 +31,7 @@ export class MapsService {
         url.searchParams.set('key', apiKey);
         url.searchParams.set('mode', 'driving');
 
-        const res = await fetch(url.toString());
+        const res = await fetch(url.toString(), { signal: AbortSignal.timeout(8_000) });
         const data = (await res.json()) as {
           rows?: { elements?: { status: string; distance?: { value: number }; duration?: { value: number } }[] }[];
         };
@@ -56,7 +56,7 @@ export class MapsService {
         url.searchParams.set('access_token', mapboxToken);
         url.searchParams.set('overview', 'false');
 
-        const res = await fetch(url.toString());
+        const res = await fetch(url.toString(), { signal: AbortSignal.timeout(8_000) });
         const data = (await res.json()) as {
           routes?: { distance: number; duration: number }[];
         };
@@ -89,7 +89,7 @@ export class MapsService {
         const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
         url.searchParams.set('address', address);
         url.searchParams.set('key', apiKey);
-        const res = await fetch(url.toString());
+        const res = await fetch(url.toString(), { signal: AbortSignal.timeout(8_000) });
         const data = (await res.json()) as {
           results?: { formatted_address: string; geometry: { location: { lat: number; lng: number } } }[];
         };
@@ -111,7 +111,7 @@ export class MapsService {
         const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json`);
         url.searchParams.set('access_token', mapboxToken);
         url.searchParams.set('limit', '1');
-        const res = await fetch(url.toString());
+        const res = await fetch(url.toString(), { signal: AbortSignal.timeout(8_000) });
         const data = (await res.json()) as {
           features?: { place_name: string; geometry: { coordinates: [number, number] } }[];
         };
@@ -136,6 +136,7 @@ export class MapsService {
     url.searchParams.set('limit', '1');
     const res = await fetch(url.toString(), {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 FoodDeliveryApp/1.0' },
+      signal: AbortSignal.timeout(8_000),
     });
     const data = await res.json() as { display_name?: string; lat?: string; lon?: string }[];
     const first = data?.[0];
@@ -158,7 +159,7 @@ export class MapsService {
         const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
         url.searchParams.set('latlng', `${lat},${lng}`);
         url.searchParams.set('key', apiKey);
-        const res = await fetch(url.toString());
+        const res = await fetch(url.toString(), { signal: AbortSignal.timeout(8_000) });
         const data = (await res.json()) as {
           results?: { formatted_address: string }[];
         };
@@ -176,7 +177,7 @@ export class MapsService {
         const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json`);
         url.searchParams.set('access_token', mapboxToken);
         url.searchParams.set('limit', '1');
-        const res = await fetch(url.toString());
+        const res = await fetch(url.toString(), { signal: AbortSignal.timeout(8_000) });
         const data = (await res.json()) as {
           features?: { place_name: string }[];
         };
@@ -197,6 +198,7 @@ export class MapsService {
     url.searchParams.set('format', 'json');
     const res = await fetch(url.toString(), {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 FoodDeliveryApp/1.0' },
+      signal: AbortSignal.timeout(8_000),
     });
     const data = await res.json() as { display_name?: string; error?: string };
     if (!data || data.error || !data.display_name) {

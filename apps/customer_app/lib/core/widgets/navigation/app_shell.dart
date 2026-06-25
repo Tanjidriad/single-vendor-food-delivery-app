@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_icons.dart';
 
@@ -8,16 +9,28 @@ import '../commerce/floating_cart_bar.dart';
 import '../layout/responsive_center.dart';
 import 'app_bottom_nav_bar.dart';
 import 'customer_bottom_nav_destinations.dart';
+import '../../../features/home/presentation/providers/zone_check_provider.dart';
+import '../../../features/home/presentation/widgets/zone_takeover.dart';
 
-class AppShell extends StatelessWidget {
+/// Index of the Profile branch in the navigation shell. The out-of-zone gate
+/// covers the discovery tabs but leaves Profile reachable so the customer can
+/// still manage addresses and account settings.
+const int _profileBranchIndex = 3;
+
+class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final layout = AppBreakpoints.of(context);
     final isDesktop = layout == AppLayoutSize.desktop;
+
+    final outsideZone =
+        ref.watch(zoneStatusProvider) == ZoneStatus.outside;
+    final gated =
+        outsideZone && navigationShell.currentIndex != _profileBranchIndex;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -25,7 +38,9 @@ class AppShell extends StatelessWidget {
         child: Row(
           children: [
             if (isDesktop) _SideRail(navigationShell: navigationShell),
-            Expanded(child: navigationShell),
+            Expanded(
+              child: gated ? const ZoneTakeover() : navigationShell,
+            ),
           ],
         ),
       ),
@@ -34,7 +49,7 @@ class AppShell extends StatelessWidget {
           : Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const FloatingCartBar(),
+                if (!gated) const FloatingCartBar(),
                 AppBottomNavBar(
                   destinations: customerBottomNavDestinations,
                   selectedIndex: navigationShell.currentIndex,
@@ -70,7 +85,6 @@ class _SideRail extends StatelessWidget {
       destinations: const [
         NavigationRailDestination(icon: Icon(AppIcons.home), label: Text('Home')),
         NavigationRailDestination(icon: Icon(Icons.grid_view_outlined), label: Text('Menu')),
-        NavigationRailDestination(icon: Icon(AppIcons.orders), label: Text('Orders')),
         NavigationRailDestination(icon: Icon(AppIcons.offers), label: Text('Offers')),
         NavigationRailDestination(icon: Icon(AppIcons.profile), label: Text('Profile')),
       ],

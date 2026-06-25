@@ -1,19 +1,19 @@
-import 'package:customer_app/features/cart/presentation/widgets/coupon_section.dart';
-
-import '../../../../core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_paths.dart';
-import '../../../../core/utils/formatters/formatter.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/cwt/empty_state_widget.dart';
+import '../../../../core/widgets/feedback/premium_stepper.dart';
 import '../../../orders/data/orders_repository.dart';
 import '../../../profile/presentation/providers/checkout_address_provider.dart';
 import '../../../restaurant/data/restaurant_repository.dart';
 import '../providers/cart_provider.dart';
+import '../widgets/cart_delivery_row.dart';
+import '../widgets/cart_order_summary.dart';
+import '../widgets/cart_total_row.dart';
 import '../widgets/premium_cart_item_card.dart';
-import '../../../../core/widgets/feedback/premium_stepper.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
@@ -157,10 +157,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         icon: const Icon(Icons.close, color: AppColors.primary),
                         onPressed: () => context.pop(),
                       ),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           children: [
-                            Text(
+                            const Text(
                               'Cart',
                               style: TextStyle(
                                 fontSize: 18,
@@ -170,8 +170,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                               ),
                             ),
                             Text(
-                              'Golpo - Mirpur 06',
-                              style: TextStyle(
+                              ref.watch(restaurantProvider).valueOrNull?['name'] as String? ?? '',
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: Color(0xFF4B5563),
                               ),
@@ -195,64 +195,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 padding: const EdgeInsets.all(0),
                 children: [
                   // Delivery Time
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _deliveryRowLabel(),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF111827),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _addressLabel(deliveryAddress),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF6B7280),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: deliveryAddress == null
-                              ? () => context.push(
-                                    '${RoutePaths.addresses}?select=true',
-                                  )
-                              : () => context.push(
-                                    '${RoutePaths.addresses}?select=true',
-                                  ),
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            deliveryAddress == null ? 'Add' : 'Change',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                              decoration: TextDecoration.underline,
-                              decorationColor: AppColors.primary,
-                            ),
-                          ),
-                        ),
-                      ],
+                  CartDeliveryRow(
+                    timeLabel: _deliveryRowLabel(),
+                    addressLabel: _addressLabel(deliveryAddress),
+                    hasAddress: deliveryAddress != null,
+                    onChangeAddress: () => context.push(
+                      '${RoutePaths.addresses}?select=true',
                     ),
                   ),
                   Container(height: 8, color: const Color(0xFFF3F4F6)),
@@ -293,141 +241,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                   // Order Summary
                   Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Subtotal',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF111827),
-                              ),
-                            ),
-                            Text(
-                              AppFormatter.formatCurrency(cart.subtotal),
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF111827),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Standard delivery',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF374151),
-                              ),
-                            ),
-                            Text(
-                              'Tk 19',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF111827),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        if (cart.discount > 0) ...[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Discount',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: AppColors.success,
-                                ),
-                              ),
-                              Text(
-                                '-${AppFormatter.formatCurrency(cart.discount)}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: AppColors.success,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                        ] else ...[
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Interactive Voucher Section
-                        const CouponSection(),
-                      ],
-                    ),
+                    child: CartOrderSummary(cart: cart),
                   ),
                   Container(height: 8, color: const Color(0xFFF3F4F6)),
 
                   // Final Total
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Row(
-                              children: [
-                                Text(
-                                  'Total',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  '(incl. fees and tax)',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFF6B7280),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'See summary',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey.shade800,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              AppFormatter.formatCurrency(total),
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                                height: 1.1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                  CartTotalRow(total: total),
                 ],
               ),
             ),

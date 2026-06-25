@@ -26,7 +26,7 @@ class OnboardingIndicator extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
             color: isSelected
                 ? AppColors.primary
-                : AppColors.border.withOpacity(0.5),
+                : AppColors.border.withValues(alpha: 0.5),
           ),
         );
       }),

@@ -1,29 +1,23 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:customer_app/app.dart';
-import 'package:customer_app/core/config/api_host_resolver.dart';
-import 'package:customer_app/core/utils/local_storage/storage_utility.dart';
+import 'package:customer_app/features/onboarding/presentation/screens/onboarding_screen.dart';
+
+import 'helpers/test_harness.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  testWidgets('boots to splash then routes to onboarding', (tester) async {
+    await pumpApp(tester);
 
-  testWidgets('App loads splash', (WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
-    await ApiHostResolver.init(prefs);
+    // First frame: the splash brand mark is visible.
+    expect(find.text('WASABI'), findsOneWidget);
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
-        child: const CustomerApp(),
-      ),
-    );
-    await tester.pump();
-    expect(find.text('Demo Kitchen'), findsOneWidget);
+    // Advance past the splash's 1200ms bootstrap delay and the route
+    // transition. With no onboarding flag set, it routes to onboarding
+    // before any secure-storage access.
+    await tester.pump(const Duration(milliseconds: 1300));
     await tester.pump(const Duration(milliseconds: 700));
+
+    expect(find.text('WASABI'), findsNothing);
+    expect(find.byType(OnboardingScreen), findsOneWidget);
   });
 }

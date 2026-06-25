@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../theme/app_colors.dart';
+import '../../theme/app_tokens.dart';
+
 class CleanAuthScaffold extends StatelessWidget {
   const CleanAuthScaffold({
     super.key,
@@ -22,20 +25,23 @@ class CleanAuthScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: showBack
             ? Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 child: IconButton(
-                  onPressed: onBack ?? () => context.canPop() ? context.pop() : null,
-                  icon: const Icon(LucideIcons.chevronLeft, color: Colors.black),
+                  onPressed:
+                      onBack ?? () => context.canPop() ? context.pop() : null,
+                  icon: const Icon(LucideIcons.chevronLeft),
                   style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFFF3F4F6),
+                    backgroundColor: AppColors.surfaceElevated,
                     shape: const CircleBorder(),
                   ),
                 ),
@@ -47,27 +53,30 @@ class CleanAuthScaffold extends StatelessWidget {
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.xxl,
+                  AppSpacing.lg,
+                  AppSpacing.xxl,
+                  AppSpacing.xxxl,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
                       title,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 24,
+                      style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: Colors.black,
                         letterSpacing: -0.5,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     Text(
                       subtitle,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: Color(0xFF6B7280),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
                         height: 1.4,
                       ),
                     ),
@@ -77,14 +86,19 @@ class CleanAuthScaffold extends StatelessWidget {
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
                 child: child,
               ),
             ),
             if (footer != null)
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.xxl,
+                    AppSpacing.xxxl,
+                    AppSpacing.xxl,
+                    AppSpacing.xxxl,
+                  ),
                   child: footer!,
                 ),
               ),

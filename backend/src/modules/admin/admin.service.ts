@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { OrderStatus, UserRole } from '@prisma/client';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { OrderStatus, RiderDocumentStatus, UserRole } from '@prisma/client';
 import {
   orderFoodRevenue,
   reportableDeliveredOrderWhere,
@@ -138,18 +138,27 @@ export class AdminService {
   }
 
   // ─── Admin User List ──────────────────────────────────────────────
-  async listUsers(filters: {
-    role?: UserRole;
-    search?: string;
-    page?: number;
-    limit?: number;
-  }) {
+  async listUsers(
+    caller: { role: string; restaurantId?: string | null },
+    filters: {
+      role?: UserRole;
+      search?: string;
+      page?: number;
+      limit?: number;
+    },
+  ) {
     const page = filters.page ?? 1;
     const limit = filters.limit ?? 20;
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
     if (filters.role) where.role = filters.role;
+
+    // OWNER/MANAGER can only see staff belonging to their restaurant
+    if (caller.role !== UserRole.ADMIN && caller.restaurantId) {
+      where.staffProfile = { restaurantId: caller.restaurantId };
+    }
+
     if (filters.search) {
       where.OR = [
         { email: { contains: filters.search, mode: 'insensitive' } },
@@ -269,6 +278,20 @@ export class AdminService {
       where: { id },
       data: { approvalStatus: status },
       select: { id: true, fullName: true, approvalStatus: true },
+    });
+  }
+
+  // Approve or reject a single KYC document (NID, license, etc.).
+  async updateRiderDocumentStatus(docId: string, status: RiderDocumentStatus) {
+    const doc = await this.prisma.riderDocument.findUnique({
+      where: { id: docId },
+    });
+    if (!doc) throw new NotFoundException('Document not found');
+
+    return this.prisma.riderDocument.update({
+      where: { id: docId },
+      data: { status },
+      select: { id: true, type: true, status: true },
     });
   }
 

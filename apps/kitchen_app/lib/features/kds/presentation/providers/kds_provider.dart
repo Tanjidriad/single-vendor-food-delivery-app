@@ -61,7 +61,8 @@ final kdsReturnedOrdersProvider = Provider<List<dynamic>>((ref) {
             OrderWorkflowMapper.getSection(
               OrderWorkflowMapper.getCanonicalStatus(o),
             ) ==
-            KitchenSection.returned,
+            KitchenSection.returned &&
+            o['foodDisposition'] != 'DISCARDED',
       )
       .toList();
 });
@@ -73,6 +74,32 @@ final kdsEventStreamProvider = StreamProvider.autoDispose<Map<String, dynamic>>(
   },
 );
 
+/// A dispatch-related alert surfaced to the kitchen UI.
+class DispatchAlert {
+  final String orderId;
+  final String orderNumber;
+  final DispatchAlertType type;
+  final String? riderName;
+  final DateTime createdAt;
+
+  const DispatchAlert({
+    required this.orderId,
+    required this.orderNumber,
+    required this.type,
+    this.riderName,
+    required this.createdAt,
+  });
+}
+
+enum DispatchAlertType {
+  searching,
+  accepted,
+  rejected,
+  expired,
+  exhausted,
+  failed,
+}
+
 class KdsState {
   final List<dynamic> orders;
   final bool isLoading;
@@ -81,6 +108,7 @@ class KdsState {
   final DateTime? lastSuccessfulFetchAt;
   final String? lastPrintError;
   final Map<String, dynamic>? lastFailedOrder;
+  final List<DispatchAlert> dispatchAlerts;
 
   KdsState({
     this.orders = const [],
@@ -90,6 +118,7 @@ class KdsState {
     this.lastSuccessfulFetchAt,
     this.lastPrintError,
     this.lastFailedOrder,
+    this.dispatchAlerts = const [],
   });
 
   /// Socket connected, or a recent REST poll succeeded (orders still flow).
@@ -108,6 +137,7 @@ class KdsState {
     DateTime? lastSuccessfulFetchAt,
     String? lastPrintError,
     Map<String, dynamic>? lastFailedOrder,
+    List<DispatchAlert>? dispatchAlerts,
     bool clearPrintError = false,
   }) {
     return KdsState(
@@ -119,6 +149,7 @@ class KdsState {
           lastSuccessfulFetchAt ?? this.lastSuccessfulFetchAt,
       lastPrintError: clearPrintError ? null : (lastPrintError ?? this.lastPrintError),
       lastFailedOrder: clearPrintError ? null : (lastFailedOrder ?? this.lastFailedOrder),
+      dispatchAlerts: dispatchAlerts ?? this.dispatchAlerts,
     );
   }
 }
@@ -130,6 +161,7 @@ class KdsNotifier extends Notifier<KdsState> {
   Timer? _reconnectTimer;
   Timer? _debounceTimer;
   int _socketReconnectAttempt = 0;
+  StreamSubscription<void>? _tokenRefreshSub;
 
   final _eventController = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get eventStream => _eventController.stream;
@@ -163,7 +195,12 @@ class KdsNotifier extends Notifier<KdsState> {
       _startPolling();
     });
 
+    _tokenRefreshSub = _apiClient.tokenRefreshedStream.listen((_) {
+      _initSocket();
+    });
+
     ref.onDispose(() {
+      _tokenRefreshSub?.cancel();
       _pollTimer?.cancel();
       _reconnectTimer?.cancel();
       _debounceTimer?.cancel();
@@ -221,7 +258,7 @@ class KdsNotifier extends Notifier<KdsState> {
         state = state.copyWith(lastSuccessfulFetchAt: DateTime.now());
       }
     } catch (e) {
-      print('[KDS Poll] Error: $e');
+      if (kDebugMode) debugPrint('[KDS Poll] Error: $e');
     }
   }
 
@@ -257,7 +294,7 @@ class KdsNotifier extends Notifier<KdsState> {
   Future<void> fetchRestaurantStatus() async {
     final restaurantId = _authenticatedRestaurantId;
     if (restaurantId == null || restaurantId.isEmpty) {
-      print('[KDS] No authenticated restaurantId; skipping status fetch.');
+      if (kDebugMode) debugPrint('[KDS] No authenticated restaurantId; skipping status fetch.');
       return;
     }
 
@@ -267,7 +304,7 @@ class KdsNotifier extends Notifier<KdsState> {
         state = state.copyWith(isRestaurantActive: res.data['isActive']);
       }
     } catch (e) {
-      print('Error fetching restaurant status: $e');
+      if (kDebugMode) debugPrint('Error fetching restaurant status: $e');
     }
   }
 
@@ -280,7 +317,7 @@ class KdsNotifier extends Notifier<KdsState> {
         data: {'isActive': isActive},
       );
     } catch (e) {
-      print('Error toggling online status: $e');
+      if (kDebugMode) debugPrint('Error toggling online status: $e');
       // Revert on error
       state = state.copyWith(isRestaurantActive: !isActive);
     }
@@ -312,7 +349,7 @@ class KdsNotifier extends Notifier<KdsState> {
         lastSuccessfulFetchAt: DateTime.now(),
       );
     } catch (e) {
-      print('Error fetching kitchen orders: $e');
+      if (kDebugMode) debugPrint('Error fetching kitchen orders: $e');
       state = state.copyWith(isLoading: false);
     }
   }
@@ -320,7 +357,7 @@ class KdsNotifier extends Notifier<KdsState> {
   Future<void> _initSocket() async {
     final token = await _apiClient.getToken();
     if (token == null) {
-      print('[KDS Socket] No token, skipping socket init');
+      if (kDebugMode) debugPrint('[KDS Socket] No token, skipping socket init');
       // Retry after a delay
       _reconnectTimer = Timer(const Duration(seconds: 5), () => _initSocket());
       return;
@@ -342,7 +379,7 @@ class KdsNotifier extends Notifier<KdsState> {
     );
 
     _socket?.onConnect((_) {
-      print('[KDS Socket] Connected to /realtime');
+      if (kDebugMode) debugPrint('[KDS Socket] Connected to /realtime');
       _socketReconnectAttempt = 0;
       state = state.copyWith(isConnected: true);
       _reschedulePolling();
@@ -350,19 +387,19 @@ class KdsNotifier extends Notifier<KdsState> {
     });
 
     _socket?.onDisconnect((_) {
-      print('[KDS Socket] Disconnected');
+      if (kDebugMode) debugPrint('[KDS Socket] Disconnected');
       state = state.copyWith(isConnected: false);
       _reschedulePolling();
     });
 
     _socket?.onConnectError((err) {
-      print('[KDS Socket] Connect Error: $err');
+      if (kDebugMode) debugPrint('[KDS Socket] Connect Error: $err');
       state = state.copyWith(isConnected: false);
       _scheduleSocketReconnect();
     });
 
     _socket?.onReconnect((_) {
-      print('[KDS Socket] Reconnected');
+      if (kDebugMode) debugPrint('[KDS Socket] Reconnected');
       state = state.copyWith(isConnected: true);
     });
 
@@ -383,8 +420,44 @@ class KdsNotifier extends Notifier<KdsState> {
       _debouncedFetchOrders();
     });
 
+    _socket?.on('order:dispatch.failed', (data) {
+      if (kDebugMode) debugPrint('[KDS Socket] order:dispatch.failed received');
+      _handleDispatchAlert(data, DispatchAlertType.failed);
+      _debouncedFetchOrders();
+    });
+
+    _socket?.on('order:dispatch.exhausted', (data) {
+      if (kDebugMode) debugPrint('[KDS Socket] order:dispatch.exhausted received');
+      _handleDispatchAlert(data, DispatchAlertType.exhausted);
+      _debouncedFetchOrders();
+    });
+
+    _socket?.on('assignment:created', (data) {
+      if (kDebugMode) debugPrint('[KDS Socket] assignment:created received');
+      _handleDispatchAlert(data, DispatchAlertType.searching);
+      _debouncedFetchOrders();
+    });
+
+    _socket?.on('assignment:accepted', (data) {
+      if (kDebugMode) debugPrint('[KDS Socket] assignment:accepted received');
+      _handleDispatchAlert(data, DispatchAlertType.accepted);
+      _debouncedFetchOrders();
+    });
+
+    _socket?.on('assignment:rejected', (data) {
+      if (kDebugMode) debugPrint('[KDS Socket] assignment:rejected received');
+      _handleDispatchAlert(data, DispatchAlertType.rejected);
+      _debouncedFetchOrders();
+    });
+
+    _socket?.on('assignment:expired', (data) {
+      if (kDebugMode) debugPrint('[KDS Socket] assignment:expired received');
+      _handleDispatchAlert(data, DispatchAlertType.expired);
+      _debouncedFetchOrders();
+    });
+
     _socket?.connect();
-    print('[KDS Socket] Connecting to ${AppConfig.socketUrl}/realtime ...');
+    if (kDebugMode) debugPrint('[KDS Socket] Connecting to ${AppConfig.socketUrl}/realtime ...');
   }
 
   void _scheduleSocketReconnect() {
@@ -424,7 +497,85 @@ class KdsNotifier extends Notifier<KdsState> {
       );
       await fetchOrders();
     } catch (e) {
-      print('Error dispatching to Pathao: $e');
+      if (kDebugMode) debugPrint('Error dispatching to Pathao: $e');
+      rethrow;
+    }
+  }
+
+  void _handleDispatchAlert(dynamic data, DispatchAlertType type) {
+    if (data is List && data.isNotEmpty) data = data.first;
+    if (data is! Map) return;
+    final map = Map<String, dynamic>.from(data);
+    final orderId = map['orderId']?.toString() ?? '';
+    final orderNumber = map['orderNumber']?.toString() ?? '';
+    if (orderId.isEmpty) return;
+
+    final riderName = map['riderName']?.toString();
+    final alert = DispatchAlert(
+      orderId: orderId,
+      orderNumber: orderNumber,
+      type: type,
+      riderName: riderName,
+      createdAt: DateTime.now(),
+    );
+
+    final alerts = state.dispatchAlerts
+        .where((a) => a.orderId != orderId)
+        .toList()
+      ..add(alert);
+    state = state.copyWith(dispatchAlerts: alerts);
+    _emitEvent(data);
+  }
+
+  void dismissDispatchAlert(String orderId) {
+    final alerts = state.dispatchAlerts
+        .where((a) => a.orderId != orderId)
+        .toList();
+    state = state.copyWith(dispatchAlerts: alerts);
+  }
+
+  Future<List<dynamic>> fetchAvailableRiders() async {
+    try {
+      final res = await _apiClient.get('/dispatch/riders/available');
+      return (res.data as List<dynamic>?) ?? [];
+    } catch (e) {
+      if (kDebugMode) debugPrint('[KDS] Error fetching available riders: $e');
+      return [];
+    }
+  }
+
+  Future<void> autoAssignRider(String orderId) async {
+    try {
+      await _apiClient.post('/dispatch/orders/$orderId/auto-assign');
+      _debouncedFetchOrders();
+    } catch (e) {
+      if (kDebugMode) debugPrint('[KDS] Error auto-assigning rider: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> assignRider(String orderId, String riderProfileId) async {
+    try {
+      await _apiClient.post(
+        '/dispatch/orders/$orderId/assign',
+        data: {'riderProfileId': riderProfileId},
+      );
+      _debouncedFetchOrders();
+    } catch (e) {
+      if (kDebugMode) debugPrint('[KDS] Error assigning rider: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> forceUnassign(String orderId, {String? reason}) async {
+    try {
+      await _apiClient.post(
+        '/dispatch/orders/$orderId/force-unassign',
+        data: {if (reason != null) 'reason': reason},
+      );
+      _debouncedFetchOrders();
+    } catch (e) {
+      if (kDebugMode) debugPrint('[KDS] Error force-unassigning: $e');
       rethrow;
     }
   }
@@ -523,7 +674,7 @@ class KdsNotifier extends Notifier<KdsState> {
       await _apiClient.post('/orders/$orderId/reject', data: {'note': note});
       fetchOrders(); // refresh board
     } catch (e) {
-      print('Error rejecting order: $e');
+      if (kDebugMode) debugPrint('Error rejecting order: $e');
     }
   }
 

@@ -9,8 +9,8 @@ abstract final class AppTheme {
     const colorScheme = ColorScheme.light(
       primary: AppColors.primary,
       onPrimary: AppColors.onPrimary,
-      primaryContainer: AppColors.primaryLight,
-      onPrimaryContainer: AppColors.primaryDark,
+      primaryContainer: AppColors.primary100,
+      onPrimaryContainer: AppColors.primary800,
       secondary: AppColors.black400,
       onSecondary: AppColors.onPrimary,
       surface: AppColors.surface,
@@ -26,6 +26,7 @@ abstract final class AppTheme {
       textTheme: AppTypography.textTheme,
       scaffoldBackgroundColor: AppColors.background,
       dividerColor: AppColors.border,
+      splashFactory: InkSparkle.splashFactory,
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,

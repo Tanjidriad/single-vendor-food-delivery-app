@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/api_endpoints.dart';
+import '../../../core/errors/failures.dart';
+import '../../../core/errors/map_dio_exception.dart';
 import '../../../core/network/api_client.dart';
 import '../../auth/data/models/user_model.dart';
 
@@ -17,8 +19,14 @@ class ProfileRepository {
   final Dio _dio;
 
   Future<UserModel> getMe() async {
-    final res = await _dio.get<Map<String, dynamic>>(ApiEndpoints.usersMe);
-    return UserModel.fromJson(res.data!);
+    try {
+      final res = await _dio.get<Map<String, dynamic>>(ApiEndpoints.usersMe);
+      final data = res.data;
+      if (data == null) throw const ServerFailure('Could not load your profile.');
+      return UserModel.fromJson(data);
+    } on DioException catch (e) {
+      throw mapDioException(e);
+    }
   }
 
   Future<UserModel> updateProfile({
@@ -26,28 +34,42 @@ class ProfileRepository {
     String? phone,
     String? avatarUrl,
   }) async {
-    final res = await _dio.patch<Map<String, dynamic>>(
-      ApiEndpoints.usersMe,
-      data: {
-        if (fullName != null) 'fullName': fullName,
-        if (phone != null) 'phone': phone,
-        if (avatarUrl != null) 'avatarUrl': avatarUrl,
-      },
-    );
-    return UserModel.fromJson(res.data!);
+    try {
+      final res = await _dio.patch<Map<String, dynamic>>(
+        ApiEndpoints.usersMe,
+        data: {
+          'fullName': ?fullName,
+          'phone': ?phone,
+          'avatarUrl': ?avatarUrl,
+        },
+      );
+      final data = res.data;
+      if (data == null) throw const ServerFailure('Could not update your profile.');
+      return UserModel.fromJson(data);
+    } on DioException catch (e) {
+      throw mapDioException(e);
+    }
   }
 
   Future<String> uploadAvatar(File file) async {
-    final formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(
-        file.path,
-        filename: file.path.split(Platform.pathSeparator).last,
-      ),
-    });
-    final res = await _dio.post<Map<String, dynamic>>(
-      ApiEndpoints.uploadsAvatar,
-      data: formData,
-    );
-    return res.data!['url'] as String;
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          file.path,
+          filename: file.path.split(Platform.pathSeparator).last,
+        ),
+      });
+      final res = await _dio.post<Map<String, dynamic>>(
+        ApiEndpoints.uploadsAvatar,
+        data: formData,
+      );
+      final url = res.data?['url'] as String?;
+      if (url == null || url.isEmpty) {
+        throw const ServerFailure('Avatar upload failed. Please try again.');
+      }
+      return url;
+    } on DioException catch (e) {
+      throw mapDioException(e);
+    }
   }
 }

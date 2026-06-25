@@ -11,10 +11,11 @@ import '../../../../core/utils/formatters/formatter.dart';
 import '../../../../core/widgets/buttons/app_button.dart';
 import '../../../../core/widgets/inputs/app_text_field.dart';
 import '../../../../core/widgets/media/app_food_image.dart';
-import '../../../../core/widgets/shimmers/app_shimmer_effect.dart';
 import '../../../cart/domain/entities/cart_item.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../../restaurant/data/restaurant_repository.dart';
+import '../../widgets/addon_tile.dart';
+import '../../widgets/item_detail_skeleton.dart';
 
 class ItemDetailScreen extends ConsumerStatefulWidget {
   const ItemDetailScreen({super.key, required this.itemId});
@@ -83,7 +84,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
     if (_item == null) return;
     DeviceUtils.vibrate();
     final price = (_item!['price'] as num?)?.toDouble() ?? 0;
-    
+
     ref.read(cartProvider.notifier).addItem(CartItem(
           menuItemId: _item!['id'] as String,
           name: _item!['name'] as String? ?? '',
@@ -93,12 +94,27 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
           notes: _notesController.text.trim(),
           addons: _selectedAddons.values.toList(),
         ));
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+            SizedBox(width: 10),
+            Text('Added to cart', style: TextStyle(fontWeight: FontWeight.w600)),
+          ],
+        ),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(milliseconds: 1500),
+      ));
     context.pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return _buildSkeleton(context);
+    if (_isLoading) return const ItemDetailSkeleton();
     if (_item == null) return _buildError(context);
 
     final item = _item!;
@@ -256,62 +272,11 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                       final addonPrice = (addon['price'] as num?)?.toDouble() ?? 0;
                       final selected = _selectedAddons.containsKey(id);
 
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: InkWell(
-                          onTap: () => _toggleAddon(id, addonName, addonPrice),
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: selected ? AppColors.primaryLight : AppColors.surface,
-                              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                              border: Border.all(
-                                color: selected ? AppColors.primary : AppColors.border,
-                                width: selected ? 2 : 1,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                // Checkbox icon
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  width: 24,
-                                  height: 24,
-                                  decoration: BoxDecoration(
-                                    color: selected ? AppColors.primary : Colors.transparent,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: selected ? AppColors.primary : AppColors.textDisabled,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: selected
-                                      ? const Icon(Icons.check, size: 16, color: AppColors.onPrimary)
-                                      : null,
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Text(
-                                    addonName,
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                                          color: AppColors.textPrimary,
-                                        ),
-                                  ),
-                                ),
-                                Text(
-                                  '+${AppFormatter.formatCurrency(addonPrice)}',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        color: AppColors.textSecondary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      return AddonTile(
+                        name: addonName,
+                        price: addonPrice,
+                        selected: selected,
+                        onTap: () => _toggleAddon(id, addonName, addonPrice),
                       );
                     }),
                   ],
@@ -401,52 +366,6 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildSkeleton(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      body: CustomScrollView(
-        slivers: [
-          const SliverAppBar(
-            expandedHeight: 300,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: AppShimmerEffect(width: double.infinity, height: 300, radius: 0),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const AppShimmerEffect(width: 200, height: 32, radius: 8),
-                      const AppShimmerEffect(width: 80, height: 32, radius: 16),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const AppShimmerEffect(width: double.infinity, height: 16, radius: 4),
-                  const SizedBox(height: 8),
-                  const AppShimmerEffect(width: double.infinity, height: 16, radius: 4),
-                  const SizedBox(height: 8),
-                  const AppShimmerEffect(width: 150, height: 16, radius: 4),
-                  const SizedBox(height: 40),
-                  const AppShimmerEffect(width: 100, height: 24, radius: 8),
-                  const SizedBox(height: 16),
-                  const AppShimmerEffect(width: double.infinity, height: 80, radius: 16),
-                  const SizedBox(height: 12),
-                  const AppShimmerEffect(width: double.infinity, height: 80, radius: 16),
-                ],
-              ),
-            ),
-          )
-        ],
       ),
     );
   }

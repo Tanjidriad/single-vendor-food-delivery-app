@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:geolocator/geolocator.dart' as geo;
 
 import '../geo_point.dart';
@@ -27,13 +29,45 @@ class GeolocatorLocationService implements LocationService {
   /// How long to wait for an initial fix before falling back.
   static const Duration _fixTimeout = Duration(seconds: 5);
 
-  /// Settings for the live position stream.
-  static const geo.LocationSettings _streamSettings = geo.LocationSettings(
-    accuracy: geo.LocationAccuracy.high,
-    distanceFilter: 10,
-  );
-
   const GeolocatorLocationService();
+
+  /// Platform-specific settings for the live position stream.
+  ///
+  /// On Android this enables geolocator's bundled foreground service (with a
+  /// persistent notification) so location keeps streaming while the rider's
+  /// phone is locked or the app is backgrounded mid-delivery. On iOS it allows
+  /// background location updates. Without this, tracking freezes the moment the
+  /// app leaves the foreground — unacceptable for live delivery tracking.
+  geo.LocationSettings _streamSettings() {
+    if (Platform.isAndroid) {
+      return geo.AndroidSettings(
+        accuracy: geo.LocationAccuracy.high,
+        distanceFilter: 10,
+        foregroundNotificationConfig: const geo.ForegroundNotificationConfig(
+          notificationTitle: 'Delivery in progress',
+          notificationText: 'Sharing your location for live order tracking',
+          enableWakeLock: true,
+          notificationIcon: geo.AndroidResource(
+            name: 'ic_launcher',
+            defType: 'mipmap',
+          ),
+        ),
+      );
+    }
+    if (Platform.isIOS) {
+      return geo.AppleSettings(
+        accuracy: geo.LocationAccuracy.high,
+        distanceFilter: 10,
+        allowBackgroundLocationUpdates: true,
+        showBackgroundLocationIndicator: true,
+        pauseLocationUpdatesAutomatically: false,
+      );
+    }
+    return const geo.LocationSettings(
+      accuracy: geo.LocationAccuracy.high,
+      distanceFilter: 10,
+    );
+  }
 
   @override
   Future<GeoPoint?> currentPosition() async {
@@ -84,7 +118,7 @@ class GeolocatorLocationService implements LocationService {
     }
 
     // Then follow the live stream of device positions.
-    yield* geo.Geolocator.getPositionStream(locationSettings: _streamSettings)
+    yield* geo.Geolocator.getPositionStream(locationSettings: _streamSettings())
         .map(_toGeoPoint);
   }
 

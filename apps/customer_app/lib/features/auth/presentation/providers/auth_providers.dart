@@ -334,6 +334,78 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
 
   }
 
+
+
+  Future<void> phoneRegister(String phone, String fullName) async {
+
+    state = const AsyncLoading();
+
+    try {
+
+      final result = await _ref
+
+          .read(authRepositoryProvider)
+
+          .registerWithPhone(phone: phone, fullName: fullName);
+
+      await _ref.read(authSessionProvider.notifier).establishSession(
+
+            accessToken: result.accessToken,
+
+            refreshToken: result.refreshToken,
+
+          );
+
+      state = const AsyncData(null);
+
+    } on AuthRepositoryException catch (e, st) {
+
+      state = AsyncError(e, st);
+
+    } catch (e, st) {
+
+      state = AsyncError(e, st);
+
+    }
+
+  }
+
+
+
+  Future<void> phoneLogin(String phone, String code) async {
+
+    state = const AsyncLoading();
+
+    try {
+
+      final result = await _ref
+
+          .read(authRepositoryProvider)
+
+          .verifyPhoneLoginOtp(phone: phone, code: code);
+
+      await _ref.read(authSessionProvider.notifier).establishSession(
+
+            accessToken: result.accessToken,
+
+            refreshToken: result.refreshToken,
+
+          );
+
+      state = const AsyncData(null);
+
+    } on AuthRepositoryException catch (e, st) {
+
+      state = AsyncError(e, st);
+
+    } catch (e, st) {
+
+      state = AsyncError(e, st);
+
+    }
+
+  }
+
 }
 
 

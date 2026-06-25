@@ -18,8 +18,8 @@ class TCategoryShimmer extends StatelessWidget {
         shrinkWrap: true,
         itemCount: itemCount,
         scrollDirection: Axis.horizontal,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, __) {
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (_, _) {
           return const TShimmerEffect(width: 100, height: 40, radius: 12);
         },
       ),

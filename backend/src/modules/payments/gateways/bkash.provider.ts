@@ -4,6 +4,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { retryFetch } from '../../../common/utils/retry-fetch.util';
 import {
   CreatePaymentInput,
   CreatePaymentResult,
@@ -106,6 +107,7 @@ export class BkashProvider implements PaymentGatewayProvider {
       statusMessage?: string;
       transactionStatus?: string;
       trxID?: string;
+      amount?: string;
     }>('/tokenized/checkout/execute', { paymentID: paymentId }, token);
 
     const success =
@@ -115,6 +117,7 @@ export class BkashProvider implements PaymentGatewayProvider {
       success,
       transactionId: data.trxID,
       transactionStatus: data.transactionStatus,
+      amount: data.amount,
       raw: data,
     };
   }
@@ -156,6 +159,7 @@ export class BkashProvider implements PaymentGatewayProvider {
       statusMessage?: string;
       transactionStatus?: string;
       trxID?: string;
+      amount?: string;
     }>('/tokenized/checkout/payment/status', { paymentID: paymentId }, token);
 
     const success =
@@ -165,6 +169,7 @@ export class BkashProvider implements PaymentGatewayProvider {
       success,
       transactionId: data.trxID,
       transactionStatus: data.transactionStatus,
+      amount: data.amount,
       raw: data,
     };
   }
@@ -176,7 +181,7 @@ export class BkashProvider implements PaymentGatewayProvider {
     }
 
     const url = `${this.baseUrl}/tokenized/checkout/token/grant`;
-    const response = await fetch(url, {
+    const response = await retryFetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -184,6 +189,7 @@ export class BkashProvider implements PaymentGatewayProvider {
         username: this.username,
         password: this.password,
       },
+      signal: AbortSignal.timeout(15_000),
       body: JSON.stringify({
         app_key: this.appKey,
         app_secret: this.appSecret,
@@ -225,7 +231,7 @@ export class BkashProvider implements PaymentGatewayProvider {
     token: string,
   ): Promise<T> {
     const url = `${this.baseUrl}${path}`;
-    const response = await fetch(url, {
+    const response = await retryFetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -233,6 +239,7 @@ export class BkashProvider implements PaymentGatewayProvider {
         authorization: token,
         'x-app-key': this.appKey,
       },
+      signal: AbortSignal.timeout(15_000),
       body: JSON.stringify(body),
     });
 

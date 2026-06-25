@@ -72,6 +72,12 @@ lerna-debug.log*
 Thumbs.db
 desktop.ini
 
+# Secrets / service-account keys (never commit — keep these outside the repo ideally)
+*firebase-adminsdk*.json
+*service-account*.json
+*serviceaccount*.json
+*-serviceAccount.json
+
 # Misc
 *.pem
 .vercel

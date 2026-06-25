@@ -12,4 +12,5 @@ abstract class PrintService {
   Future<bool> connect();
   Future<void> printOrderReceipt(Map<String, dynamic> order);
   Future<void> printKitchenTicket(Map<String, dynamic> order);
+  Future<void> printEndOfDayReport(List<dynamic> orders);
 }

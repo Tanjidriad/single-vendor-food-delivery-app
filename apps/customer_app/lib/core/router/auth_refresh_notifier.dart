@@ -6,7 +6,7 @@ import '../network/api_client.dart';
 /// Notifies [GoRouter] when auth token changes so redirects re-run.
 class AuthRefreshNotifier extends ChangeNotifier {
   AuthRefreshNotifier(this._ref) {
-    _ref.listen<String?>(authTokenProvider, (_, __) => notifyListeners());
+    _ref.listen<String?>(authTokenProvider, (_, _) => notifyListeners());
   }
 
   final Ref _ref;

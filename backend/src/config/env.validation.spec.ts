@@ -41,6 +41,8 @@ describe('validateEnv', () => {
         TWILIO_ACCOUNT_SID: 'ACxxx',
         TWILIO_AUTH_TOKEN: 'token',
         TWILIO_FROM_NUMBER: '+15551234567',
+        REDIS_URL: 'redis://localhost:6379',
+        SENTRY_DSN: 'https://examplePublicKey@o0.ingest.sentry.io/0',
       }),
     ).not.toThrow();
   });

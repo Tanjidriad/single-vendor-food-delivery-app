@@ -1,5 +1,7 @@
 # Sample API Requests
 
+> Full endpoint reference: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+
 ## Login (customer)
 
 ```http

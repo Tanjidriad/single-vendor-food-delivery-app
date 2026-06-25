@@ -2,10 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../theme/app_icons.dart';
 import '../../theme/app_colors.dart';
-import '../../utils/placeholders/placeholder_images.dart';
 import '../shimmers/app_shimmer_effect.dart';
 
-/// Network image with shimmer loading and [PlaceholderImages] fallback.
 class AppFoodImage extends StatelessWidget {
   const AppFoodImage({
     super.key,
@@ -24,26 +22,24 @@ class AppFoodImage extends StatelessWidget {
   final BoxFit fit;
   final BorderRadius? borderRadius;
 
-  String get _resolvedUrl {
-    if (imageUrl != null && imageUrl!.trim().isNotEmpty) return imageUrl!.trim();
-    final w = width?.round() ?? 400;
-    final h = height?.round() ?? 400;
-    return PlaceholderImages.food(seed: placeholderSeed, width: w, height: h);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final url = imageUrl?.trim();
+    if (url == null || url.isEmpty) {
+      return _ErrorBox(width: width, height: height, borderRadius: borderRadius);
+    }
+
     Widget image = CachedNetworkImage(
-      imageUrl: _resolvedUrl,
+      imageUrl: url,
       width: width,
       height: height,
       fit: fit,
-      placeholder: (_, __) => AppShimmerEffect(
+      placeholder: (_, _) => AppShimmerEffect(
             width: width ?? double.infinity,
             height: height ?? double.infinity,
             radius: borderRadius?.topLeft.x ?? 15,
           ),
-      errorWidget: (_, __, ___) => _ErrorBox(width: width, height: height, borderRadius: borderRadius),
+      errorWidget: (_, _, _) => _ErrorBox(width: width, height: height, borderRadius: borderRadius),
     );
 
     if (borderRadius != null) {

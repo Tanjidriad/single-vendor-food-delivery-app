@@ -167,7 +167,7 @@ final orderTrackingProvider = StreamProvider.autoDispose
     }
   }
 
-  Future<Map<String, dynamic>> _enrichOrder(Map<String, dynamic> order) async {
+  Future<Map<String, dynamic>> enrichOrder(Map<String, dynamic> order) async {
     final restaurant = order['restaurant'];
     if (restaurant is Map) {
       final map = Map<String, dynamic>.from(restaurant);
@@ -191,8 +191,8 @@ final orderTrackingProvider = StreamProvider.autoDispose
 
   Future<void> refreshOrder() async {
     try {
-      var order = await repo.getOrder(orderId);
-      order = await _enrichOrder(order);
+      var order = (await repo.getOrder(orderId)).raw;
+      order = await enrichOrder(order);
       final initialRider = estimatedRiderLocation(
         order,
         riderLocationFromOrder(order),
@@ -203,8 +203,8 @@ final orderTrackingProvider = StreamProvider.autoDispose
       if (oldStatus != null && newStatus != null && oldStatus != newStatus) {
         // Status changed, alert the user
         try {
-          HapticFeedback.mediumImpact();
-          SystemSound.play(SystemSoundType.alert);
+          unawaited(HapticFeedback.mediumImpact());
+          unawaited(SystemSound.play(SystemSoundType.alert));
         } catch (_) {}
       }
 

@@ -16,11 +16,6 @@ const customerBottomNavDestinations = <AppBottomNavDestination>[
     activeIcon: _menuActiveIcon,
   ),
   AppBottomNavDestination(
-    label: 'Orders',
-    icon: _ordersIcon,
-    activeIcon: _ordersActiveIcon,
-  ),
-  AppBottomNavDestination(
     label: 'Offers',
     icon: _offersIcon,
     activeIcon: _offersActiveIcon,
@@ -39,10 +34,6 @@ Widget _homeActiveIcon(Color color) => Icon(AppIcons.homeFilled, size: 22, color
 Widget _menuIcon(Color color) => Icon(Icons.grid_view_outlined, size: 22, color: color);
 
 Widget _menuActiveIcon(Color color) => Icon(Icons.grid_view_rounded, size: 22, color: color);
-
-Widget _ordersIcon(Color color) => Icon(AppIcons.orders, size: 22, color: color);
-
-Widget _ordersActiveIcon(Color color) => Icon(AppIcons.ordersFilled, size: 22, color: color);
 
 Widget _offersIcon(Color color) => Icon(AppIcons.offers, size: 22, color: color);
 

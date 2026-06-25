@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_paths.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/feedback/success_snack.dart';
 import '../../../../core/widgets/buttons/app_primary_button.dart';
 import '../../../../core/widgets/inputs/app_otp_input.dart';
 import '../../../../core/widgets/inputs/app_text_field.dart';
@@ -52,9 +54,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             newPassword: _passwordController.text,
           );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password updated successfully!'), backgroundColor: Color(0xFF10B981)),
-      );
+      SuccessSnack.show(context, 'Password updated successfully!');
       // Go back to login screen
       context.go(RoutePaths.login);
     } catch (e) {
@@ -93,11 +93,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               padding: const EdgeInsets.only(top: 16),
               child: Text(
                 _error!,
-                style: const TextStyle(
-                  color: Color(0xFFEF4444),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.offline,
+                      fontWeight: FontWeight.w500,
+                    ),
               ),
             ),
           const SizedBox(height: 32),

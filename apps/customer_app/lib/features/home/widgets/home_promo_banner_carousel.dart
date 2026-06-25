@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/home_promo_banner_layout.dart';
-import '../../../core/utils/placeholders/placeholder_images.dart';
+
 import '../../../core/utils/responsive/app_responsive.dart';
 import '../../../core/widgets/feedback/app_smooth_page_indicator.dart';
 import 'home_promo_slide_card.dart';
@@ -59,11 +59,10 @@ class _HomePromoBannerCarouselState extends State<HomePromoBannerCarousel> {
     );
   }
 
-  String _imageUrlFor(Map<String, dynamic> slide, int index) {
+  String? _imageUrlFor(Map<String, dynamic> slide, int index) {
     final url = slide['imageUrl'] as String?;
     if (url != null && url.trim().isNotEmpty) return url.trim();
-    final seed = slide['imageSeed'] as String? ?? 'promo-$index';
-    return PlaceholderImages.banner(seed: seed, width: 600, height: 500);
+    return null;
   }
 
   @override
@@ -139,7 +138,7 @@ class _SlideData {
   final String title;
   final String ctaLabel;
   final Color backgroundColor;
-  final String imageUrl;
+  final String? imageUrl;
   final Map<String, dynamic> raw;
   final bool fromApi;
 }

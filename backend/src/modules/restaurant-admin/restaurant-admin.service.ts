@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
@@ -41,21 +42,61 @@ export class RestaurantAdminService {
   }
 
   // Coupons
-  listCoupons(restaurantId: string) {
-    return this.prisma.coupon.findMany({ where: { restaurantId } });
+  async listCoupons(restaurantId: string) {
+    const coupons = await this.prisma.coupon.findMany({ where: { restaurantId } });
+    // Enrich targeted coupons with the customer's contact for display.
+    const targetIds = [
+      ...new Set(coupons.map((c) => c.targetUserId).filter((id): id is string => !!id)),
+    ];
+    const targets = targetIds.length
+      ? await this.prisma.user.findMany({
+          where: { id: { in: targetIds } },
+          select: { id: true, email: true, phone: true },
+        })
+      : [];
+    const byId = new Map(targets.map((u) => [u.id, u]));
+    return coupons.map((c) => ({
+      ...c,
+      targetCustomer: c.targetUserId ? (byId.get(c.targetUserId) ?? null) : null,
+    }));
   }
 
-  createCoupon(restaurantId: string, data: CreateCouponDto) {
+  async createCoupon(restaurantId: string, data: CreateCouponDto) {
+    const { targetCustomerIdentifier, ...rest } = data;
+    const targetUserId = await this.resolveTargetCustomer(targetCustomerIdentifier);
     return this.prisma.coupon.create({
-      data: { restaurantId, ...data },
+      data: { restaurantId, ...rest, ...(targetUserId !== undefined && { targetUserId }) },
     });
   }
 
-  updateCoupon(restaurantId: string, id: string, data: UpdateCouponDto) {
+  async updateCoupon(restaurantId: string, id: string, data: UpdateCouponDto) {
+    const { targetCustomerIdentifier, ...rest } = data;
+    const targetUserId = await this.resolveTargetCustomer(targetCustomerIdentifier);
     return this.prisma.coupon.updateMany({
       where: { id, restaurantId },
-      data,
+      data: { ...rest, ...(targetUserId !== undefined && { targetUserId }) },
     });
+  }
+
+  /** Resolves an email/phone to a customer id.
+   *  undefined → field omitted (leave unchanged); null → cleared (everyone). */
+  private async resolveTargetCustomer(
+    identifier?: string,
+  ): Promise<string | null | undefined> {
+    if (identifier === undefined) return undefined;
+    const trimmed = identifier.trim();
+    if (trimmed === '') return null;
+    const user = await this.prisma.user.findFirst({
+      where: {
+        role: UserRole.CUSTOMER,
+        OR: [{ email: trimmed }, { phone: trimmed }],
+      },
+      select: { id: true },
+    });
+    if (!user) {
+      throw new BadRequestException('No customer found with that email or phone');
+    }
+    return user.id;
   }
 
   deleteCoupon(restaurantId: string, id: string) {

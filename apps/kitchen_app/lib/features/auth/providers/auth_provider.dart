@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_endpoints.dart';
+import '../../../core/services/push_notification_service.dart';
 
 enum AuthStatus { initial, unauthenticated, authenticated }
 
@@ -50,6 +53,7 @@ class AuthNotifier extends Notifier<AuthState> {
     final token = await _apiClient.getToken();
     if (token != null) {
       state = state.copyWith(status: AuthStatus.authenticated);
+      unawaited(ref.read(pushNotificationServiceProvider).register());
     } else {
       state = state.copyWith(status: AuthStatus.unauthenticated);
     }
@@ -78,6 +82,7 @@ class AuthNotifier extends Notifier<AuthState> {
         user: response.data['user'],
         isLoading: false,
       );
+      unawaited(ref.read(pushNotificationServiceProvider).register());
     } catch (e) {
       state = state.copyWith(
         status: AuthStatus.unauthenticated,

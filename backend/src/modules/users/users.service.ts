@@ -1,7 +1,9 @@
 import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { DISPATCH_QUEUE } from '../../common/queues/queue.constants';
 import { RiderApprovalStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { DispatchService } from '../dispatch/dispatch.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
@@ -10,7 +12,7 @@ export class UsersService {
 
   constructor(
     private prisma: PrismaService,
-    private dispatch: DispatchService,
+    @InjectQueue(DISPATCH_QUEUE) private dispatchQueue: Queue,
   ) {}
 
   async getProfile(userId: string) {
@@ -75,11 +77,18 @@ export class UsersService {
       });
     }
 
-    if (user.riderProfile && dto.fullName && role === UserRole.RIDER) {
-      await this.prisma.riderProfile.update({
-        where: { userId },
-        data: { fullName: dto.fullName },
-      });
+    if (user.riderProfile && role === UserRole.RIDER) {
+      const riderData: { fullName?: string; avatarUrl?: string | null } = {};
+      if (dto.fullName) riderData.fullName = dto.fullName;
+      if (dto.avatarUrl !== undefined) {
+        riderData.avatarUrl = dto.avatarUrl.trim() || null;
+      }
+      if (Object.keys(riderData).length > 0) {
+        await this.prisma.riderProfile.update({
+          where: { userId },
+          data: riderData,
+        });
+      }
     }
 
     return this.getProfile(userId);
@@ -103,15 +112,9 @@ export class UsersService {
     });
 
     if (isOnline) {
-      void this.dispatch
-        .retryDispatchWhenRiderGoesOnline(updated.id)
-        .catch((err) => {
-          this.logger.warn(
-            `Rider-online dispatch retry failed for ${updated.id}: ${
-              err instanceof Error ? err.message : err
-            }`,
-          );
-        });
+      this.dispatchQueue
+        .add('rider-online-retry', { riderProfileId: updated.id })
+        .catch((err) => this.logger.warn(`Failed to enqueue rider-online retry: ${err}`));
     }
 
     return updated;

@@ -13,6 +13,12 @@ abstract class AuthRepository {
     required String fullName,
   });
 
+  /// Register with phone number only (password is auto-generated).
+  Future<AuthResult> registerWithPhone({
+    required String phone,
+    required String fullName,
+  });
+
   Future<void> logout({required String refreshToken});
 
   Future<String?> sendPasswordResetOtp({required String email});
@@ -28,11 +34,19 @@ abstract class AuthRepository {
 
   /// Verifies the 6-digit [code] that was sent to [email] during sign-up.
   Future<void> verifyEmailOtp({required String email, required String code});
+
+  /// Sends a login OTP to [phone] via SMS.
+  Future<void> sendPhoneLoginOtp({required String phone});
+
+  /// Verifies the OTP and returns auth tokens.
+  Future<AuthResult> verifyPhoneLoginOtp({
+    required String phone,
+    required String code,
+  });
 }
 
 typedef AuthResult = ({UserEntity user, String accessToken, String refreshToken});
 
-/// Helper for use cases — map exceptions to [Failure] in repository impl later.
 class AuthRepositoryException implements Exception {
   AuthRepositoryException(this.failure);
   final Failure failure;

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_paths.dart';
 import '../../../../core/theme/app_icons.dart';
-import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/shapes/app_rounded_container.dart';
 
 class SettingsScreen extends StatelessWidget {

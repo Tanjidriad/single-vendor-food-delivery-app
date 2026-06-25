@@ -8,6 +8,7 @@ class RiderProfileView {
     required this.phone,
     required this.approvalStatus,
     required this.isOnline,
+    this.avatarUrl,
     this.vehicleType,
     this.vehicleModel,
     this.vehicleRegistration,
@@ -20,6 +21,7 @@ class RiderProfileView {
   final String? phone;
   final String approvalStatus; // PENDING | APPROVED | REJECTED | SUSPENDED
   final bool isOnline;
+  final String? avatarUrl;
   final String? vehicleType;
   final String? vehicleModel;
   final String? vehicleRegistration;
@@ -29,21 +31,34 @@ class RiderProfileView {
 
   bool get isApproved => approvalStatus == 'APPROVED';
 
+  bool get hasWorkDetails =>
+      _hasText(vehicleType) ||
+      _hasText(vehicleModel) ||
+      _hasText(vehicleRegistration) ||
+      _hasText(zone);
+
+  static bool _hasText(String? value) =>
+      value != null && value.trim().isNotEmpty;
+
   factory RiderProfileView.fromJson(Map<String, dynamic> json) {
-    final user = json['user'];
-    final docs = json['documents'];
+    final root = _unwrap(json);
+    final user = root['user'];
+    final docs = root['documents'];
     return RiderProfileView(
-      fullName: _str(json['fullName']) ?? 'Rider',
-      phone: user is Map ? _str(user['phone']) : null,
-      approvalStatus: _str(json['approvalStatus']) ?? 'PENDING',
-      isOnline: json['isOnline'] == true,
-      vehicleType: _str(json['vehicleType']),
-      vehicleModel: _str(json['vehicleModel']),
-      vehicleRegistration: _str(json['vehicleRegistration']),
-      zone: _str(json['zone']),
-      ratingAvg: (json['ratingAvg'] is num)
-          ? (json['ratingAvg'] as num).toDouble()
-          : null,
+      fullName: _str(root['fullName']) ?? 'Rider',
+      phone: user is Map ? _str(user['phone']) : _str(root['phone']),
+      approvalStatus: _str(root['approvalStatus']) ?? 'PENDING',
+      isOnline: root['isOnline'] == true,
+      avatarUrl: _str(root['avatarUrl'] ?? root['avatar_url']),
+      vehicleType: _str(root['vehicleType'] ?? root['vehicle_type']),
+      vehicleModel: _str(root['vehicleModel'] ?? root['vehicle_model']),
+      vehicleRegistration: _str(
+        root['vehicleRegistration'] ??
+            root['vehicle_registration'] ??
+            root['plate'],
+      ),
+      zone: _str(root['zone'] ?? root['deliveryZone'] ?? root['delivery_zone']),
+      ratingAvg: _asDouble(root['ratingAvg'] ?? root['rating_avg']),
       documents: docs is List
           ? docs
               .whereType<Map>()
@@ -54,6 +69,20 @@ class RiderProfileView {
           : const [],
     );
   }
+}
+
+Map<String, dynamic> _unwrap(Map<String, dynamic> json) {
+  final nested = json['data'] ?? json['profile'] ?? json['riderProfile'];
+  if (nested is Map) {
+    return Map<String, dynamic>.from(nested);
+  }
+  return json;
+}
+
+double? _asDouble(dynamic value) {
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value.trim());
+  return null;
 }
 
 /// One uploaded verification document.

@@ -25,7 +25,7 @@ class AppCategoryGridShimmer extends StatelessWidget {
           crossAxisSpacing: 8,
           childAspectRatio: tileSize / (tileSize + 28),
         ),
-        itemBuilder: (_, __) => Column(
+        itemBuilder: (_, _) => Column(
           children: [
             AppShimmerEffect(width: tileSize, height: tileSize, radius: 16),
             const SizedBox(height: 8),

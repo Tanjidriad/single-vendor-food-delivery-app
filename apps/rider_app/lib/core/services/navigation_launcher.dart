@@ -156,7 +156,7 @@ class NavigationLauncher {
   }
 
   /// Launches [uri] in an external app. On Android 11+, [canLaunchUrl] often
-  /// returns false even when Google Maps is installed, so we try [launch] first.
+  /// returns false even when Google Maps is installed, so we try [_launch] first.
   Future<bool> _tryLaunch(Uri uri) async {
     try {
       if (await _launch(uri)) return true;

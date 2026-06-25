@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/order_workflow.dart';
+import 'dispatch_status_chip.dart';
 import 'order_channel_badge.dart';
 import 'order_timer.dart';
 
@@ -146,19 +147,30 @@ class _OrderTileState extends State<OrderTile> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '#$orderNumber',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-                            height: 1,
-                            fontFeatures: const [FontFeature.tabularFigures()],
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  '#$orderNumber',
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w900,
+                                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                                    height: 1,
+                                    fontFeatures: const [FontFeature.tabularFigures()],
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              OrderChannelBadge(order: order),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 10),
-                        OrderChannelBadge(order: order),
-                        const Spacer(),
                         _buildTimerChip(order),
                       ],
                     ),
@@ -166,7 +178,11 @@ class _OrderTileState extends State<OrderTile> {
 
                     // Second row: item summary.
                     _buildItemSummary(items, totalQuantity, isDark),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 8),
+
+                    // Dispatch status chip (rider assignment).
+                    DispatchStatusChip(order: order),
+                    const SizedBox(height: 10),
 
                     // Third row: primary CTA.
                     _buildActionBar(),
@@ -286,7 +302,9 @@ class _OrderTileState extends State<OrderTile> {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: widget.accentColor,
-                foregroundColor: AppColors.white50,
+                foregroundColor: widget.accentColor == AppColors.warning 
+                    ? AppColors.black500 
+                    : AppColors.white50,
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),

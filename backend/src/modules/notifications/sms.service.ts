@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { retryFetch } from '../../common/utils/retry-fetch.util';
 
 /**
  * SMS delivery for OTP and transactional messages.
@@ -59,12 +60,13 @@ export class SmsService implements OnModuleInit {
         Body: body,
       });
 
-      const response = await fetch(url, {
+      const response = await retryFetch(url, {
         method: 'POST',
         headers: {
           Authorization: `Basic ${auth}`,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
+        signal: AbortSignal.timeout(10_000),
         body: params.toString(),
       });
 

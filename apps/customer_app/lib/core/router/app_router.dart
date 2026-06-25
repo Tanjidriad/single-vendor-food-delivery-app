@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../network/api_client.dart';
 import 'auth_refresh_notifier.dart';
+import 'route_transitions.dart';
 import '../../features/auth/presentation/screens/email_verify_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/phone_otp_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/cart/presentation/screens/cart_screen.dart';
@@ -30,20 +32,11 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/support/presentation/screens/support_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
+import '../../features/force_update/presentation/screens/force_update_screen.dart';
 import '../widgets/navigation/app_shell.dart';
 import 'route_paths.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-
-bool _isPublicRoute(String location) {
-  return location == RoutePaths.splash ||
-      location == RoutePaths.onboarding ||
-      location == RoutePaths.login ||
-      location == RoutePaths.register ||
-      location == RoutePaths.emailVerify ||
-      location == RoutePaths.forgotPassword ||
-      location.startsWith(RoutePaths.resetPassword);
-}
 
 bool _requiresAuth(String location) {
   const protected = {
@@ -90,6 +83,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
+        path: RoutePaths.forceUpdate,
+        builder: (context, state) => const ForceUpdateScreen(),
+      ),
+      GoRoute(
         path: RoutePaths.onboarding,
         builder: (context, state) => const OnboardingScreen(),
       ),
@@ -117,6 +114,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           email: state.uri.queryParameters['email'] ?? '',
         ),
       ),
+      GoRoute(
+        path: RoutePaths.phoneOtp,
+        builder: (context, state) => PhoneOtpScreen(
+          phone: Uri.decodeComponent(
+            state.uri.queryParameters['phone'] ?? '',
+          ),
+        ),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             AppShell(navigationShell: navigationShell),
@@ -140,14 +145,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: RoutePaths.orders,
-                builder: (context, state) => const OrdersScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
                 path: RoutePaths.offers,
                 builder: (context, state) => const OffersScreen(),
               ),
@@ -165,87 +162,112 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
+        path: RoutePaths.orders,
+        pageBuilder: (context, state) =>
+            fadeSlideTransition(state, const OrdersScreen()),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: RoutePaths.search,
-        builder: (context, state) => const SearchScreen(),
+        pageBuilder: (context, state) =>
+            fadeSlideTransition(state, const SearchScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '${RoutePaths.category}/:categoryId',
-        builder: (context, state) => CategoryScreen(
-          categoryId: state.pathParameters['categoryId']!,
-          categoryName: state.uri.queryParameters['name'] ?? 'Category',
+        pageBuilder: (context, state) => fadeSlideTransition(
+          state,
+          CategoryScreen(
+            categoryId: state.pathParameters['categoryId']!,
+            categoryName: state.uri.queryParameters['name'] ?? 'Category',
+          ),
         ),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '${RoutePaths.item}/:itemId',
-        builder: (context, state) => ItemDetailScreen(
-          itemId: state.pathParameters['itemId']!,
+        pageBuilder: (context, state) => fadeSlideTransition(
+          state,
+          ItemDetailScreen(itemId: state.pathParameters['itemId']!),
         ),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: RoutePaths.cart,
-        builder: (context, state) => const CartScreen(),
+        pageBuilder: (context, state) =>
+            fadeSlideTransition(state, const CartScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: RoutePaths.checkout,
-        builder: (context, state) => const CheckoutScreen(),
+        pageBuilder: (context, state) =>
+            fadeSlideTransition(state, const CheckoutScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '${RoutePaths.orderSuccess}/:orderId',
-        builder: (context, state) => OrderSuccessScreen(
-          orderId: state.pathParameters['orderId']!,
+        pageBuilder: (context, state) => fadeSlideTransition(
+          state,
+          OrderSuccessScreen(orderId: state.pathParameters['orderId']!),
         ),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '${RoutePaths.tracking}/:orderId',
-        builder: (context, state) => OrderTrackingScreen(
-          orderId: state.pathParameters['orderId']!,
+        pageBuilder: (context, state) => fadeSlideTransition(
+          state,
+          OrderTrackingScreen(orderId: state.pathParameters['orderId']!),
         ),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: RoutePaths.favorites,
-        builder: (context, state) => const FavoritesScreen(),
+        pageBuilder: (context, state) =>
+            fadeSlideTransition(state, const FavoritesScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: RoutePaths.addresses,
-        builder: (context, state) => AddressesScreen(
-          selectForCheckout: state.uri.queryParameters['select'] == 'true',
+        pageBuilder: (context, state) => fadeSlideTransition(
+          state,
+          AddressesScreen(
+            selectForCheckout:
+                state.uri.queryParameters['select'] == 'true',
+          ),
         ),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: RoutePaths.notifications,
-        builder: (context, state) => const NotificationsScreen(),
+        pageBuilder: (context, state) =>
+            fadeSlideTransition(state, const NotificationsScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: RoutePaths.editProfile,
-        builder: (context, state) => const EditProfileScreen(),
+        pageBuilder: (context, state) =>
+            fadeSlideTransition(state, const EditProfileScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: RoutePaths.settings,
-        builder: (context, state) => const SettingsScreen(),
+        pageBuilder: (context, state) =>
+            fadeSlideTransition(state, const SettingsScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '${RoutePaths.orderDetail}/:orderId',
-        builder: (context, state) => OrderDetailScreen(
-          orderId: state.pathParameters['orderId']!,
+        pageBuilder: (context, state) => fadeSlideTransition(
+          state,
+          OrderDetailScreen(orderId: state.pathParameters['orderId']!),
         ),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: RoutePaths.support,
-        builder: (context, state) => SupportScreen(
-          orderId: state.uri.queryParameters['orderId'],
+        pageBuilder: (context, state) => fadeSlideTransition(
+          state,
+          SupportScreen(orderId: state.uri.queryParameters['orderId']),
         ),
       ),
     ],

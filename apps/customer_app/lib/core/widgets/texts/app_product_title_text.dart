@@ -17,11 +17,16 @@ class AppProductTitleText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final base = compact ? theme.textTheme.labelLarge : theme.textTheme.titleSmall;
     return Text(
       title,
-      style: compact
-          ? Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600)
-          : Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+      style: base?.copyWith(
+        fontWeight: FontWeight.w600,
+        // labelLarge is themed for buttons (onPrimary/white); force the on-surface
+        // colour so titles stay readable on cards in both light and dark.
+        color: theme.colorScheme.onSurface,
+      ),
       overflow: TextOverflow.ellipsis,
       maxLines: maxLines,
       textAlign: textAlign,

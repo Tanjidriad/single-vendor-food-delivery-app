@@ -83,3 +83,10 @@ desktop.ini
 .vercel
 .netlify
 .turbo
+
+# Graphify cache and runs
+graphify-out/cache/
+graphify-out/20*/
+
+# Scratch folder
+scratch_ionic_coupon/

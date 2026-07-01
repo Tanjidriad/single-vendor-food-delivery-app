@@ -29,6 +29,9 @@ abstract final class AppIcons {
   static const profileFilled = Iconsax.profile_circle5;
   static const receipt = Iconsax.receipt_2;
   static const search = Iconsax.search_normal;
+  static const star = Iconsax.star1;
+  static const clock = Iconsax.clock;
   static const tag = Iconsax.tag;
   static const utensils = Iconsax.cup;
+  static const verified = Iconsax.verify5;
 }

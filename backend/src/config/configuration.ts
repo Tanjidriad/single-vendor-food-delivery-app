@@ -62,9 +62,9 @@ export default () => ({
   resendApiKey: process.env.RESEND_API_KEY,
   sentryDsn: process.env.SENTRY_DSN,
   sms: {
-    twilioAccountSid: process.env.TWILIO_ACCOUNT_SID,
-    twilioAuthToken: process.env.TWILIO_AUTH_TOKEN,
-    twilioFromNumber: process.env.TWILIO_FROM_NUMBER,
+    rtcomAcode:    process.env.RTCOM_ACODE,
+    rtcomApiKey:   process.env.RTCOM_API_KEY,
+    rtcomSenderId: process.env.RTCOM_SENDER_ID,
   },
   paymentGateway: (process.env.PAYMENT_GATEWAY ?? 'bkash') as 'bkash' | 'sslcommerz',
   bkash: {

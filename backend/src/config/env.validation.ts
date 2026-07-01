@@ -56,19 +56,19 @@ export function validateEnv(config: Record<string, unknown>) {
     }
 
     const hasSms =
-      typeof config.TWILIO_ACCOUNT_SID === 'string' &&
-      config.TWILIO_ACCOUNT_SID.trim().length > 0 &&
-      typeof config.TWILIO_AUTH_TOKEN === 'string' &&
-      config.TWILIO_AUTH_TOKEN.trim().length > 0 &&
-      typeof config.TWILIO_FROM_NUMBER === 'string' &&
-      config.TWILIO_FROM_NUMBER.trim().length > 0;
+      typeof config.RTCOM_ACODE === 'string' &&
+      config.RTCOM_ACODE.trim().length > 0 &&
+      typeof config.RTCOM_API_KEY === 'string' &&
+      config.RTCOM_API_KEY.trim().length > 0 &&
+      typeof config.RTCOM_SENDER_ID === 'string' &&
+      config.RTCOM_SENDER_ID.trim().length > 0;
     const hasEmailOtp =
       typeof config.RESEND_API_KEY === 'string' &&
       config.RESEND_API_KEY.trim().length > 0;
 
     if (!hasSms && !hasEmailOtp) {
       errors.push(
-        'Configure OTP delivery in production: TWILIO_* (SMS) and/or RESEND_API_KEY (email)',
+        'Configure OTP delivery in production: RTCOM_ACODE + RTCOM_API_KEY + RTCOM_SENDER_ID (SMS) and/or RESEND_API_KEY (email)',
       );
     }
   }

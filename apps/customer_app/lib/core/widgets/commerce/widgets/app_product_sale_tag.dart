@@ -13,16 +13,16 @@ class AppProductSaleTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: 12,
+      top: 8,
       left: 0,
       child: AppRoundedContainer(
         radius: AppSpacing.radiusSm,
-        backgroundColor: AppColors.primary.withValues(alpha: 0.9),
+        backgroundColor: AppColors.brutalistYellow,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
         child: Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppColors.onPrimary,
+                color: AppColors.textPrimary,
                 fontWeight: FontWeight.w700,
               ),
         ),

@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/route_paths.dart';
 import '../../../../core/utils/formatters/formatter.dart';
 import '../../../../core/utils/responsive/app_responsive.dart';
-import '../../../../core/widgets/commerce/restaurant_card.dart';
+import '../../../../core/widgets/commerce/app_product_card_horizontal.dart';
 import '../../../../core/widgets/shimmers/app_home_offer_card_shimmer.dart';
 import '../../../../core/widgets/shimmers/app_promo_banner_shimmer.dart';
 import '../../../restaurant/data/restaurant_repository.dart';
@@ -82,41 +82,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  RestaurantCard _recommendedDiscoveryCard(
+  AppProductCardHorizontal _recommendedItemCard(
     BuildContext context, {
     required Map<String, dynamic> item,
-    required String deliveryMeta,
+    required double cardWidth,
   }) {
     final id = item['id'] as String?;
     final price = (item['price'] as num?)?.toDouble() ?? 0;
     final salePrice = homeOfferSalePrice(item);
     final category = item['category'] as Map<String, dynamic>?;
-    final cuisines = <String>[];
-    if (category != null && category['name'] != null) {
-      cuisines.add(category['name'] as String);
-    }
-    final description = item['description'] as String?;
-    if (description != null && description.isNotEmpty) {
-      cuisines.add(description);
-    }
+    final categoryLabel = category?['name'] as String?;
 
-    String? promoBadge;
-    if (salePrice != null && salePrice > 0 && salePrice < price) {
-      promoBadge = '${((price - salePrice) / price * 100).round()}% OFF';
-    }
-
-    return RestaurantCard(
-      data: RestaurantCardData(
-        id: id ?? '',
-        name: item['name'] as String? ?? '',
-        imageUrl: item['imageUrl'] as String?,
-        cuisines: cuisines,
-        rating: homeOfferRating(item),
-        deliveryFee: deliveryMeta.contains('Free')
-            ? 'Free'
-            : deliveryMeta.split('•').first.trim(),
-        promoBadge: promoBadge,
-      ),
+    return AppProductCardHorizontal(
+      menuItemId: id ?? '',
+      title: item['name'] as String? ?? '',
+      price: price,
+      salePrice: salePrice,
+      imageUrl: item['imageUrl'] as String?,
+      subtitle: categoryLabel,
+      width: cardWidth,
       onTap: id != null ? () => context.push(RoutePaths.itemWithId(id)) : null,
     );
   }
@@ -139,6 +123,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final pagePadding = AppResponsive.pagePadding(context);
     final carouselCardWidth = AppResponsive.homeOfferCarouselCardWidth(context);
     final carouselHeight = AppResponsive.homeOfferCarouselHeight(context);
+    final recommendedCardWidth =
+        MediaQuery.sizeOf(context).width - pagePadding * 2;
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -305,11 +291,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   return SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, i) => Padding(
-                        padding: const EdgeInsets.only(bottom: 20),
-                        child: _recommendedDiscoveryCard(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: _recommendedItemCard(
                           context,
                           item: items[i],
-                          deliveryMeta: deliveryMeta,
+                          cardWidth: recommendedCardWidth,
                         ),
                       )
                           .animate()

@@ -34,7 +34,9 @@ Future<void> main() async {
   const envMapboxToken = String.fromEnvironment('MAPBOX_ACCESS_TOKEN');
   final mapboxToken = envMapboxToken.isNotEmpty
       ? envMapboxToken
-      : (kDebugMode && dotenv.isInitialized) ? dotenv.env['MAPBOX_ACCESS_TOKEN'] : null;
+      : (kDebugMode && dotenv.isInitialized)
+      ? dotenv.env['MAPBOX_ACCESS_TOKEN']
+      : null;
   if (mapboxToken == null || mapboxToken.isEmpty) {
     throw StateError(
       'MAPBOX_ACCESS_TOKEN is not set. Pass --dart-define=MAPBOX_ACCESS_TOKEN=pk.xxx '
@@ -45,9 +47,7 @@ Future<void> main() async {
 
   runApp(
     ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       child: const CustomerApp(),
     ),
   );

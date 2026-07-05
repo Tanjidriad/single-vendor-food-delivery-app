@@ -1,6 +1,5 @@
 import 'package:customer_app/features/home/presentation/widgets/floating_active_order_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -291,25 +290,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   return SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, i) => Padding(
+                        key: ValueKey(items[i]['id'] ?? i),
                         padding: const EdgeInsets.only(bottom: 14),
                         child: _recommendedItemCard(
                           context,
                           item: items[i],
                           cardWidth: recommendedCardWidth,
                         ),
-                      )
-                          .animate()
-                          .fadeIn(
-                            delay: Duration(milliseconds: 80 * (i.clamp(0, 5))),
-                            duration: 400.ms,
-                          )
-                          .slideY(
-                            begin: 0.06,
-                            end: 0,
-                            delay: Duration(milliseconds: 80 * (i.clamp(0, 5))),
-                            duration: 400.ms,
-                            curve: Curves.easeOut,
-                          ),
+                      ),
                       childCount: items.length,
                     ),
                   );

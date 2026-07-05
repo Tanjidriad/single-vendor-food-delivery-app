@@ -22,6 +22,10 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 /// keeps running on its socket + polling pipeline.
 bool _firebaseReady = false;
 
+/// Whether Firebase initialized successfully. Used to gate Crashlytics so crash
+/// reporting is only enabled when the Firebase config is actually present.
+bool isFirebaseConfigured() => _firebaseReady;
+
 /// Initializes Firebase + background handler. Guarded so a missing
 /// google-services.json / GoogleService-Info.plist degrades gracefully.
 Future<void> initFirebaseMessaging() async {

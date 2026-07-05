@@ -59,9 +59,9 @@ final kdsReturnedOrdersProvider = Provider<List<dynamic>>((ref) {
       .where(
         (o) =>
             OrderWorkflowMapper.getSection(
-              OrderWorkflowMapper.getCanonicalStatus(o),
-            ) ==
-            KitchenSection.returned &&
+                  OrderWorkflowMapper.getCanonicalStatus(o),
+                ) ==
+                KitchenSection.returned &&
             o['foodDisposition'] != 'DISCARDED',
       )
       .toList();
@@ -147,8 +147,12 @@ class KdsState {
       isRestaurantActive: isRestaurantActive ?? this.isRestaurantActive,
       lastSuccessfulFetchAt:
           lastSuccessfulFetchAt ?? this.lastSuccessfulFetchAt,
-      lastPrintError: clearPrintError ? null : (lastPrintError ?? this.lastPrintError),
-      lastFailedOrder: clearPrintError ? null : (lastFailedOrder ?? this.lastFailedOrder),
+      lastPrintError: clearPrintError
+          ? null
+          : (lastPrintError ?? this.lastPrintError),
+      lastFailedOrder: clearPrintError
+          ? null
+          : (lastFailedOrder ?? this.lastFailedOrder),
       dispatchAlerts: dispatchAlerts ?? this.dispatchAlerts,
     );
   }
@@ -272,10 +276,7 @@ class KdsNotifier extends Notifier<KdsState> {
   String? _extractRestaurantId(Map<String, dynamic>? user) {
     if (user == null) return null;
 
-    final candidates = [
-      user['restaurantId'],
-      user['restaurant']?['id'],
-    ];
+    final candidates = [user['restaurantId'], user['restaurant']?['id']];
     for (final value in candidates) {
       if (value != null && value.toString().isNotEmpty) {
         return value.toString();
@@ -294,7 +295,10 @@ class KdsNotifier extends Notifier<KdsState> {
   Future<void> fetchRestaurantStatus() async {
     final restaurantId = _authenticatedRestaurantId;
     if (restaurantId == null || restaurantId.isEmpty) {
-      if (kDebugMode) debugPrint('[KDS] No authenticated restaurantId; skipping status fetch.');
+      if (kDebugMode)
+        debugPrint(
+          '[KDS] No authenticated restaurantId; skipping status fetch.',
+        );
       return;
     }
 
@@ -427,7 +431,8 @@ class KdsNotifier extends Notifier<KdsState> {
     });
 
     _socket?.on('order:dispatch.exhausted', (data) {
-      if (kDebugMode) debugPrint('[KDS Socket] order:dispatch.exhausted received');
+      if (kDebugMode)
+        debugPrint('[KDS Socket] order:dispatch.exhausted received');
       _handleDispatchAlert(data, DispatchAlertType.exhausted);
       _debouncedFetchOrders();
     });
@@ -457,7 +462,10 @@ class KdsNotifier extends Notifier<KdsState> {
     });
 
     _socket?.connect();
-    if (kDebugMode) debugPrint('[KDS Socket] Connecting to ${AppConfig.socketUrl}/realtime ...');
+    if (kDebugMode)
+      debugPrint(
+        '[KDS Socket] Connecting to ${AppConfig.socketUrl}/realtime ...',
+      );
   }
 
   void _scheduleSocketReconnect() {
@@ -519,10 +527,9 @@ class KdsNotifier extends Notifier<KdsState> {
       createdAt: DateTime.now(),
     );
 
-    final alerts = state.dispatchAlerts
-        .where((a) => a.orderId != orderId)
-        .toList()
-      ..add(alert);
+    final alerts =
+        state.dispatchAlerts.where((a) => a.orderId != orderId).toList()
+          ..add(alert);
     state = state.copyWith(dispatchAlerts: alerts);
     _emitEvent(data);
   }
@@ -618,10 +625,7 @@ class KdsNotifier extends Notifier<KdsState> {
       state = state.copyWith(clearPrintError: true);
     } catch (e) {
       final message = _printErrorMessage(e);
-      state = state.copyWith(
-        lastPrintError: message,
-        lastFailedOrder: order,
-      );
+      state = state.copyWith(lastPrintError: message, lastFailedOrder: order);
       if (kDebugMode) debugPrint('[KDS] Print failed: $message');
     }
   }

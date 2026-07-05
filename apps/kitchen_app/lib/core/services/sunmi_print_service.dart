@@ -41,18 +41,26 @@ class SunmiPrintService implements PrintService {
     await initialize();
     if (!_available) {
       if (kDebugMode) {
-        debugPrint('[SunmiPrint] No Sunmi printer — KOT for #${order['orderNumber']}');
-        PrintPreviewController.instance.emit(PrintPreviewEvent(
-          type: PrintPreviewType.kitchenTicket,
-          content: _buildKitchenTicketContent(order),
-        ));
+        debugPrint(
+          '[SunmiPrint] No Sunmi printer — KOT for #${order['orderNumber']}',
+        );
+        PrintPreviewController.instance.emit(
+          PrintPreviewEvent(
+            type: PrintPreviewType.kitchenTicket,
+            content: _buildKitchenTicketContent(order),
+          ),
+        );
       }
       return;
     }
     try {
       await SunmiPrinter.printText(
         _buildKitchenTicketContent(order),
-        style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 26, bold: true),
+        style: SunmiTextStyle(
+          align: SunmiPrintAlign.LEFT,
+          fontSize: 26,
+          bold: true,
+        ),
       );
       await SunmiPrinter.lineWrap(3);
       await SunmiPrinter.cutPaper();
@@ -67,17 +75,23 @@ class SunmiPrintService implements PrintService {
     if (!_available) {
       if (kDebugMode) {
         debugPrint('[SunmiPrint] No Sunmi printer — skipping Z-Report print');
-        PrintPreviewController.instance.emit(PrintPreviewEvent(
-          type: PrintPreviewType.zReport,
-          content: _buildZReportContent(orders),
-        ));
+        PrintPreviewController.instance.emit(
+          PrintPreviewEvent(
+            type: PrintPreviewType.zReport,
+            content: _buildZReportContent(orders),
+          ),
+        );
       }
       return;
     }
     try {
       await SunmiPrinter.printText(
         _buildZReportContent(orders),
-        style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 24, bold: true),
+        style: SunmiTextStyle(
+          align: SunmiPrintAlign.LEFT,
+          fontSize: 24,
+          bold: true,
+        ),
       );
       await SunmiPrinter.lineWrap(3);
       await SunmiPrinter.cutPaper();
@@ -89,10 +103,16 @@ class SunmiPrintService implements PrintService {
   String _buildKitchenTicketContent(Map<String, dynamic> order) {
     final items = order['items'] as List<dynamic>? ?? [];
     final serial = order['dailySerial'];
-    final serialText = serial is int ? '#${serial.toString().padLeft(3, '0')}' : '';
+    final serialText = serial is int
+        ? '#${serial.toString().padLeft(3, '0')}'
+        : '';
     final buffer = StringBuffer()
       ..writeln('KITCHEN ORDER')
-      ..writeln(serialText.isNotEmpty ? serialText : '#${order['orderNumber'] ?? '---'}')
+      ..writeln(
+        serialText.isNotEmpty
+            ? serialText
+            : '#${order['orderNumber'] ?? '---'}',
+      )
       ..writeln('Ref: ${order['orderNumber'] ?? '---'}')
       ..writeln('Type: ${order['orderType'] ?? ''}')
       ..writeln('Status: ${order['status'] ?? ''}')
@@ -156,7 +176,9 @@ class SunmiPrintService implements PrintService {
 
     return (StringBuffer()
           ..writeln('END OF DAY REPORT (Z-REPORT)')
-          ..writeln('Date: ${DateTime.now().toLocal().toString().split('.')[0]}')
+          ..writeln(
+            'Date: ${DateTime.now().toLocal().toString().split('.')[0]}',
+          )
           ..writeln('------------------------------')
           ..writeln('Total Orders: ${orders.length}')
           ..writeln(' - Cash Orders: $cashOrders')
@@ -169,7 +191,9 @@ class SunmiPrintService implements PrintService {
           ..writeln('------------------------------')
           ..writeln('NET FOOD SALES:  BDT ${netFoodSales.toStringAsFixed(2)}')
           ..writeln('------------------------------')
-          ..writeln('Delivery Fees:   BDT ${totalDeliveryFee.toStringAsFixed(2)}')
+          ..writeln(
+            'Delivery Fees:   BDT ${totalDeliveryFee.toStringAsFixed(2)}',
+          )
           ..writeln('------------------------------')
           ..writeln('Printed by Kitchen OS'))
         .toString();

@@ -14,6 +14,9 @@ Future<void> main() async {
   bootstrapFlutterApp();
   // Guarded — no-ops until Firebase credential files are added to the project.
   await initFirebaseMessaging();
+  if (isFirebaseConfigured()) {
+    await enableCrashlyticsReporting();
+  }
   final prefs = await SharedPreferences.getInstance();
   await ApiHostResolver.init(prefs);
   runApp(const ProviderScope(child: KitchenApp()));

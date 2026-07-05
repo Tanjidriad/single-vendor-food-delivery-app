@@ -18,12 +18,42 @@ class MenuAvailabilityDrawer extends StatefulWidget {
 class _MenuAvailabilityDrawerState extends State<MenuAvailabilityDrawer> {
   // Mock data for 86 list since we don't have an endpoint for it yet
   final List<Map<String, dynamic>> _menuItems = [
-    {'id': '1', 'name': 'Classic Cheeseburger', 'category': 'Burgers', 'isAvailable': true},
-    {'id': '2', 'name': 'Double Bacon Burger', 'category': 'Burgers', 'isAvailable': true},
-    {'id': '3', 'name': 'Spicy Chicken Burger', 'category': 'Burgers', 'isAvailable': false},
-    {'id': '4', 'name': 'Sweet Potato Fries', 'category': 'Sides', 'isAvailable': false},
-    {'id': '5', 'name': 'Large Fries', 'category': 'Sides', 'isAvailable': true},
-    {'id': '6', 'name': 'Vanilla Shake', 'category': 'Drinks', 'isAvailable': true},
+    {
+      'id': '1',
+      'name': 'Classic Cheeseburger',
+      'category': 'Burgers',
+      'isAvailable': true,
+    },
+    {
+      'id': '2',
+      'name': 'Double Bacon Burger',
+      'category': 'Burgers',
+      'isAvailable': true,
+    },
+    {
+      'id': '3',
+      'name': 'Spicy Chicken Burger',
+      'category': 'Burgers',
+      'isAvailable': false,
+    },
+    {
+      'id': '4',
+      'name': 'Sweet Potato Fries',
+      'category': 'Sides',
+      'isAvailable': false,
+    },
+    {
+      'id': '5',
+      'name': 'Large Fries',
+      'category': 'Sides',
+      'isAvailable': true,
+    },
+    {
+      'id': '6',
+      'name': 'Vanilla Shake',
+      'category': 'Drinks',
+      'isAvailable': true,
+    },
   ];
 
   @override
@@ -61,22 +91,33 @@ class _MenuAvailabilityDrawerState extends State<MenuAvailabilityDrawer> {
           Expanded(
             child: ListView.separated(
               itemCount: _menuItems.length,
-              separatorBuilder: (context, index) => const Divider(color: AppColors.border, height: 1),
+              separatorBuilder: (context, index) =>
+                  const Divider(color: AppColors.border, height: 1),
               itemBuilder: (context, index) {
                 final item = _menuItems[index];
                 return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
                   title: Text(
                     item['name'],
                     style: TextStyle(
-                      color: item['isAvailable'] ? AppColors.textPrimary : AppColors.textDisabled,
+                      color: item['isAvailable']
+                          ? AppColors.textPrimary
+                          : AppColors.textDisabled,
                       fontWeight: FontWeight.w600,
-                      decoration: item['isAvailable'] ? null : TextDecoration.lineThrough,
+                      decoration: item['isAvailable']
+                          ? null
+                          : TextDecoration.lineThrough,
                     ),
                   ),
                   subtitle: Text(
                     item['category'],
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
                   ),
                   trailing: Switch(
                     value: item['isAvailable'],

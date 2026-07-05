@@ -171,9 +171,11 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
     final assignmentStatus = assignment is Map
         ? assignment['status']?.toString()
         : null;
-    final hasActiveAssignment = assignmentStatus == 'NOTIFIED' || assignmentStatus == 'ACCEPTED';
+    final hasActiveAssignment =
+        assignmentStatus == 'NOTIFIED' || assignmentStatus == 'ACCEPTED';
     final needsDispatch =
-        (section == KitchenSection.ready || section == KitchenSection.preparing) &&
+        (section == KitchenSection.ready ||
+            section == KitchenSection.preparing) &&
         order['deliveryService'] == null &&
         !hasActiveAssignment;
 
@@ -187,7 +189,8 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
             assignmentStatus == 'CANCELLED');
 
     final userRole = ref.read(authProvider).user?['role']?.toString();
-    final canDispatch = userRole == 'OWNER' || userRole == 'MANAGER' || userRole == 'CASHIER';
+    final canDispatch =
+        userRole == 'OWNER' || userRole == 'MANAGER' || userRole == 'CASHIER';
 
     // Show "Assign Rider" when user has dispatch permissions and order needs a rider.
     // Show "Send to Pathao" as secondary for ready orders without a rider.
@@ -335,7 +338,8 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (_) => OrderDetailScreen(order: order),
+                                  builder: (_) =>
+                                      OrderDetailScreen(order: order),
                                 ),
                               );
                             },
@@ -426,8 +430,10 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
 
   void _showDispatchSheet(BuildContext context, dynamic order) {
     final assignment = order['assignment'];
-    final hasActive = assignment is Map &&
-        (assignment['status'] == 'NOTIFIED' || assignment['status'] == 'ACCEPTED');
+    final hasActive =
+        assignment is Map &&
+        (assignment['status'] == 'NOTIFIED' ||
+            assignment['status'] == 'ACCEPTED');
 
     showModalBottomSheet(
       context: context,
@@ -484,8 +490,12 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
         content: Row(
           children: [
             SizedBox(
-              width: 16, height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
             ),
             SizedBox(width: 12),
             Text('Creating Pathao parcel…'),
@@ -497,10 +507,12 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
     );
 
     try {
-      await ref.read(kdsProvider.notifier).dispatchToPathao(
-        orderId,
-        trackingId: '', // backend auto-generates via Pathao API
-      );
+      await ref
+          .read(kdsProvider.notifier)
+          .dispatchToPathao(
+            orderId,
+            trackingId: '', // backend auto-generates via Pathao API
+          );
       ref.read(kdsProvider.notifier).dismissDispatchAlert(orderId);
       messenger.hideCurrentSnackBar();
       messenger.showSnackBar(

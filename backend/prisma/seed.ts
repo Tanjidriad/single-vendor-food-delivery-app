@@ -61,15 +61,17 @@ async function upsertCategory(
   id: string,
   name: string,
   sortOrder: number,
+  imageUrl: string,
 ) {
   return prisma.category.upsert({
     where: { id },
-    update: { name, sortOrder, isActive: true },
+    update: { name, sortOrder, imageUrl, isActive: true },
     create: {
       id,
       restaurantId,
       name,
       sortOrder,
+      imageUrl,
       isActive: true,
     },
   });
@@ -270,24 +272,28 @@ async function main() {
     CATEGORY_IDS.popular,
     'Popular',
     1,
+    FOOD_IMAGES.fries,
   );
   const burgers = await upsertCategory(
     restaurant.id,
     CATEGORY_IDS.burgers,
     'Burgers',
     2,
+    FOOD_IMAGES.burger,
   );
   const pizza = await upsertCategory(
     restaurant.id,
     CATEGORY_IDS.pizza,
     'Pizza',
     3,
+    FOOD_IMAGES.pizza,
   );
   const noodles = await upsertCategory(
     restaurant.id,
     CATEGORY_IDS.noodles,
     'Noodles',
     4,
+    FOOD_IMAGES.noodles,
   );
 
   const items = [

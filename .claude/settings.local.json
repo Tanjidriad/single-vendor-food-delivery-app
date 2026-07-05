@@ -26,7 +26,8 @@
       "PowerShell(Get-ChildItem \"C:\\\\Users\\\\riads\\\\Desktop\\\\Food_delivery\\\\apps\" -Directory | ForEach-Object { Write-Host \"=== $\\($_.Name\\) ===\" ; Get-ChildItem $_.FullName -Directory | Select-Object Name })",
       "PowerShell(Head -20)",
       "Bash(xargs cat)",
-      "Bash(npx jest *)"
+      "Bash(npx jest *)",
+      "Bash(graphify query *)"
     ]
   }
 }

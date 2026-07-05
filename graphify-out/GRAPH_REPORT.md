@@ -1,16 +1,16 @@
-# Graph Report - Food_delivery  (2026-07-01)
+# Graph Report - Food_delivery  (2026-07-05)
 
 ## Corpus Check
-- 1643 files · ~1,124,887 words
+- 1651 files · ~1,131,229 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 18314 nodes · 23781 edges · 1094 communities (990 shown, 104 thin omitted)
+- 18371 nodes · 23873 edges · 1098 communities (996 shown, 102 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 13 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `041a769a`
+- Built from commit: `9ab0dabf`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -869,9 +869,12 @@
 - [[_COMMUNITY_Community 950|Community 950]]
 - [[_COMMUNITY_Community 951|Community 951]]
 - [[_COMMUNITY_Community 952|Community 952]]
+- [[_COMMUNITY_Community 953|Community 953]]
 - [[_COMMUNITY_Community 954|Community 954]]
 - [[_COMMUNITY_Community 955|Community 955]]
 - [[_COMMUNITY_Community 956|Community 956]]
+- [[_COMMUNITY_Community 957|Community 957]]
+- [[_COMMUNITY_Community 958|Community 958]]
 - [[_COMMUNITY_Community 959|Community 959]]
 - [[_COMMUNITY_Community 960|Community 960]]
 - [[_COMMUNITY_Community 961|Community 961]]
@@ -899,13 +902,16 @@
 - [[_COMMUNITY_Community 984|Community 984]]
 - [[_COMMUNITY_Community 985|Community 985]]
 - [[_COMMUNITY_Community 986|Community 986]]
+- [[_COMMUNITY_Community 992|Community 992]]
 - [[_COMMUNITY_Community 993|Community 993]]
+- [[_COMMUNITY_Community 994|Community 994]]
 - [[_COMMUNITY_Community 995|Community 995]]
 - [[_COMMUNITY_Community 996|Community 996]]
 - [[_COMMUNITY_Community 997|Community 997]]
 - [[_COMMUNITY_Community 998|Community 998]]
 - [[_COMMUNITY_Community 999|Community 999]]
 - [[_COMMUNITY_Community 1000|Community 1000]]
+- [[_COMMUNITY_Community 1001|Community 1001]]
 - [[_COMMUNITY_Community 1002|Community 1002]]
 - [[_COMMUNITY_Community 1003|Community 1003]]
 - [[_COMMUNITY_Community 1004|Community 1004]]
@@ -940,6 +946,7 @@
 - [[_COMMUNITY_Community 1034|Community 1034]]
 - [[_COMMUNITY_Community 1036|Community 1036]]
 - [[_COMMUNITY_Community 1037|Community 1037]]
+- [[_COMMUNITY_Community 1038|Community 1038]]
 - [[_COMMUNITY_Community 1041|Community 1041]]
 - [[_COMMUNITY_Community 1042|Community 1042]]
 - [[_COMMUNITY_Community 1044|Community 1044]]
@@ -951,22 +958,23 @@
 - [[_COMMUNITY_Community 1055|Community 1055]]
 - [[_COMMUNITY_Community 1056|Community 1056]]
 - [[_COMMUNITY_Community 1057|Community 1057]]
+- [[_COMMUNITY_Community 1058|Community 1058]]
 - [[_COMMUNITY_Community 1068|Community 1068]]
 - [[_COMMUNITY_Community 1069|Community 1069]]
 - [[_COMMUNITY_Community 1074|Community 1074]]
 - [[_COMMUNITY_Community 1075|Community 1075]]
+- [[_COMMUNITY_Community 1076|Community 1076]]
 - [[_COMMUNITY_Community 1077|Community 1077]]
 - [[_COMMUNITY_Community 1078|Community 1078]]
 - [[_COMMUNITY_Community 1079|Community 1079]]
+- [[_COMMUNITY_Community 1080|Community 1080]]
+- [[_COMMUNITY_Community 1081|Community 1081]]
 - [[_COMMUNITY_Community 1082|Community 1082]]
 - [[_COMMUNITY_Community 1084|Community 1084]]
 - [[_COMMUNITY_Community 1085|Community 1085]]
-- [[_COMMUNITY_Community 1086|Community 1086]]
 - [[_COMMUNITY_Community 1087|Community 1087]]
 - [[_COMMUNITY_Community 1088|Community 1088]]
 - [[_COMMUNITY_Community 1089|Community 1089]]
-- [[_COMMUNITY_Community 1090|Community 1090]]
-- [[_COMMUNITY_Community 1091|Community 1091]]
 - [[_COMMUNITY_Community 1093|Community 1093]]
 - [[_COMMUNITY_Community 1094|Community 1094]]
 - [[_COMMUNITY_Community 1095|Community 1095]]
@@ -975,16 +983,12 @@
 - [[_COMMUNITY_Community 1100|Community 1100]]
 - [[_COMMUNITY_Community 1102|Community 1102]]
 - [[_COMMUNITY_Community 1103|Community 1103]]
-- [[_COMMUNITY_Community 1106|Community 1106]]
-- [[_COMMUNITY_Community 1109|Community 1109]]
-- [[_COMMUNITY_Community 1110|Community 1110]]
 - [[_COMMUNITY_Community 1113|Community 1113]]
 - [[_COMMUNITY_Community 1133|Community 1133]]
-- [[_COMMUNITY_Community 1136|Community 1136]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `JwtPayload` - 173 edges
-2. `PrismaService` - 81 edges
+2. `PrismaService` - 82 edges
 3. `requireRestaurantId()` - 49 edges
 4. `DispatchService` - 41 edges
 5. `Food Delivery API — Full Reference` - 40 edges
@@ -992,15 +996,15 @@
 7. `RealtimeService` - 31 edges
 8. `OrdersService` - 31 edges
 9. `JwtAuthGuard` - 28 edges
-10. `RolesGuard` - 26 edges
+10. `RolesGuard` - 27 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `AppSidebar()` --calls--> `useAuth()`  [INFERRED]
   admin-panel/components/layout/app-sidebar.tsx → admin-panel/lib/auth/use-auth.ts
 - `build` --references--> `cartProvider`  [EXTRACTED]
-  apps/customer_app/lib/core/widgets/commerce/widgets/app_product_card_add_button.dart → apps/customer_app/lib/features/cart/presentation/providers/cart_provider.dart
+  apps/customer_app/lib/core/widgets/commerce/premium_menu_item_card.dart → apps/customer_app/lib/features/cart/presentation/providers/cart_provider.dart
 - `build` --references--> `cartProvider`  [EXTRACTED]
-  apps/customer_app/lib/features/cart/presentation/widgets/coupon_section.dart → apps/customer_app/lib/features/cart/presentation/providers/cart_provider.dart
+  apps/customer_app/lib/core/widgets/commerce/widgets/app_product_card_add_button.dart → apps/customer_app/lib/features/cart/presentation/providers/cart_provider.dart
 - `LoginPage()` --calls--> `useAuth()`  [INFERRED]
   admin-panel/app/(auth)/login/page.tsx → admin-panel/lib/auth/use-auth.ts
 - `LoginPage()` --calls--> `useLogin()`  [INFERRED]
@@ -1009,23 +1013,23 @@
 ## Import Cycles
 - None detected.
 
-## Communities (1094 total, 104 thin omitted)
+## Communities (1098 total, 102 thin omitted)
 
 ### Community 0 - "Community centered on constants_image_strings"
 Cohesion: 0.01
 Nodes (151): acerlogo, adidasLogo, animalIcon, appleLogo, applePay, banner1, banner2, banner3 (+143 more)
 
 ### Community 1 - "Community centered on a11y_a11y_announcer"
-Cohesion: 0.05
-Nodes (38): SizedBox, build, _buildApplyButton, _buildDetails, _buildStub, color, coupon, createState (+30 more)
+Cohesion: 0.10
+Nodes (21): build, _buildApplyButton, _buildDetails, _buildStub, color, coupon, CouponTicketCard, _CouponTicketCardState (+13 more)
 
 ### Community 2 - "Community centered on core_theme_app_theme_extension_dart"
-Cohesion: 0.09
-Nodes (22): AppFormatter, formatCurrency, formatDate, formatPhoneNumber, TFormatter, order_detail_sheet.dart, order_notes_highlight.dart, order_tile.dart (+14 more)
+Cohesion: 0.05
+Nodes (37): order_detail_sheet.dart, order_notes_highlight.dart, order_tile.dart, order_timer.dart, accentColor, actionText, build, _buildActionBar (+29 more)
 
 ### Community 3 - "Community centered on core_theme_app_tokens_dart"
 Cohesion: 0.02
-Nodes (93): ../../../../core/widgets/w_search_input.dart, build, CwtFormDivider, CwtLoginHeader, dividerText, subtitle, title, customersListProvider (+85 more)
+Nodes (104): ../../../../core/widgets/layouts/breakpoints.dart, ../../../../core/widgets/w_search_input.dart, build, CwtFormDivider, CwtLoginHeader, dividerText, subtitle, title (+96 more)
 
 ### Community 4 - "Community centered on apps_customer_app_lib_core_theme_app_colors_dart_theme_app_colors"
 Cohesion: 0.02
@@ -1040,56 +1044,56 @@ Cohesion: 0.02
 Nodes (82): AppColors, background, black100, black200, black300, black400, black50, black500 (+74 more)
 
 ### Community 8 - "Community centered on admin_admin_controller_admincontroller_dailyrevenue"
-Cohesion: 0.03
-Nodes (21): DispatchController, AcceptBatchDto, AcceptOrderDto, CancelOrderDto, DeliveryExceptionDto, DispatchExternalDto, FoodDispositionDto, PaginationDto (+13 more)
+Cohesion: 0.04
+Nodes (18): DispatchController, AcceptBatchDto, AcceptOrderDto, ExecutePaymentDto, PaginationDto, RejectOrderDto, UpdateRiderProfileDto, UploadRiderDocumentDto (+10 more)
 
 ### Community 9 - "Community centered on apps_customer_app_lib_features_auth_presentation_screens_login_screen_dart_screens_login_screen"
 Cohesion: 0.02
-Nodes (112): LoginScreen, build, ForgotPasswordScreen, createState, _formKey, LoginScreen, _submit, build (+104 more)
+Nodes (129): build, ForgotPasswordScreen, createState, _formKey, LoginScreen, _LoginScreenState, _submit, build (+121 more)
 
 ### Community 10 - "Community centered on apps_customer_app_lib_features_profile_presentation_screens_profile_screen_dart_screens_profile_screen"
 Cohesion: 0.05
 Nodes (37): Addresses, App Config, Body (both endpoints), Complaints, Demo Credentials, Dev, Devices, Endpoint Summary (+29 more)
 
 ### Community 11 - "Community centered on app_favorite_button_dart"
-Cohesion: 0.03
-Nodes (67): app_favorite_button.dart, AppProductCardHorizontal, build, _displayPrice, imageUrl, menuItemId, onAddToCart, onTap (+59 more)
+Cohesion: 0.04
+Nodes (50): app_favorite_button.dart, AppProductCardHorizontal, build, _displayPrice, imageUrl, menuItemId, onAddToCart, onTap (+42 more)
 
 ### Community 12 - "Community centered on backend_test_dispatch"
-Cohesion: 0.07
-Nodes (12): AdminService, CodSettlementService, RiderLedgerService, Period, ReportsService, codDeliveryKeptAmount(), codFoodRemittanceAmount(), OrderAmountSlice (+4 more)
+Cohesion: 0.04
+Nodes (23): AutoAssignJob, DispatchProcessor, ExpireAssignmentJob, RiderOnlineRetryJob, SAFE_USER_SELECT, makeAssignment(), makeOrder(), makeRider() (+15 more)
 
 ### Community 13 - "Community centered on colortokens"
 Cohesion: 0.03
-Nodes (65): ColorTokens, LayerLink, all, _Breadcrumbs, buffer, buildBreadcrumbs, _buildOverlay, category (+57 more)
+Nodes (63): ColorTokens, LayerLink, all, _Breadcrumbs, buffer, buildBreadcrumbs, _buildOverlay, category (+55 more)
 
 ### Community 14 - "Community centered on data_orders_repository_liveordersprovider"
 Cohesion: 0.03
 Nodes (63): liveOrdersProvider, _ActionIcon, _activeFilter, amount, _badgeVariant, build, _buildColumns, _buildHeader (+55 more)
 
 ### Community 15 - "Community centered on apps_admin_app_lib_core_network_api_client_dart_network_api_client_schedulesessionclear"
-Cohesion: 0.06
-Nodes (28): ../buttons/app_button.dart, build, imageUrl, MenuItemGridCard, name, onAdd, onTap, price (+20 more)
+Cohesion: 0.03
+Nodes (65): ../buttons/app_button.dart, AppPrimaryButton, build, isLoading, onPressed, text, ../../../core/widgets/texts/app_section_heading.dart, AppErrorState (+57 more)
 
 ### Community 16 - "Community centered on commerce_premium_menu_item_card"
 Cohesion: 0.05
-Nodes (44): retryLastKitchenTicket, _animController, _breakRow, build, _buildActions, _buildBreakdownCard, _buildHeader, _buildOrderMixCard (+36 more)
+Nodes (45): _maybePrintKitchenTicket, retryLastKitchenTicket, _animController, _breakRow, build, _buildActions, _buildBreakdownCard, _buildHeader (+37 more)
 
 ### Community 17 - "Community centered on a11y_a11y_announcer_dart"
 Cohesion: 0.04
-Nodes (56): a11y/a11y_announcer.dart, w_empty_state.dart, w_error_state.dart, w_skeleton_loader.dart, ascending, build, _buildColumns, _buildLiveStatus (+48 more)
+Nodes (54): a11y/a11y_announcer.dart, w_empty_state.dart, w_error_state.dart, w_skeleton_loader.dart, ascending, build, _buildColumns, _buildLiveStatus (+46 more)
 
 ### Community 18 - "Community centered on apps_rider_app_lib_features_onboarding_presentation_screens_onboarding_screen_dart_screens_onboarding_screen"
 Cohesion: 0.03
 Nodes (74): build, ForgotPasswordScreen, createState, dispose, _emailController, LoginScreen, _passwordController, build (+66 more)
 
 ### Community 19 - "Community centered on auth_providers_auth_provider_dart"
-Cohesion: 0.02
-Nodes (93): createState, HomeScreen, FloatingCartBar, ../../../../core/router/route_paths.dart, ../../../../core/theme/app_icons.dart, ../../../../core/theme/app_spacing.dart, ../../../core/utils/responsive/app_responsive.dart, ../../../../core/widgets/commerce/app_product_card_horizontal.dart (+85 more)
+Cohesion: 0.07
+Nodes (27): ../../../../core/theme/app_typography.dart, ../../../core/utils/responsive/app_responsive.dart, ../../../core/widgets/commerce/app_favorite_button.dart, ../../../core/widgets/inputs/app_search_container.dart, ../../../../core/widgets/shapes/app_primary_header_container.dart, ../../../core/widgets/shimmers/app_home_header_shimmer.dart, ../../../features/restaurant/data/restaurant_repository.dart, home_header_categories.dart (+19 more)
 
 ### Community 20 - "Community centered on assignment_navigation_dart"
-Cohesion: 0.04
-Nodes (73): logout, ../../../../core/map/map_marker.dart, ../../../core/services/feedback_service.dart, ../../data/assignment_view.dart, activeAssignment, assignmentId, clearRiderDeliveryState, expiresAt (+65 more)
+Cohesion: 0.02
+Nodes (121): activeOrderProvider, logout, build, _bootstrap, ../../../../core/realtime/socket_service.dart, ../../../core/services/feedback_service.dart, ../../data/assignment_view.dart, ../../data/delivery_state_model.dart (+113 more)
 
 ### Community 21 - "Community centered on restaurant_merchant_dashboard_package_dependencies"
 Cohesion: 0.04
@@ -1112,8 +1116,8 @@ Cohesion: 0.08
 Nodes (24): buildTrackingMapMarkers, coordFromJson, dLat, dLng, effectiveRider, estimatedRiderLocation, fromApi, hLat (+16 more)
 
 ### Community 26 - "Community centered on app_curved_edges_clipper_dart"
-Cohesion: 0.08
-Nodes (31): EmptyState(), EmptyStateProps, ErrorState(), ErrorStateProps, PageHeader(), PageHeaderProps, RecentOrders(), ComplaintsTab() (+23 more)
+Cohesion: 0.07
+Nodes (40): AuthState, useAuthStore, ErrorState(), ErrorStateProps, ComplaintsTab(), FILTERS, ResolveDialog(), STATUS_META (+32 more)
 
 ### Community 27 - "Community centered on apps_admin_app_ios_runner_appdelegate_swift_any"
 Cohesion: 0.05
@@ -1124,52 +1128,52 @@ Cohesion: 0.07
 Nodes (27): appRouterProvider, auth_refresh_notifier.dart, ../../features/auth/presentation/screens/email_verify_screen.dart, ../../features/auth/presentation/screens/phone_otp_screen.dart, ../../features/auth/presentation/screens/register_screen.dart, ../../features/cart/presentation/screens/cart_screen.dart, ../../features/checkout/presentation/screens/checkout_screen.dart, ../../features/checkout/presentation/screens/order_success_screen.dart (+19 more)
 
 ### Community 29 - "Community centered on apps_rider_app_lib_app_dart_lib_app"
-Cohesion: 0.06
-Nodes (37): ../../features/notifications/presentation/providers/notifications_provider.dart, ../../features/orders/presentation/assignment_navigation.dart, ../../features/orders/presentation/providers/active_order_restore.dart, ../../features/orders/presentation/providers/assignment_sync_controller.dart, ../../features/shift/presentation/providers/rider_online_controller.dart, activeOrderRestoreProvider, assignmentSyncControllerProvider, active (+29 more)
+Cohesion: 0.03
+Nodes (70): build, assignment_sync_controller.dart, ../../../../core/websockets/socket_service.dart, ../../features/auth/presentation/providers/auth_provider.dart, ../../features/notifications/presentation/providers/notifications_provider.dart, ../../features/orders/presentation/assignment_navigation.dart, ../../features/orders/presentation/providers/active_order_restore.dart, features/orders/presentation/providers/assignment_bridge_provider.dart (+62 more)
 
 ### Community 30 - "Community centered on colorscheme"
 Cohesion: 0.04
 Nodes (49): ColorScheme, build, _compactCount, cuisines, data, deliveryEta, deliveryFee, distance (+41 more)
 
 ### Community 31 - "Community centered on apps_admin_app_lib_features_auth_presentation_screens_login_screen_dart_screens_login_screen_loginscreen"
-Cohesion: 0.08
-Nodes (33): build, _HomeScreenState, ../../../auth/providers/auth_provider.dart, ../../../auth/widgets/pin_pad_dialog.dart, featuredMenuProvider, restaurantProvider, restaurantReviewsSummaryProvider, kitchen_header.dart (+25 more)
+Cohesion: 0.05
+Nodes (54): build, createState, HomeScreen, _HomeScreenState, build, ../../../cart/domain/entities/cart_item.dart, build, ../../../../core/widgets/commerce/app_product_card_horizontal.dart (+46 more)
 
 ### Community 32 - "Community centered on chips_app_chip_dart"
 Cohesion: 0.04
 Nodes (47): Aggregations (Built-in State), Append Mode (Default), Available Trigger Types, Best Practices Summary, Checkpointing, Common Anti-Patterns, Complete Mode, Custom Sink (foreachBatch) (+39 more)
 
 ### Community 33 - "Community centered on core_theme_home_promo_banner_layout_dart"
-Cohesion: 0.07
-Nodes (10): UpdateRiderProfileDto, MediaController, MediaModule, MediaService, RiderController, RiderModule, RiderService, UploadsController (+2 more)
+Cohesion: 0.03
+Nodes (78): AuthFormScaffold, build, child, footer, headerHeight, showBack, subtitle, title (+70 more)
 
 ### Community 34 - "Community centered on integration_realtime_wiring_test_controlledlocationservice"
 Cohesion: 0.04
 Nodes (46): Acceptance Criteria, Acceptance Criteria, Acceptance Criteria, Acceptance Criteria, Acceptance Criteria, Acceptance Criteria, Acceptance Criteria, Acceptance Criteria (+38 more)
 
 ### Community 35 - "Community centered on map_coordinate_conversions_test"
-Cohesion: 0.04
-Nodes (40): ../../../core/widgets/texts/app_section_heading.dart, onPressed, ../../../features/auth/presentation/providers/auth_providers.dart, build, icon, LinkRow, onTap, showChevron (+32 more)
+Cohesion: 0.05
+Nodes (18): CancelOrderDto, DeliveryExceptionDto, DispatchExternalDto, FoodDispositionDto, OrderItemAddonDto, PlaceOrderDto, PlaceOrderItemDto, ResolveExceptionAction (+10 more)
 
 ### Community 36 - "Community centered on app_bottom_nav_bar_dart"
-Cohesion: 0.06
-Nodes (39): activeOrderProvider, build, build, createState, _HomeScreenState, _bootstrap, build, createState (+31 more)
+Cohesion: 0.04
+Nodes (47): createState, ../../../../core/widgets/feedback/app_shimmer_effect.dart, ../../../earnings/data/earnings_summary.dart, go_control.dart, Key, ../../../orders/data/active_order_view.dart, _ApprovalBanner, avatarUrl (+39 more)
 
 ### Community 37 - "Community centered on backend_create_order_prisma"
-Cohesion: 0.09
-Nodes (21): accentColor, actionText, build, _buildActionBar, _buildCustomerCard, _buildItemsList, _buildMetaRow, _buildRiderInfo (+13 more)
+Cohesion: 0.06
+Nodes (36): build, _buildDateRangeField, _buildForm, _codeController, _codeError, coupon, CouponEditorDialog, _CouponEditorDialogState (+28 more)
 
 ### Community 38 - "Community centered on color"
 Cohesion: 0.02
-Nodes (143): ../buttons/app_primary_button.dart, ../../../../core/theme/app_tokens.dart, ../../../../core/utils/format.dart, ../../../../core/widgets/delivery_row.dart, ../../../../core/widgets/feedback/empty_state_view.dart, ../../../../core/widgets/feedback/error_state_view.dart, ../../../../core/widgets/feedback/tab_loading_view.dart, ../../../../core/widgets/inputs/period_chip_row.dart (+135 more)
+Nodes (164): createState, dispose, EditProfileScreen, ../../../../core/theme/app_tokens.dart, ../../../../core/utils/format.dart, ../../../../core/widgets/cwt/cwt_section_heading.dart, ../../../../core/widgets/delivery_row.dart, ../../../../core/widgets/feedback/empty_state_view.dart (+156 more)
 
 ### Community 39 - "Community centered on dto_create_banner_dto"
 Cohesion: 0.10
 Nodes (12): CreateBannerDto, CreateCouponDto, CreateZoneDto, UpdateBannerDto, UpdateCouponDto, UpdateFeeConfigDto, UpdateOperatingHourDto, UpdateRestaurantProfileDto (+4 more)
 
 ### Community 41 - "Community centered on object"
-Cohesion: 0.05
-Nodes (42): Object?, assignment, controller, _coordFromJson, copyWith, current, emit, error (+34 more)
+Cohesion: 0.04
+Nodes (54): Object?, assignment, controller, _coordFromJson, copyWith, current, emit, error (+46 more)
 
 ### Community 42 - "Community centered on annotation_pragma"
 Cohesion: 0.05
@@ -1188,36 +1192,36 @@ Cohesion: 0.07
 Nodes (36): Action, ActionType, actionTypes, addToRemoveQueue(), dispatch(), genId(), listeners, memoryState (+28 more)
 
 ### Community 46 - "Community centered on addresses_addresses_controller"
-Cohesion: 0.17
-Nodes (13): CurrentUser, Roles(), CreateRiderPayoutDto, SettleCodDto, UploadRiderDocumentDto, EarningsController, UserRole, JwtAuthGuard (+5 more)
+Cohesion: 0.10
+Nodes (21): ComplaintsAdminController, ListComplaintsQuery, ComplaintsController, ComplaintsService, CurrentUser, Roles(), CreateComplaintDto, CreateRiderPayoutDto (+13 more)
 
 ### Community 47 - "Community centered on apps_admin_app_lib_features_auth_providers_auth_provider_dart_providers_auth_provider_login"
-Cohesion: 0.03
-Nodes (57): AsyncNotifier, ../chips/app_chip.dart, build, categories, CategoryChipRow, onSelected, selectedId, banners (+49 more)
+Cohesion: 0.06
+Nodes (32): ../chips/app_chip.dart, build, categories, CategoryChipRow, onSelected, selectedId, build, children (+24 more)
 
 ### Community 48 - "Community centered on data_coupons_repository_couponsrepositoryprovider"
-Cohesion: 0.07
-Nodes (26): ../assignment_navigation.dart, ../../../../core/map/geo_math.dart, ../../../../core/services/location_broadcast.dart, ../../../../core/services/navigation_launcher.dart, package:rider_app/features/earnings/presentation/providers/earnings_summary_provider.dart, ../providers/assignment_sync_controller.dart, ../providers/delivery_progress_controller.dart, ../providers/route_provider.dart (+18 more)
+Cohesion: 0.25
+Nodes (7): ../../../../core/map/geo_point.dart, ../../../../core/map/location_service.dart, ../../../../core/map/mapbox/geolocator_location_service.dart, GeoPoint, GeoPointMapbox, currentLocationProvider, locationServiceProvider
 
 ### Community 49 - "Community centered on asyncdata"
-Cohesion: 0.02
-Nodes (141): ../../../../core/theme/app_theme_extension.dart, ../../../../core/theme/tokens/app_tokens.dart, ../../../../core/widgets/status_mappings.dart, ../../../../core/widgets/w_button.dart, ../../../../core/widgets/w_data_table.dart, ../../../../core/widgets/w_dialog.dart, ../../../../core/widgets/w_status_badge.dart, ../../data/banners_repository.dart (+133 more)
+Cohesion: 0.05
+Nodes (44): ../../../../core/widgets/status_mappings.dart, build, _buildDocumentCard, _buildDocumentsSection, _buildInfoRow, ../dialogs/rider_profile_dialog.dart, _getStatusColor, isPending (+36 more)
 
 ### Community 50 - "Community centered on dispatch_dispatch_service_dispatchservice"
-Cohesion: 0.06
-Nodes (9): AutoAssignJob, DispatchProcessor, ExpireAssignmentJob, RiderOnlineRetryJob, DispatchService, AssignRiderDto, UpdateProfileDto, UsersController (+1 more)
+Cohesion: 0.08
+Nodes (4): DispatchService, UpdateProfileDto, UsersController, UsersService
 
 ### Community 51 - "Community centered on dto_menu_filter_dto"
 Cohesion: 0.06
 Nodes (32): AppNotification, body, createdAt, data, fromJson, id, isRead, markedRead (+24 more)
 
 ### Community 52 - "Community centered on admin_admin_module"
-Cohesion: 0.07
-Nodes (27): AppFavoriteButton, build, menuItemId, size, ../../../core/theme/home_offer_card_layout.dart, ../icons/app_circular_icon.dart, favoriteMenuItemIdsProvider, badge (+19 more)
+Cohesion: 0.08
+Nodes (24): AppFavoriteButton, build, ../../../core/theme/home_offer_card_layout.dart, favoriteMenuItemIdsProvider, badge, build, deliveryMeta, elevated (+16 more)
 
 ### Community 53 - "Community centered on apps_customer_app_lib_features_home_presentation_screens_home_screen_dart_screens_home_screen"
-Cohesion: 0.04
-Nodes (53): badge, bgColor, data, description, _DietIndicator, dietType, discountedPrice, displayPrice (+45 more)
+Cohesion: 0.03
+Nodes (58): badge, bgColor, build, data, description, _DietIndicator, dietType, discountedPrice (+50 more)
 
 ### Community 54 - "Community centered on core_map_geo_point_dart"
 Cohesion: 0.11
@@ -1252,24 +1256,24 @@ Cohesion: 0.06
 Nodes (5): MenuFilterDto, MenuAdminService, MenuController, MenuModule, MenuService
 
 ### Community 62 - "Community centered on entities_cart_item"
-Cohesion: 0.11
-Nodes (17): _dio, getOrder, listOrders, OrdersRepository, ordersRepositoryProvider, cancelOrder, confirmDelivery, deliveryFeeQuote (+9 more)
+Cohesion: 0.07
+Nodes (27): ../services/feedback_service.dart, _animationController, build, _confirm, _confirmThreshold, _confirmThresholdFraction, createState, dispose (+19 more)
 
 ### Community 63 - "Community centered on apps_customer_app_lib_core_widgets_map_app_map_view_dart_map_app_map_view"
 Cohesion: 0.04
 Nodes (43): build, createState, markers, route, dart:typed_data, animateTo, _annotationSignature, AppMapboxController (+35 more)
 
 ### Community 64 - "Community centered on auth_auth_controller"
-Cohesion: 0.14
+Cohesion: 0.13
 Nodes (8): AuthController, AuthService, LoginDto, ResetPasswordDto, SendOtpDto, VerifyOtpDto, RegisterDto, RegisterRiderDto
 
 ### Community 65 - "Community centered on core_widgets_layouts_breakpoints_dart"
-Cohesion: 0.06
-Nodes (34): ../../../../core/widgets/layouts/breakpoints.dart, dashboardMetricsProvider, package:admin_app/features/dashboard/data/dashboard_repository.dart, package:fl_chart/fl_chart.dart, activity, _activityColor, _ActivityItem, build (+26 more)
+Cohesion: 0.04
+Nodes (45): AppCircularContainer, backgroundColor, borderColor, build, child, height, margin, padding (+37 more)
 
 ### Community 66 - "Community centered on animatedcontainer"
-Cohesion: 0.08
-Nodes (32): AuthState, useAuthStore, RoleGateProps, CustomersPage(), ROLE_OPTIONS, statusVariant, UserActionsCell(), userColumns (+24 more)
+Cohesion: 0.07
+Nodes (27): _attachFocusNode, build, _buildField, controller, createState, _detachFocusNode, didUpdateWidget, disabled (+19 more)
 
 ### Community 67 - "Community centered on data_customers_repository"
 Cohesion: 0.05
@@ -1285,7 +1289,7 @@ Nodes (33): 1.1 Kitchen stage-based timers, 1.2 Fix Recent Orders pollution, 1.3
 
 ### Community 70 - "Community centered on apps_admin_app_lib_features_auth_data_auth_repository_dart_data_auth_repository"
 Cohesion: 0.03
-Nodes (89): AuthRepository, authRepositoryProvider, login, mapDioException, null, _serverMessage, ../../../core/constants/api_endpoints.dart, ../../../../core/network/api_client.dart (+81 more)
+Nodes (86): AuthRepository, authRepositoryProvider, login, mapDioException, null, _serverMessage, markRead, NotificationsRepository (+78 more)
 
 ### Community 71 - "Community centered on backend_test_emit_both"
 Cohesion: 0.06
@@ -1296,8 +1300,8 @@ Cohesion: 0.06
 Nodes (35): Color get, DismissIntent, Duration get, FocusScopeNode, PopupRoute, static final Color, T, WidgetBuilder (+27 more)
 
 ### Community 73 - "Community centered on data_menu_repository_categoriesprovider"
-Cohesion: 0.09
-Nodes (28): DataTable(), DataTableProps, useDebounce(), ACTIVE_ORDER_STATUSES, BadgeVariant, ORDER_STATUS_CONFIG, ORDER_STATUS_OPTIONS, orderStatusConfig() (+20 more)
+Cohesion: 0.07
+Nodes (35): ApiError, api, qs(), refreshAccessToken(), request(), RequestOptions, DataTable(), DataTableProps (+27 more)
 
 ### Community 74 - "Community centered on feedback_feedback_vocabulary_test"
 Cohesion: 0.07
@@ -1308,8 +1312,8 @@ Cohesion: 0.05
 Nodes (37): forgotPassword, home, login, notifications, onboarding, orders, profile, resetPassword (+29 more)
 
 ### Community 76 - "Community centered on backend_test_mapbox"
-Cohesion: 0.04
-Nodes (43): dio, OrdersRepository, ordersRepositoryProvider, updateOrderStatus, main, repo, main, repo (+35 more)
+Cohesion: 0.06
+Nodes (35): dio, OrdersRepository, ordersRepositoryProvider, updateOrderStatus, main, repo, main, repo (+27 more)
 
 ### Community 77 - "Community centered on constants_sizes"
 Cohesion: 0.06
@@ -1317,11 +1321,11 @@ Nodes (31): appBarHeight, AppSizes, borderRadiusLg, borderRadiusMd, borderRadius
 
 ### Community 78 - "Community centered on core_widgets_inputs_media_picker_widget_dart"
 Cohesion: 0.03
-Nodes (57): app_circular_container.dart, app_curved_edges_clipper.dart, app_curved_edges.dart, AppCircularContainer, backgroundColor, borderColor, build, child (+49 more)
+Nodes (71): app_circular_container.dart, app_curved_edges_clipper.dart, app_curved_edges.dart, build, CwtSettingsMenuTile, icon, onTap, subTitle (+63 more)
 
 ### Community 79 - "Community centered on static_const_int"
-Cohesion: 0.03
-Nodes (77): _, Breakpoints, compact, fromWidth, LayoutMode, medium, static const double, static const int (+69 more)
+Cohesion: 0.05
+Nodes (37): breakpoints.dart, header_bar.dart, AppShell, build, child, _scaffoldKey, sidebar_navigation.dart, static const int (+29 more)
 
 ### Community 80 - "Community centered on apps_rider_app_lib_core_network_api_client_dart_network_api_client"
 Cohesion: 0.04
@@ -1329,7 +1333,7 @@ Nodes (47): ApiClient, apiClientProvider, _cachedAccessToken, _cachedRefreshToke
 
 ### Community 81 - "Community centered on circleannotationmanager"
 Cohesion: 0.12
-Nodes (19): ../../data/notification_model.dart, ../../data/notifications_repository.dart, notificationsRepositoryProvider, build, _load, markAllRead, markRead, maybeWhen (+11 more)
+Nodes (22): AsyncNotifier, ../../data/notification_model.dart, ../../data/notifications_repository.dart, notificationsRepositoryProvider, build, _load, markAllRead, markRead (+14 more)
 
 ### Community 82 - "Community centered on theme_app_icons"
 Cohesion: 0.06
@@ -1337,15 +1341,15 @@ Nodes (33): add, AppIcons, arrowRight, bag, bike, check, chevronDown, chevronRig
 
 ### Community 83 - "Community centered on auth_login_screen_test"
 Cohesion: 0.03
-Nodes (56): AppCircularContainer, backgroundColor, borderColor, build, child, height, margin, padding (+48 more)
+Nodes (68): AppCircularContainer, backgroundColor, borderColor, build, child, height, margin, padding (+60 more)
 
 ### Community 84 - "Community centered on authrepository"
-Cohesion: 0.02
-Nodes (84): A11yAnnouncer, announce, app_category_shimmer.dart, app_shimmer_effect.dart, getClip, shouldReclip, build, count (+76 more)
+Cohesion: 0.03
+Nodes (75): A11yAnnouncer, announce, app_category_shimmer.dart, app_shimmer_effect.dart, AppBadge, AppFilterChip, build, color (+67 more)
 
 ### Community 85 - "Community centered on websockets_socket_service"
 Cohesion: 0.04
-Nodes (52): package:socket_io_client/socket_io_client.dart, _activeOrderId, connect, disconnect, ensureConnected, isConnected, joinOrder, offOrderMessage (+44 more)
+Nodes (55): package:socket_io_client/socket_io_client.dart, _activeOrderId, connect, disconnect, ensureConnected, isConnected, joinOrder, offOrderMessage (+47 more)
 
 ### Community 86 - "Community centered on activeorderprovider"
 Cohesion: 0.06
@@ -1360,8 +1364,8 @@ Cohesion: 0.05
 Nodes (38): AI and Machine Learning, Architecture Patterns, Backup Strategies, BigQuery Savings, Cloud Logging, Cloud Monitoring (formerly Stackdriver), Cloud Profiler, Cloud Trace (+30 more)
 
 ### Community 89 - "Community centered on layouts_sidebar_navigation"
-Cohesion: 0.06
-Nodes (31): active, _BrandHeader, collapsed, createState, currentPath, _go, _hovering, icon (+23 more)
+Cohesion: 0.05
+Nodes (38): @immutable, BreadcrumbSegment, HeaderSearchResult, active, _BrandHeader, collapsed, createState, currentPath (+30 more)
 
 ### Community 90 - "Community centered on api_endpoints_dart"
 Cohesion: 0.05
@@ -1380,8 +1384,8 @@ Cohesion: 0.07
 Nodes (30): CircleAnnotationManager?, ../map_marker.dart, build, _circleManager, _colorForKind, createState, _dhaka, didUpdateWidget (+22 more)
 
 ### Community 94 - "Community centered on dart_math"
-Cohesion: 0.07
-Nodes (31): ../../../../core/widgets/feedback/app_shimmer_effect.dart, go_control.dart, Key, earningsSummaryProvider, RoutePaths.cash, build, EarningsScreen, _BreakdownGrid (+23 more)
+Cohesion: 0.04
+Nodes (42): ../../../core/theme/home_promo_banner_layout.dart, ../../../../core/widgets/media/app_food_image.dart, ../../../core/widgets/shimmers/app_category_shimmer.dart, home_category_grid.dart, build, categories, _CategoryCell, categoryFromApi (+34 more)
 
 ### Community 95 - "Community centered on services_feedback_service_dart"
 Cohesion: 0.12
@@ -1392,8 +1396,8 @@ Cohesion: 0.09
 Nodes (20): AppNotification, body, createdAt, data, fromJson, id, isRead, markedRead (+12 more)
 
 ### Community 97 - "Community centered on apiclient"
-Cohesion: 0.06
-Nodes (29): CashFailure, apiClient, EarningsFailure, EarningsRepository, getEarningsSummary, getRawEarnings, message, _messageForDioException (+21 more)
+Cohesion: 0.14
+Nodes (13): ../entities/user_entity.dart, AuthRepository, AuthResult, failure, logout, registerWithPhone, resetPassword, sendPasswordResetOtp (+5 more)
 
 ### Community 98 - "Community centered on apps_admin_app_lib_core_network_api_client_dart_network_api_client_scheduleauthupdate"
 Cohesion: 0.05
@@ -1408,35 +1412,35 @@ Cohesion: 0.05
 Nodes (38): AQE Automatic Optimization (Spark 3.x), Best Practices Summary, Broadcast Size Limits, Broadcast Variables, Bucketing (Hash-Based File Partitioning), Caching and Persistence, Caching Best Practices, Checking Partition Distribution (+30 more)
 
 ### Community 101 - "Community centered on core_widgets_w_empty_state_dart"
-Cohesion: 0.07
-Nodes (33): ../../../../core/widgets/w_empty_state.dart, ../../../../core/widgets/w_error_state.dart, ../../../../core/widgets/w_select_input.dart, ../../../../core/widgets/w_skeleton_loader.dart, ../../providers/media_provider.dart, mediaCategoryProvider, mediaListProvider, build (+25 more)
+Cohesion: 0.06
+Nodes (44): ../../../../core/widgets/w_empty_state.dart, ../../../../core/widgets/w_error_state.dart, ../../../../core/widgets/w_select_input.dart, ../../../../core/widgets/w_skeleton_loader.dart, ../data/media_repository.dart, mediaRepositoryProvider, package:image_picker/image_picker.dart, build (+36 more)
 
 ### Community 102 - "Community centered on data_active_order_view"
-Cohesion: 0.05
-Nodes (37): ../../../../core/map/geo_point.dart, ../../../../core/map/location_service.dart, ../../../../core/map/mapbox/geolocator_location_service.dart, ActiveOrderItemView, ActiveOrderView, addons, _asMap, _asNum (+29 more)
+Cohesion: 0.07
+Nodes (26): ActiveOrderItemView, ActiveOrderView, addons, _asMap, _asNum, _asString, customerName, customerPhone (+18 more)
 
 ### Community 103 - "Community centered on data_addresses_repository_addressesrepositoryprovider"
 Cohesion: 0.08
 Nodes (8): AppConfigController, AppConfigModule, CouponsController, ValidateCouponDto, CouponsModule, CouponsService, Public(), HealthController
 
 ### Community 104 - "Community centered on data_delivery_state_model_dart"
-Cohesion: 0.28
-Nodes (8): ../../data/favorites_repository.dart, favoritesRepositoryProvider, build, FavoriteMenuItemIdsNotifier, _idsFromList, toggle, watch, Set
+Cohesion: 0.09
+Nodes (23): ../../../../core/widgets/w_dialog.dart, couponsProvider, couponsRepositoryProvider, ../../data/coupons_repository.dart, ../dialogs/coupon_editor_dialog.dart, _save, build, _buildActionsCell (+15 more)
 
 ### Community 105 - "Community centered on data_order_summary"
 Cohesion: 0.07
 Nodes (27): _date, deliveredAt, deliveryAddress, distanceKm, fromJson, grandTotal, id, imageUrl (+19 more)
 
 ### Community 106 - "Community centered on feedbackservice"
-Cohesion: 0.05
-Nodes (35): FeedbackService?, package:audioplayers/audioplayers.dart, package:flutter/services.dart, _alertAssetPath, _audioPlayer, _defaultAlertAssetPath, _defaultSystemAlert, dispose (+27 more)
+Cohesion: 0.15
+Nodes (12): FeedbackService?, _alertAssetPath, _defaultAlertAssetPath, _defaultSystemAlert, dispose, FeedbackService, _guard, onConfirm (+4 more)
 
 ### Community 107 - "Community centered on navigation_app_shell_test"
 Cohesion: 0.13
 Nodes (23): SettingsPage(), Spinner(), useDeleteZone(), useRestaurant(), useRestaurantInvalidate(), useSaveZone(), useUpdateDeliveryFee(), useUpdateProfile() (+15 more)
 
 ### Community 109 - "Community centered on admin_admin_controller_admincontroller"
-Cohesion: 0.12
+Cohesion: 0.14
 Nodes (9): AdminController, AdminOrderQueryDto, AdminUserQueryDto, PaginationDto, SuperAdminOrderQueryDto, SuperAdminRestaurantQueryDto, UpdateDocumentStatusDto, UpdateRiderApprovalDto (+1 more)
 
 ### Community 110 - "Community centered on apps_kitchen_app_lib_core_bootstrap_app_bootstrap_dart_bootstrap_app_bootstrap"
@@ -1444,15 +1448,12 @@ Cohesion: 0.08
 Nodes (23): _asEntryList, _asInt, _asNum, _asString, cashCollected, CashEntry, cashToDeposit, _codFoodRemitFallback (+15 more)
 
 ### Community 111 - "Community centered on apps_rider_app_lib_core_theme_app_colors_dart_theme_app_colors"
-Cohesion: 0.05
-Nodes (40): acceptance,
-  preparation,
-  pickupWait,
-  delivery,, AppColors, primary, primaryDark, primaryLight, textDisabled, textPrimary, textSecondary (+32 more)
+Cohesion: 0.08
+Nodes (25): AppColors, primary, primaryDark, primaryLight, textDisabled, textPrimary, textSecondary, static const Color (+17 more)
 
 ### Community 112 - "Community centered on asyncvalue"
 Cohesion: 0.05
-Nodes (40): AuthRepository, ../../../../core/session/user_session_cleanup.dart, ../../../../core/storage/token_storage.dart, ../../data/datasources/auth_remote_datasource.dart, ../../data/repositories/auth_repository_impl.dart, ../../domain/entities/user_entity.dart, ../../domain/usecases/login_usecase.dart, ../../domain/usecases/register_usecase.dart (+32 more)
+Nodes (44): AsyncValue, AuthRepository, ../../../../core/session/user_session_cleanup.dart, ../../../../core/storage/token_storage.dart, ../../data/datasources/auth_remote_datasource.dart, ../../data/repositories/auth_repository_impl.dart, ../../domain/entities/user_entity.dart, ../../domain/usecases/login_usecase.dart (+36 more)
 
 ### Community 113 - "Community centered on dto_update_rider_profile_dto"
 Cohesion: 0.05
@@ -1471,8 +1472,8 @@ Cohesion: 0.10
 Nodes (22): api_host_resolver.dart, apiBaseUrl, AppConfig, enableNetworkLogging, restaurantId, _, apiBaseUrl, AppConfig (+14 more)
 
 ### Community 118 - "Community centered on apps_rider_app_lib_features_profile_presentation_screens_profile_screen_dart_screens_profile_screen"
-Cohesion: 0.07
-Nodes (35): build, init, initFirebaseMessaging, main, prefs, core/services/kitchen_preferences.dart, ../../../../core/services/print_service.dart, ../../../../core/services/sunmi_print_service.dart (+27 more)
+Cohesion: 0.06
+Nodes (38): ../../../auth/providers/auth_provider.dart, ../../../auth/widgets/pin_pad_dialog.dart, ../../../../core/services/print_service.dart, ../../../../core/services/sunmi_print_service.dart, kitchen_header.dart, fetchOrders, _fetchOrdersSilent, ../providers/restaurant_provider.dart (+30 more)
 
 ### Community 119 - "Community centered on apps_rider_app_lib_features_shift_presentation_screens_home_screen_dart_screens_home_screen"
 Cohesion: 0.15
@@ -1483,20 +1484,20 @@ Cohesion: 0.10
 Nodes (21): AddressLabel, AssignmentStatus, Complaint status, Complaint type, Delivery exception reasons, DevicePlatform, Discount type, Enums & Constants (+13 more)
 
 ### Community 121 - "Community centered on commerce_app_favorite_button_appfavoritebutton"
-Cohesion: 0.14
-Nodes (13): markRead, NotificationsRepository, notificationsRepositoryProvider, markRead, NotificationsRepository, notificationsRepositoryProvider, _api, _dio (+5 more)
+Cohesion: 0.08
+Nodes (25): ../../features/auth/presentation/screens/forgot_password_screen.dart, ../../features/auth/presentation/screens/reset_password_screen.dart, ../../features/earnings/presentation/screens/cash_summary_screen.dart, ../../features/earnings/presentation/screens/earnings_screen.dart, ../../features/notifications/presentation/screens/notifications_screen.dart, ../../features/onboarding/presentation/screens/onboarding_screen.dart, ../../features/orders/data/order_summary.dart, ../../features/orders/presentation/screens/active_delivery_screen.dart (+17 more)
 
 ### Community 122 - "Community centered on complaints_complaints_admin_controller"
-Cohesion: 0.12
-Nodes (13): AppProductTitleText, build, compact, maxLines, textAlign, title, activeTab, build (+5 more)
+Cohesion: 0.08
+Nodes (21): app_colors.dart, app_spacing.dart, app_tokens.dart, app_typography.dart, AppTheme, AppTheme, _inputDecorationTheme, static final ElevatedButtonThemeData (+13 more)
 
 ### Community 123 - "Community centered on data_assignment_view"
 Cohesion: 0.07
 Nodes (26): _asDateTime, _asMap, _asNum, assignmentId, AssignmentView, _asString, cashToCollect, dropoffLat (+18 more)
 
 ### Community 124 - "Community centered on utils_tracking_map_markers"
-Cohesion: 0.12
-Nodes (19): orderTrackingProvider, ../providers/tracking_route_provider.dart, trackingRouteProvider, build, _callRider, _confirming, createState, orderId (+11 more)
+Cohesion: 0.08
+Nodes (22): _api, clearSession, _contentTypeFor, label, _message, OnboardingRepository, register, RiderDocType (+14 more)
 
 ### Community 125 - "Community centered on apps_admin_app_lib_core_router_app_router_dart_router_app_router"
 Cohesion: 0.11
@@ -1504,7 +1505,7 @@ Nodes (10): { MapsService }, MockConfigService, DeliveryFeeController, DeliveryF
 
 ### Community 126 - "Community centered on apps_admin_app_lib_features_orders_data_orders_repository_dart_data_orders_repository"
 Cohesion: 0.02
-Nodes (127): AppPrimaryButton, build, isLoading, onPressed, text, build, CwtProfileInfoRow, showChevron (+119 more)
+Nodes (97): ../buttons/app_primary_button.dart, ../../../features/media/presentation/screens/media_management_screen.dart, AuthErrorSheet, show, build, _buildLine, _buildStep, currentStep (+89 more)
 
 ### Community 127 - "Community centered on apps_kitchen_app_windows_flutter_ephemeral_cpp_client_wrapper_core_implementations_cc_function"
 Cohesion: 0.05
@@ -1519,16 +1520,16 @@ Cohesion: 0.07
 Nodes (27): pumpWidget, seedApiHostResolver, main, _connectivity, connectivityProvider, dispose, isConnected, NetworkConnectivity (+19 more)
 
 ### Community 130 - "Community centered on core_widgets_feedback_app_shimmer_effect_dart"
-Cohesion: 0.07
-Nodes (33): AppMapView, AppTextField, AppMapView, _AppMapViewState, AppMapView, _AppMapViewState, build, createState (+25 more)
+Cohesion: 0.08
+Nodes (30): AppMapView, AppTextField, AppMapView, _AppMapViewState, AppMapView, _AppMapViewState, build, createState (+22 more)
 
 ### Community 131 - "Community centered on helpers_provider_test_harness_mocksocketservice"
 Cohesion: 0.06
 Nodes (34): Aggregate Queries, Avoiding Common Anti-Patterns, Basic Query Structure, Basic SOSL Syntax, Building Queries Dynamically, Bulkification Patterns, Child-to-Parent (Dot Notation), COUNT_DISTINCT (+26 more)
 
 ### Community 132 - "Community centered on apiclientprovider"
-Cohesion: 0.07
-Nodes (34): refreshSessionAfterResume, build, clearError, copyWith, ../providers/rider_online_controller.dart, error, hashCode, isLoading (+26 more)
+Cohesion: 0.03
+Nodes (104): ApiClient get, apiClientProvider, AuthNotifier, AuthNotifier, authProvider, AuthState, build, login (+96 more)
 
 ### Community 133 - "Community centered on apps_admin_app_dart_tool_dartpad_web_plugin_registrant_dart_dartpad_web_plugin_registrant"
 Cohesion: 0.06
@@ -1543,8 +1544,8 @@ Cohesion: 0.06
 Nodes (32): 1. Async/Await Mistakes, 2. Missing `from_attributes` (orm_mode), 3. Session Management, 4. Relationship Loading, 5. Transaction Handling, Authentication: SimpleJWT → FastAPI JWT, Common Pitfalls, Concept Mapping: Django/DRF → FastAPI (+24 more)
 
 ### Community 136 - "Community centered on apps_rider_app_dart_tool_hooks_runner_objective_c_e8072a2455_input_json_e8072a2455_input"
-Cohesion: 0.07
-Nodes (28): api_endpoints.dart, ApiClient, apiClientProvider, _cachedAccessToken, _cachedRefreshToken, clearTokens, completer, delete (+20 more)
+Cohesion: 0.04
+Nodes (54): api_endpoints.dart, bootstrapFlutterApp, _crashlyticsEnabled, enableCrashlyticsReporting, bootstrapFlutterApp, _crashlyticsEnabled, enableCrashlyticsReporting, ApiClient (+46 more)
 
 ### Community 137 - "Community centered on backend_package_dependencies"
 Cohesion: 0.06
@@ -1555,20 +1556,20 @@ Cohesion: 0.09
 Nodes (22): compilerOptions, allowSyntheticDefaultImports, baseUrl, declaration, emitDecoratorMetadata, esModuleInterop, experimentalDecorators, forceConsistentCasingInFileNames (+14 more)
 
 ### Community 139 - "Community centered on customclipper"
-Cohesion: 0.05
-Nodes (29): SocketIoCorsAdapter, AppCurvedEdgesClipper, AppCurvedEdgesClipper, getClip, shouldReclip, corsOriginSetting(), parseCorsOrigins(), CustomClipper (+21 more)
+Cohesion: 0.07
+Nodes (20): SocketIoCorsAdapter, AppCurvedEdgesClipper, getClip, shouldReclip, AppCurvedEdgesClipper, getClip, shouldReclip, corsOriginSetting() (+12 more)
 
 ### Community 140 - "Community centered on package_lucide_icons_flutter_lucide_icons_dart"
-Cohesion: 0.08
-Nodes (30): ../../../core/widgets/commerce/premium_menu_item_card.dart, ../../../../core/widgets/inputs/app_search_bar.dart, restaurantIdProvider, restaurantRepositoryProvider, enrichOrder, RoutePaths.itemWithId, build, categoryId (+22 more)
+Cohesion: 0.05
+Nodes (46): ../../../../core/utils/device/device_utility.dart, ../../../core/widgets/commerce/premium_menu_item_card.dart, ../../../../core/widgets/inputs/app_search_bar.dart, restaurantIdProvider, restaurantRepositoryProvider, enrichOrder, RoutePaths.itemWithId, build (+38 more)
 
 ### Community 141 - "Community centered on app_dart"
-Cohesion: 0.03
-Nodes (67): AuthFormScaffold, build, child, footer, headerHeight, showBack, subtitle, title (+59 more)
+Cohesion: 0.05
+Nodes (39): ../../../cart/presentation/providers/cart_provider.dart, LocalStorage get, addItem, _addonsKey, build, CartNotifier, CartState, clear (+31 more)
 
 ### Community 142 - "Community centered on appmapview"
 Cohesion: 0.07
-Nodes (26): build, order, OrderDetailScreen, ../providers/kds_provider.dart, _buildActionBar, _buildBreakdown, _buildHero, _buildInfoRows (+18 more)
+Nodes (27): build, order, OrderDetailScreen, AppFormatter, formatCurrency, formatDate, formatPhoneNumber, TFormatter (+19 more)
 
 ### Community 143 - "Community centered on apps_admin_app_lib_features_auth_presentation_screens_login_screen_dart_screens_login_screen"
 Cohesion: 0.06
@@ -1579,20 +1580,20 @@ Cohesion: 0.06
 Nodes (31): Behavioral Guidelines, Boundary Enforcement, Capabilities & Constraints, Claude System Prompts, Complete System Prompt Template, Context Management, Context Window Management, Dynamic Context Patterns (+23 more)
 
 ### Community 145 - "Community centered on core_widgets_commerce_premium_menu_item_card_dart"
-Cohesion: 0.07
-Nodes (14): PathaoCreateOrderInput, PathaoOrderResult, PathaoService, PathaoTokenCache, BkashProvider, BkashTokenCache, CreatePaymentInput, CreatePaymentResult (+6 more)
+Cohesion: 0.05
+Nodes (21): PathaoCreateOrderInput, PathaoOrderResult, PathaoService, PathaoTokenCache, CreateRefundRequestDto, UpdateRefundRequestDto, BkashProvider, BkashTokenCache (+13 more)
 
 ### Community 146 - "Community centered on core_widgets_map_app_map_view_dart"
-Cohesion: 0.10
-Nodes (19): ../../../../core/map/mapbox_directions_service.dart, ../../../../core/map/models/app_map_route_point.dart, order_tracking_provider.dart, home, mapboxDirectionsServiceProvider, _markerById, markers, null (+11 more)
+Cohesion: 0.05
+Nodes (39): ../../../../core/map/mapbox_directions_service.dart, ../../../../core/map/models/app_map_route_point.dart, order_tracking_provider.dart, orderTrackingProvider, ../providers/tracking_route_provider.dart, home, mapboxDirectionsServiceProvider, _markerById (+31 more)
 
 ### Community 147 - "Community centered on device_device_utility"
 Cohesion: 0.10
 Nodes (21): DeviceUtils, hasInternetConnection, hideKeyboard, isAndroid, isIOS, isKeyboardVisible, isLandscape, isPhysicalDevice (+13 more)
 
 ### Community 148 - "Community centered on devices_devices_controller_devicescontroller"
-Cohesion: 0.08
-Nodes (22): coordinate_conversions.dart, ../../features/orders/presentation/providers/location_provider.dart, geo_point.dart, bearingBetween, degrees, deltaLon, lat1, lat2 (+14 more)
+Cohesion: 0.07
+Nodes (26): coordinate_conversions.dart, ../../features/orders/presentation/providers/location_provider.dart, geo_point.dart, bearingBetween, degrees, deltaLon, lat1, lat2 (+18 more)
 
 ### Community 149 - "Community centered on 00eaac05b1_input"
 Cohesion: 0.06
@@ -1631,8 +1632,8 @@ Cohesion: 0.10
 Nodes (20): assets, chars, ddd, fonts, list, fr, h, ip (+12 more)
 
 ### Community 158 - "Community centered on core_map_mapbox_directions_service_dart"
-Cohesion: 0.06
-Nodes (32): ../../../../core/widgets/swipe_action.dart, ../../data/active_order_view.dart, ../../data/uploads_repository.dart, step_indicator.dart, _atCustomer, build, color, createState (+24 more)
+Cohesion: 0.03
+Nodes (73): ../assignment_navigation.dart, ../../../../core/map/geo_math.dart, ../../../../core/map/map_marker.dart, ../../../../core/services/location_broadcast.dart, ../../../../core/services/navigation_launcher.dart, ../../../../core/widgets/bottom_sheet_handle.dart, ../../../../core/widgets/swipe_action.dart, ../../data/active_order_view.dart (+65 more)
 
 ### Community 159 - "Community centered on core_storage_earnings_cache_dart"
 Cohesion: 0.05
@@ -1643,8 +1644,8 @@ Cohesion: 0.08
 Nodes (30): ../../data/ops_repository.dart, opsQueuesProvider, opsRepositoryProvider, pendingRefundsProvider, _Order, _approveRefund, build, _buildTabBody (+22 more)
 
 ### Community 161 - "Community centered on data_earnings_summary"
-Cohesion: 0.14
-Nodes (12): build, buttonTitle, CwtSectionHeading, showActionButton, textColor, build, CwtSettingsMenuTile, icon (+4 more)
+Cohesion: 0.09
+Nodes (5): MediaController, MediaService, stream, UploadsController, UploadsService
 
 ### Community 162 - "Community centered on e07768bfd2_input"
 Cohesion: 0.07
@@ -1663,8 +1664,8 @@ Cohesion: 0.07
 Nodes (29): Aggregations, Avoid These Patterns, Best Practices Summary, Broadcast Join (Small Table Optimization), Built-in Functions (Always Prefer Over UDFs), Catalyst Optimizer Tips, Column Operations and Expressions, Column Pruning (+21 more)
 
 ### Community 167 - "Community centered on apps_admin_app_lib_core_network_api_client_dart_network_api_client"
-Cohesion: 0.08
-Nodes (27): ../../../../core/widgets/common/breadcrumbs_with_heading.dart, ../../../../core/widgets/common/rounded_container.dart, ../../../../core/widgets/data_table/paginated_data_table.dart, addonsProvider, menuRepositoryProvider, DataTableSource, ../dialogs/addon_editor_dialog.dart, _save (+19 more)
+Cohesion: 0.04
+Nodes (59): ../../../../core/theme/tokens/app_tokens.dart, ../../../../core/widgets/common/breadcrumbs_with_heading.dart, ../../../../core/widgets/common/rounded_container.dart, ../../../../core/widgets/data_table/paginated_data_table.dart, ../../../../core/widgets/w_data_table.dart, addonsProvider, createAddon, createItem (+51 more)
 
 ### Community 168 - "Community centered on apps_admin_app_linux_runner_my_application_cc_flview"
 Cohesion: 0.14
@@ -1683,8 +1684,8 @@ Cohesion: 0.07
 Nodes (27): approvalStatus, _asDouble, avatarUrl, documents, fromJson, fullName, _hasText, hasWorkDetails (+19 more)
 
 ### Community 172 - "Community centered on expanded"
-Cohesion: 0.09
-Nodes (22): averageRating, bannersProvider, count, _dio, filterMenu, getBanners, getById, getBySlug (+14 more)
+Cohesion: 0.04
+Nodes (49): _dio, getOrder, listOrders, OrdersRepository, ordersRepositoryProvider, getOrder, listOrders, OrdersRepository (+41 more)
 
 ### Community 173 - "Community centered on static_const_list"
 Cohesion: 0.18
@@ -1703,44 +1704,44 @@ Cohesion: 0.11
 Nodes (7): RunnerTests, RunnerTests, RunnerTests, RunnerTests, RunnerTests, RunnerTests, XCTestCase
 
 ### Community 177 - "Community centered on apps_customer_app_lib_features_onboarding_presentation_screens_onboarding_screen_dart_screens_onboarding_screen"
-Cohesion: 0.04
-Nodes (48): AppNotification, _groupByDay, icon, _IconChip, _KindStyle, label, notification, _NotificationRow (+40 more)
+Cohesion: 0.05
+Nodes (41): AppNotification, _groupByDay, icon, _IconChip, _KindStyle, label, notification, _NotificationRow (+33 more)
 
 ### Community 178 - "Community centered on apps_rider_app_lib_core_network_api_endpoints_dart_network_api_endpoints"
 Cohesion: 0.06
 Nodes (30): ApiEndpoints, login, refresh, acceptAssignment, acceptBatch, deliveryException, devicesRegister, earnings (+22 more)
 
 ### Community 179 - "Community centered on core_map_mapbox_mapbox_route_service_dart"
-Cohesion: 0.03
-Nodes (67): ../../../../core/realtime/socket_service.dart, ../../../../core/widgets/bottom_sheet_handle.dart, ../../../../core/widgets/primary_button.dart, ../../data/orders_repository.dart, order_providers.dart, ordersRepositoryProvider, _activeDeliveryStatuses, deliveryStepForOrderStatus (+59 more)
+Cohesion: 0.05
+Nodes (39): onTap, ../../data/models/order_model.dart, ../../data/order_summary.dart, ../../data/orders_repository.dart, navigateToScreen, MaterialPageRoute, activeOrderProvider, orderDetailProvider (+31 more)
 
 ### Community 180 - "Community centered on core_utils_device_device_utility_dart"
-Cohesion: 0.08
-Nodes (24): ../../features/auth/presentation/screens/forgot_password_screen.dart, ../../features/auth/presentation/screens/reset_password_screen.dart, ../../features/earnings/presentation/screens/cash_summary_screen.dart, ../../features/earnings/presentation/screens/earnings_screen.dart, ../../features/notifications/presentation/screens/notifications_screen.dart, ../../features/onboarding/presentation/screens/onboarding_screen.dart, ../../features/orders/data/order_summary.dart, ../../features/orders/presentation/screens/active_delivery_screen.dart (+16 more)
+Cohesion: 0.10
+Nodes (21): 0. What this platform is, 1. Environment prerequisites, 2. One-time setup, 3.1 Backend unit + service tests, 3.2 Backend type safety, 3.3 Flutter app tests, 3. Automated tests (no credentials required) — RUN THESE FIRST, 4. Critical-flow coverage map (what the automated tests prove) (+13 more)
 
 ### Community 181 - "Community centered on coupons_coupons_controller"
-Cohesion: 0.15
-Nodes (13): ../../data/menu_repository.dart, addon, AddonEditorDialog, _AddonEditorDialogState, build, createState, dispose, _formKey (+5 more)
+Cohesion: 0.08
+Nodes (27): build, _handleLogin, _LoginScreenState, build, createState, dispose, _emailController, _formKey (+19 more)
 
 ### Community 182 - "Community centered on data_media_repository_dart"
 Cohesion: 0.11
 Nodes (17): assets, ddd, fr, h, ip, layers, markers, meta (+9 more)
 
 ### Community 183 - "Community centered on data_profile_repository_dart"
-Cohesion: 0.07
-Nodes (35): build, createState, dispose, EditProfileScreen, _EditProfileScreenState, _save, AuthFormScaffold, build (+27 more)
+Cohesion: 0.09
+Nodes (22): averageRating, bannersProvider, count, _dio, filterMenu, getBanners, getById, getBySlug (+14 more)
 
 ### Community 184 - "Community centered on dialogs_zone_dialog"
 Cohesion: 0.07
-Nodes (28): dart:convert, build, createState, _errorMsg, _formKey, _geoJsonCtrl, initState, _isActive (+20 more)
+Nodes (31): ../../../../core/theme/app_theme_extension.dart, dart:convert, build, createState, ../dialogs/zone_dialog.dart, _errorMsg, _formKey, _geoJsonCtrl (+23 more)
 
 ### Community 185 - "Community centered on geo_point_dart"
-Cohesion: 0.06
-Nodes (33): app.dart, bootstrapFlutterApp, init, initFirebaseMessaging, main, prefs, bootstrapFlutterApp, init (+25 more)
+Cohesion: 0.08
+Nodes (26): app.dart, init, initFirebaseMessaging, main, prefs, build, init, initFirebaseMessaging (+18 more)
 
 ### Community 186 - "Community centered on globalkey"
-Cohesion: 0.20
-Nodes (11): DashboardPage(), accentClasses, KpiCard(), KpiCardProps, TopItems(), useDailyRevenue(), useDashboardStats(), usePopularItems() (+3 more)
+Cohesion: 0.12
+Nodes (16): DashboardPage(), EmptyState(), EmptyStateProps, PageHeader(), PageHeaderProps, accentClasses, KpiCard(), KpiCardProps (+8 more)
 
 ### Community 187 - "Community centered on kds_header"
 Cohesion: 0.08
@@ -1751,12 +1752,12 @@ Cohesion: 0.07
 Nodes (28): Best Practices, Choose HTTP Streaming When:, Choose Long Polling When:, Choose SSE When:, Choose WebRTC When:, Choose WebSocket When:, Connection Limits (per server), Decision Matrix (+20 more)
 
 ### Community 189 - "Community centered on providers_cart_provider"
-Cohesion: 0.10
-Nodes (20): LocalStorage get, addItem, _addonsKey, build, CartNotifier, CartState, clear, copyWith (+12 more)
+Cohesion: 0.11
+Nodes (19): SizedBox, _expanded, build, _buildContent, _buildKpiCards, _buildTable, cardCount, _chartHeight (+11 more)
 
 ### Community 190 - "Community centered on screens_daily_stats_view"
 Cohesion: 0.06
-Nodes (42): apiClient, avgPrep, _axisLabels, build, _buildContent, _Card, cash, child (+34 more)
+Nodes (41): apiClient, avgPrep, _axisLabels, build, _buildContent, _Card, cash, child (+33 more)
 
 ### Community 191 - "Community centered on a11y_focus_ring"
 Cohesion: 0.12
@@ -1768,7 +1769,7 @@ Nodes (23): For /graphify add and --watch, For /graphify query, For the commit h
 
 ### Community 193 - "Community centered on apptokens"
 Cohesion: 0.11
-Nodes (17): AppTokens, AppTokens get, BuildContext, ColorTokens get, static const AppThemeExtension, AppThemeContextX, colors, copyWith (+9 more)
+Nodes (19): AppTokens, AppTokens get, BuildContext, ColorTokens get, static const AppThemeExtension, AppThemeContextX, AppThemeExtension, colors (+11 more)
 
 ### Community 194 - "Community centered on asyncnotifier"
 Cohesion: 0.11
@@ -1787,8 +1788,8 @@ Cohesion: 0.08
 Nodes (28): ../../data/chat_message.dart, chatRepositoryProvider, ../../data/chat_repository.dart, orderMessageStreamProvider, _Bubble, build, _composer, _controller (+20 more)
 
 ### Community 198 - "Community centered on animationcontroller"
-Cohesion: 0.15
-Nodes (12): AppButton, AppButtonVariant, AppIconButton, build, color, expand, filled, icon (+4 more)
+Cohesion: 0.09
+Nodes (21): iterations, main, oracleActive, oracleStartsWith, random, randomPath, randomRoute, segmentPool (+13 more)
 
 ### Community 199 - "Community centered on apps_kitchen_app_windows_flutter_ephemeral_cpp_client_wrapper_include_flutter_texture_registrar_h_namespace"
 Cohesion: 0.08
@@ -1799,20 +1800,20 @@ Cohesion: 0.12
 Nodes (17): scripts, build, db:seed, format, lint, postinstall, prisma:generate, prisma:migrate (+9 more)
 
 ### Community 201 - "Community centered on commerce_floating_cart_bar_build"
-Cohesion: 0.10
-Nodes (20): ../../../../core/config/app_config.dart, _apiClient, build, displayName, error, _extractRestaurantId, _fetchProfile, fromJson (+12 more)
+Cohesion: 0.11
+Nodes (18): ../../../../core/config/app_config.dart, _apiClient, displayName, error, _extractRestaurantId, _fetchProfile, fromJson, id (+10 more)
 
 ### Community 202 - "Community centered on core_errors_failures_dart"
-Cohesion: 0.04
-Nodes (53): bkash_payment_screen.dart, ../../../cart/presentation/widgets/coupon_section.dart, ../../../../core/utils/idempotency_key.dart, ../../data/payments_repository.dart, paymentsRepositoryProvider, package:webview_flutter_android/webview_flutter_android.dart, package:webview_flutter/webview_flutter.dart, ../../../profile/presentation/providers/addresses_providers.dart (+45 more)
+Cohesion: 0.03
+Nodes (61): bkash_payment_screen.dart, ../../../cart/presentation/widgets/coupon_section.dart, ../../../../core/utils/idempotency_key.dart, ../../../../core/widgets/map/app_map_view.dart, ../../../../core/widgets/map/models/app_map_marker.dart, ../../data/payments_repository.dart, paymentsRepositoryProvider, package:webview_flutter_android/webview_flutter_android.dart (+53 more)
 
 ### Community 203 - "Community centered on custompainter"
 Cohesion: 0.14
 Nodes (14): GET `/orders`, GET `/orders/kitchen/history`, GET `/orders/kitchen/stats`, Orders, PATCH `/orders/:id/status`, POST `/orders/:id/accept`, POST `/orders/:id/cancel`, POST `/orders/:id/delivery-exception` (+6 more)
 
 ### Community 204 - "Community centered on data_riders_repository"
-Cohesion: 0.15
-Nodes (3): ExecutePaymentDto, PaymentsController, PaymentsService
+Cohesion: 0.11
+Nodes (18): createdAt, deliveryFee, discountAmount, fromJson, grandTotal, id, isActive, orderNumber (+10 more)
 
 ### Community 205 - "Community centered on package_kitchen_app_features_kds_presentation_widgets_mobile_tab_selector_dart"
 Cohesion: 0.06
@@ -1827,8 +1828,8 @@ Cohesion: 0.11
 Nodes (17): Launch, buildAppleMapsUri, buildGeoUri, buildGoogleMapsAppUri, buildGoogleMapsUri, buildGoogleNavigationUri, buildTelUri, buildWazeUri (+9 more)
 
 ### Community 208 - "Community centered on theme_app_spacing"
-Cohesion: 0.12
-Nodes (16): AppSpacing, buttonHeight, lg, maxContentWidth, md, minTouchTarget, pagePaddingMobile, pagePaddingTablet (+8 more)
+Cohesion: 0.09
+Nodes (23): _, Breakpoints, compact, fromWidth, LayoutMode, medium, static const double, AppSpacing (+15 more)
 
 ### Community 209 - "Community centered on acceptance_preparation_pickupwait_delivery"
 Cohesion: 0.13
@@ -1847,12 +1848,12 @@ Cohesion: 0.07
 Nodes (28): Automated Cost Controls, Automation and Governance, Block Storage Optimization, CDN Optimization, Cloud Cost Optimization Reference, Compute Cost Optimization, Container Optimization, Cost Allocation and Tagging (+20 more)
 
 ### Community 213 - "Community centered on helpers_provider_test_harness_thememode"
-Cohesion: 0.03
-Nodes (79): _OnboardingScreenState, createState, dispose, _save, ../../../../core/widgets/status_chip.dart, onboardingRepositoryProvider, ../../data/rider_profile.dart, ../../data/rider_profile_repository.dart (+71 more)
+Cohesion: 0.09
+Nodes (24): _save, ../../data/rider_profile_repository.dart, riderProfileRepositoryProvider, ../providers/rider_profile_provider.dart, avatarUrl, build, _buildAvatarContent, createState (+16 more)
 
 ### Community 214 - "Community centered on widgets_review_order_sheet"
-Cohesion: 0.08
-Nodes (24): Timer?, build, _calculateEta, createState, dispose, EnhancedEtaCard, _EnhancedEtaCardState, _getSubtitle (+16 more)
+Cohesion: 0.16
+Nodes (16): AuthFailure, CacheFailure, message, NetworkFailure, props, ServerFailure, toString, AuthFailure (+8 more)
 
 ### Community 215 - "Community centered on apiclient_get"
 Cohesion: 0.07
@@ -1871,8 +1872,8 @@ Cohesion: 0.07
 Nodes (28): Backend Files, Before Handoff, Bundle Analysis, Code Deliverables, Component Documentation, Configuration Files, Deliverables Checklist, Deployment Deliverables (+20 more)
 
 ### Community 219 - "Community centered on coordinate_conversions_dart"
-Cohesion: 0.09
-Nodes (22): LoginPage(), AppSidebar(), AuthGuard(), hasRole(), isStaff(), ROLE_LABELS, STAFF_ROLES, LoginPayload (+14 more)
+Cohesion: 0.08
+Nodes (30): LoginPage(), AppSidebar(), AuthGuard(), hasRole(), isStaff(), ROLE_LABELS, STAFF_ROLES, LoginPayload (+22 more)
 
 ### Community 220 - "Community centered on core_services_kitchen_preferences_dart"
 Cohesion: 0.22
@@ -1895,24 +1896,27 @@ Cohesion: 0.07
 Nodes (26): 4.10 Remove hardcoded mock menu items (kitchen_app), 4.11 Replace hardcoded VAT with order data (kitchen_app), 4.12 Remove "Remember me" no-op checkbox (rider_app), 4.13 Replace Picsum placeholder images (customer + rider), 4.14 Add delete confirmation for addresses (customer_app), 4.15 Add socket error handler (customer_app), 4.16 Sanitize error messages shown to users (customer_app), 4.17 Add screen burn-in mitigation (kitchen_app) (+18 more)
 
 ### Community 225 - "Community centered on animation"
-Cohesion: 0.15
-Nodes (11): ../providers/order_tracking_provider.dart, OrderRiderInfo, build, items, order, TrackingOrderSummary, build, onCall (+3 more)
+Cohesion: 0.12
+Nodes (15): acceptance,
+  preparation,
+  pickupWait,
+  delivery,, CanonicalOrderStatus, getCanonicalStatus, getSection, getTimerAnchor, getTimerLabelPrefix, getTimerType, hidden (+7 more)
 
 ### Community 226 - "Community centered on dialogs_rider_profile_dialog"
 Cohesion: 0.12
 Nodes (16): Correctness Properties, Property 10: External-navigation URI encodes the destination, Property 11: Call-control visibility tracks phone presence, Property 12: Dialer URI encodes the phone number, Property 13: Location-broadcast decision, Property 14: GeoPoint ↔ SDK coordinate round-trip, Property 15: Route conversion returns SDK-neutral points, Property 1: Earnings summary parsing maps fields (+8 more)
 
 ### Community 227 - "Community centered on domain_order_workflow_dart"
-Cohesion: 0.10
-Nodes (18): build, _emailField, errorMessage, _errorOverride, initialState, login, loginCallCount, loginError (+10 more)
+Cohesion: 0.08
+Nodes (23): build, _emailField, errorMessage, _errorOverride, initialState, login, loginCallCount, loginError (+15 more)
 
 ### Community 228 - "Community centered on exceptions_exceptions"
-Cohesion: 0.04
-Nodes (54): build, createState, dispose, _emailController, _handleLogin, _LoginScreenState, _obscurePassword, _passwordController (+46 more)
+Cohesion: 0.09
+Nodes (22): createState, dispose, _emailController, LoginScreen, _obscurePassword, _passwordController, dart:ui, atIndex (+14 more)
 
 ### Community 229 - "Community centered on inputs_app_otp_input"
-Cohesion: 0.22
-Nodes (10): ../data/media_repository.dart, mediaRepositoryProvider, ../domain/media_item.dart, build, deleteMedia, _fetchMedia, MediaCategoryNotifier, refresh (+2 more)
+Cohesion: 0.12
+Nodes (15): 10. Go/no-go checklist (ordered), 1. Test gates (executed 2026-07-05), 2. Payments & money integrity — the launch-critical domain, 3. Order state management & real-time sync, 4. Release packaging & store compliance (Android launch), 5. Security, 6. Performance & data layer, 7. Infrastructure & observability — the from-scratch workstream (+7 more)
 
 ### Community 230 - "Community centered on int_get"
 Cohesion: 0.08
@@ -1923,16 +1927,16 @@ Cohesion: 0.19
 Nodes (12): CarouselApi, CarouselContent(), CarouselContext, CarouselContextProps, CarouselItem(), CarouselNext(), CarouselOptions, CarouselPlugin (+4 more)
 
 ### Community 232 - "Community centered on widgets_home_category_grid"
-Cohesion: 0.11
-Nodes (22): apiClientProvider, _setRiderOnline, _syncOnlineStateFromServer, build, copyWith, createZone, deleteZone, error (+14 more)
+Cohesion: 0.22
+Nodes (13): cashRepositoryProvider, ../../data/cash_repository.dart, CashSummary, ../../data/cash_summary.dart, build, CashPeriodNotifier, cashPeriodProvider, CashSummaryNotifier (+5 more)
 
 ### Community 233 - "Community centered on apps_kitchen_app_windows_flutter_ephemeral_cpp_client_wrapper_flutter_view_controller_cc_dartproject"
 Cohesion: 0.07
 Nodes (28): Active Scanning, Android, API Security Testing, Authentication & Authorization, AWS, Cloud Security Testing, Container & Kubernetes, Exploitation Validation (+20 more)
 
 ### Community 234 - "Community centered on core_services_feedback_service_dart"
-Cohesion: 0.25
-Nodes (3): CreateMessageDto, MessagesController, MessagesService
+Cohesion: 0.15
+Nodes (13): ../../domain/order_workflow.dart, build, createState, didUpdateWidget, dispose, _elapsed, initState, NewOrderSquareCard (+5 more)
 
 ### Community 235 - "Community centered on data_onboarding_repository"
 Cohesion: 0.07
@@ -1943,12 +1947,12 @@ Cohesion: 0.07
 Nodes (27): Best Practices, 1. Validation Errors (400 Bad Request), 2. Authentication Errors (401 Unauthorized), 3. Authorization Errors (403 Forbidden), 4. Not Found Errors (404 Not Found), 5. Conflict Errors (409 Conflict), 6. Rate Limiting (429 Too Many Requests), 7. Server Errors (500 Internal Server Error) (+19 more)
 
 ### Community 237 - "Community centered on timer"
-Cohesion: 0.16
-Nodes (12): AppException, fromCode, message, TExceptions, toString, typedef, AppValidator, TValidator (+4 more)
+Cohesion: 0.33
+Nodes (6): AppException, fromCode, message, TExceptions, toString, typedef
 
 ### Community 238 - "Community centered on w_text_input_dart"
-Cohesion: 0.03
-Nodes (95): addresses_providers.dart, order, bannersProvider, ../../../cart/domain/entities/cart_item.dart, ../../../../core/theme/app_status_colors.dart, ../../../../core/utils/helpers/helper_functions.dart, ../../../../core/widgets/buttons/app_button.dart, ../../../../core/widgets/commerce/menu_item_card.dart (+87 more)
+Cohesion: 0.02
+Nodes (108): addresses_providers.dart, bannersProvider, ../../../../core/theme/app_spacing.dart, ../../../../core/utils/formatters/formatter.dart, ../../../../core/utils/helpers/helper_functions.dart, ../../../../core/widgets/commerce/menu_item_card.dart, ../../../../core/widgets/cwt/empty_state_widget.dart, ../../../../core/widgets/feedback/empty_state.dart (+100 more)
 
 ### Community 239 - "Community centered on apps_kitchen_app_windows_flutter_ephemeral_cpp_client_wrapper_binary_messenger_impl_h_namespace"
 Cohesion: 0.07
@@ -1959,8 +1963,8 @@ Cohesion: 0.07
 Nodes (27): Bundle Analysis, Caching Strategy, CDN & Edge, CI/CD with GitHub Actions, Database Connection Pooling, Deployment & Production, docker-compose.yml, Docker Deployment (+19 more)
 
 ### Community 241 - "Community centered on apps_rider_app_lib_core_router_route_paths_dart_router_route_paths"
-Cohesion: 0.10
-Nodes (20): forgotPassword, home, login, notifications, onboarding, orders, profile, resetPassword (+12 more)
+Cohesion: 0.09
+Nodes (21): forgotPassword, home, login, notifications, onboarding, orders, profile, resetPassword (+13 more)
 
 ### Community 242 - "Community centered on apps_rider_app_lib_features_orders_data_orders_repository_dart_data_orders_repository"
 Cohesion: 0.13
@@ -1971,8 +1975,8 @@ Cohesion: 0.18
 Nodes (11): AppHelperFunctions, formatDate, isDarkMode, parseColor, screenHeight, screenSize, screenWidth, showAlert (+3 more)
 
 ### Community 245 - "Community centered on local_storage_storage_utility"
-Cohesion: 0.31
-Nodes (8): build, ../../features/auth/presentation/providers/auth_provider.dart, features/orders/presentation/providers/assignment_bridge_provider.dart, ../../features/orders/presentation/providers/socket_lifecycle_provider.dart, RiderApp, assignmentBridgeProvider, socketLifecycleProvider, goRouterProvider
+Cohesion: 0.15
+Nodes (11): int get, hashCode, latitude, longitude, operator, toString, AppMapRoutePoint, hashCode (+3 more)
 
 ### Community 246 - "Community centered on providers_rider_online_controller"
 Cohesion: 0.14
@@ -2003,8 +2007,8 @@ Cohesion: 0.20
 Nodes (8): DartProject, HWND, LPARAM, LRESULT, FlutterWindow(), MessageHandler(), UINT, WPARAM
 
 ### Community 254 - "Community centered on apps_kitchen_app_lib_core_config_api_host_resolver_dart_config_api_host_resolver"
-Cohesion: 0.12
-Nodes (20): ApiError, api, qs(), refreshAccessToken(), request(), RequestOptions, endpoints, uploadImage() (+12 more)
+Cohesion: 0.15
+Nodes (16): endpoints, uploadImage(), ImageUpload(), ImageUploadProps, OperationsPage(), DispatchPanel(), useAssignRider(), useAutoAssign() (+8 more)
 
 ### Community 255 - "Community centered on apps_kitchen_app_web_manifest_json_web_manifest"
 Cohesion: 0.18
@@ -2019,8 +2023,8 @@ Cohesion: 0.18
 Nodes (10): background_color, description, display, icons, name, orientation, prefer_related_applications, short_name (+2 more)
 
 ### Community 258 - "Community centered on bool_get"
-Cohesion: 0.06
-Nodes (32): package:sunmi_printer_plus/sunmi_printer_plus.dart, print_preview_controller.dart, print_service.dart, content, _controller, dispose, emit, instance (+24 more)
+Cohesion: 0.14
+Nodes (13): package:sunmi_printer_plus/sunmi_printer_plus.dart, print_preview_controller.dart, print_service.dart, _available, _buildKitchenTicketContent, _buildZReportContent, connect, initialize (+5 more)
 
 ### Community 259 - "Community 259"
 Cohesion: 0.12
@@ -2067,8 +2071,8 @@ Cohesion: 0.07
 Nodes (26): At the Threshold, Do This, Core Principle, Decision Flowchart, Phase 1: Root Cause Investigation, Phase 2: Pattern Analysis, Phase 3: Hypothesis Testing, Phase 4: Implementation, Red Flags Requiring Process Reset (+18 more)
 
 ### Community 272 - "Community 272"
-Cohesion: 0.07
-Nodes (31): ../../../../core/widgets/inputs/media_picker_widget.dart, ../../../../core/widgets/w_text_input.dart, bannersRepositoryProvider, banner, BannerEditorDialog, _BannerEditorDialogState, build, _buildForm (+23 more)
+Cohesion: 0.04
+Nodes (50): ../../../../core/widgets/inputs/media_picker_widget.dart, ../../../../core/widgets/w_button.dart, ../../../../core/widgets/w_status_badge.dart, ../../../../core/widgets/w_text_input.dart, bannersRepositoryProvider, ../../data/banners_repository.dart, banner, BannerEditorDialog (+42 more)
 
 ### Community 274 - "Community centered on admin_app_mainactivity"
 Cohesion: 0.13
@@ -2083,9 +2087,9 @@ Cohesion: 0.07
 Nodes (26): CLI UX Patterns, Color Accessibility, Color Usage, Command Help Structure, Debugging & Verbose Mode, Error Message Guidelines, Error Messages, Good Error Messages (+18 more)
 
 ### Community 277 - "Community centered on app_tokens_dart"
-Cohesion: 0.10
-Nodes (21): required String expectedPin,
-  String, build, _buildNumpad, createState, dispose, _entered, expectedPin, initState (+13 more)
+Cohesion: 0.09
+Nodes (22): required String expectedPin,
+  String, SingleTickerProviderStateMixin, build, _buildNumpad, createState, dispose, _entered, expectedPin (+14 more)
 
 ### Community 278 - "Community centered on apps_admin_app_ios_runner_scenedelegate_swift_runner_scenedelegate"
 Cohesion: 0.22
@@ -2104,16 +2108,17 @@ Cohesion: 0.08
 Nodes (25): Best Practices, Chart Repository, Chart Structure, Chart Testing, Chart Testing Tool (ct), Chart.yaml, Complex Upgrade/Rollback, Create Repository (+17 more)
 
 ### Community 282 - "Community 282"
-Cohesion: 0.20
-Nodes (14): Map, Notifier, ActiveAssignmentNotifier, ActiveOrderNotifier, activeOrderProvider, build, DeliveryStepNotifier, getOrder (+6 more)
+Cohesion: 0.15
+Nodes (12): package:audioplayers/audioplayers.dart, _audioPlayer, dispose, _guardHaptic, _isPlaying, OrderAlertService, _playAlertOnce, _player (+4 more)
 
 ### Community 283 - "Community centered on gateways_realtime_gateway_realtimegateway"
-Cohesion: 0.07
-Nodes (27): bootstrapFlutterApp, assignment_sync_controller.dart, ../../../auth/presentation/providers/auth_provider.dart, logDebug, ../../../../core/websockets/socket_service.dart, dart:async, ../../data/models/order_model.dart, assignmentSub (+19 more)
+Cohesion: 0.05
+Nodes (49): appRouterProvider, _scheduleAuthUpdate, authProvider, AuthState, build, login, logout, build (+41 more)
 
 ### Community 284 - "Community centered on helpers_network_listener"
-Cohesion: 0.22
-Nodes (8): ../../../../core/widgets/map/app_map_view.dart, ../../../../core/widgets/map/models/app_map_marker.dart, ../utils/checkout_format.dart, address, build, CheckoutAddressCard, instructionsController, onSelectAddress
+Cohesion: 0.17
+Nodes (10): baseDelay, isTransientFailure, maxRetries, retryInterceptor, package:flutter/widgets.dart, required Widget child,
+  Duration, curve, duration (+2 more)
 
 ### Community 285 - "Community centered on package_url_launcher_url_launcher_dart"
 Cohesion: 0.18
@@ -2172,8 +2177,8 @@ Cohesion: 0.25
 Nodes (7): skills, ui-ux-pro-max, computedHash, skillPath, source, sourceType, version
 
 ### Community 299 - "Community centered on theme_home_promo_banner_layout"
-Cohesion: 0.22
-Nodes (8): c, core, false, isUpdateRequired, m, out, _parse, parts
+Cohesion: 0.20
+Nodes (7): AppShell(), BranchSwitcher(), ThemeToggle(), Topbar(), getSocket(), REALTIME_EVENTS, useRealtimeSync()
 
 ### Community 302 - "Community 302"
 Cohesion: 0.08
@@ -2336,8 +2341,8 @@ Cohesion: 0.50
 Nodes (5): w_status_badge.dart, _, fromStatus, OrderStatusMapping, RiderStatusMapping
 
 ### Community 346 - "Community centered on 00eaac05b1_output"
-Cohesion: 0.11
-Nodes (17): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+9 more)
+Cohesion: 0.10
+Nodes (19): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+11 more)
 
 ### Community 347 - "Community centered on 031828ac74_output"
 Cohesion: 0.08
@@ -2349,7 +2354,7 @@ Nodes (23): Advanced Framework Patterns, Automation Frameworks, Automation Strat
 
 ### Community 349 - "Community 349"
 Cohesion: 0.13
-Nodes (15): allCoupons, build, coupons, CouponScreen, _CouponScreenState, CouponUiTestApp, createState, currency (+7 more)
+Nodes (14): build, _buildField, disabled, errorText, hashCode, itemHeight, label, maxVisibleItems (+6 more)
 
 ### Community 351 - "Community centered on apps_admin_app_dart_tool_hooks_runner_objective_c_337ce265dc_output_json_337ce265dc_output"
 Cohesion: 0.08
@@ -2380,8 +2385,8 @@ Cohesion: 0.08
 Nodes (23): Chroma, Chroma Setup, Collection per Tenant (High Isolation), Database Comparison Matrix, Decision Flowchart, HNSW Parameters, Index Tuning Guide, Metadata Filtering (Qdrant/Weaviate) (+15 more)
 
 ### Community 359 - "Community centered on apps_customer_app_dart_tool_package_graph_json_dart_tool_package_graph"
-Cohesion: 0.04
-Nodes (57): ApiClient get, appRouterProvider, _scheduleAuthUpdate, AuthNotifier, authProvider, AuthState, build, login (+49 more)
+Cohesion: 0.23
+Nodes (3): CreateMessageDto, MessagesController, MessagesService
 
 ### Community 360 - "Community centered on apps_customer_app_windows_runner_main_cpp_in"
 Cohesion: 0.50
@@ -2641,7 +2646,7 @@ Nodes (11): assets, ddd, fr, h, ip, layers, markers, nm (+3 more)
 
 ### Community 471 - "Community centered on ui_sonner"
 Cohesion: 0.04
-Nodes (55): paths, @/*, @pragma, _deviceId, firebaseMessagingBackgroundHandler, _firebaseReady, initFirebaseMessaging, _listenersWired (+47 more)
+Nodes (56): paths, @/*, @pragma, _deviceId, firebaseMessagingBackgroundHandler, _firebaseReady, initFirebaseMessaging, isFirebaseConfigured (+48 more)
 
 ### Community 473 - "Community centered on utils_format"
 Cohesion: 0.50
@@ -2688,8 +2693,8 @@ Cohesion: 0.12
 Nodes (15): API Design Best Practices, Asynchronous Communication, Communication Patterns, Communication Styles, Decision Matrix, Event Choreography, Fire and Forget, gRPC Best Practices (+7 more)
 
 ### Community 528 - "Community 528"
-Cohesion: 0.10
-Nodes (19): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+11 more)
+Cohesion: 0.11
+Nodes (17): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+9 more)
 
 ### Community 529 - "Community 529"
 Cohesion: 0.18
@@ -2709,7 +2714,7 @@ Nodes (10): Balance, Design Document, Key findings from the existing code that s
 
 ### Community 533 - "Community 533"
 Cohesion: 0.03
-Nodes (65): AppOtpInput, build, length, onChanged, onCompleted, build, controller, hint (+57 more)
+Nodes (76): AppOtpInput, build, length, onChanged, onCompleted, build, controller, hint (+68 more)
 
 ### Community 534 - "Community 534"
 Cohesion: 0.18
@@ -2727,13 +2732,17 @@ Nodes (9): Compile and run the project, Deployment, Description, License, Projec
 Cohesion: 0.12
 Nodes (15): Common Rationalizations to Reject, Fixing a Bug, GREEN: Implement Simplest Passing Code, Iron Law 1: The Fundamental Rule, Iron Law 2: Proof Through Observation, Iron Law 3: The Final Rule, Practical Application, RED: Write One Minimal Failing Test (+7 more)
 
+### Community 538 - "Community 538"
+Cohesion: 0.20
+Nodes (10): clear, LocalStorage, _prefs, readBool, readString, remove, TLocalStorage, writeBool (+2 more)
+
 ### Community 539 - "Community 539"
 Cohesion: 0.12
 Nodes (15): Code Examples, Constraints, Core Workflow, Input Validation with Zod, JWT Validation, Knowledge Reference, MUST DO, MUST NOT DO (+7 more)
 
 ### Community 540 - "Community 540"
 Cohesion: 0.11
-Nodes (21): package:kitchen_app/features/kds/presentation/screens/order_detail_screen.dart, package:kitchen_app/features/kds/presentation/widgets/accepted_order_list_tile.dart, package:kitchen_app/features/kds/presentation/widgets/kds_kanban_board.dart, package:kitchen_app/features/kds/presentation/widgets/new_order_alert_overlay.dart, package:kitchen_app/features/kds/presentation/widgets/new_order_square_card.dart, package:kitchen_app/features/kds/presentation/widgets/premium_order_card.dart, package:kitchen_app/features/kds/presentation/widgets/returned_food_panel.dart, kdsEventStreamProvider (+13 more)
+Nodes (22): package:kitchen_app/features/kds/presentation/screens/order_detail_screen.dart, package:kitchen_app/features/kds/presentation/widgets/accepted_order_list_tile.dart, package:kitchen_app/features/kds/presentation/widgets/kds_kanban_board.dart, package:kitchen_app/features/kds/presentation/widgets/new_order_alert_overlay.dart, package:kitchen_app/features/kds/presentation/widgets/new_order_square_card.dart, package:kitchen_app/features/kds/presentation/widgets/premium_order_card.dart, package:kitchen_app/features/kds/presentation/widgets/returned_food_panel.dart, kdsEventStreamProvider (+14 more)
 
 ### Community 541 - "Community 541"
 Cohesion: 0.22
@@ -2772,16 +2781,16 @@ Cohesion: 0.13
 Nodes (14): Quick Reference, Build Optimization, Compiler API Usage, Custom Type Definitions, Declaration Files, Framework-Specific Configs, Incremental Compilation, Module Resolution Strategies (+6 more)
 
 ### Community 550 - "Community 550"
-Cohesion: 0.09
-Nodes (22): AdminModule, AuthModule, baseDev, validateEnv(), DeliveryFeeModule, DevicesModule, DispatchModule, EarningsModule (+14 more)
+Cohesion: 0.06
+Nodes (32): AdminModule, AuthModule, ComplaintsModule, baseDev, validateEnv(), DeliveryFeeModule, DevicesModule, DispatchModule (+24 more)
 
 ### Community 551 - "Community 551"
 Cohesion: 0.29
 Nodes (6): Adding a feature (example: `menu`), API base URL, Customer app — Clean Architecture, Folder layout, Layer rules, State management
 
 ### Community 552 - "Community 552"
-Cohesion: 0.12
-Nodes (15): 13. Third-Party Integrations, 14. Database Schema Summary, 1. Platform Overview, 2. System Architecture, 7.1 Features, 7. Admin App (Flutter), 8.1 Admin Dashboard, 8.2 Restaurant Merchant Dashboard (Web KDS) (+7 more)
+Cohesion: 0.15
+Nodes (12): 13. Third-Party Integrations, 1. Platform Overview, 2. System Architecture, 7.1 Features, 7. Admin App (Flutter), 8.1 Admin Dashboard, 8.2 Restaurant Merchant Dashboard (Web KDS), 8. Web Dashboards (Next.js) (+4 more)
 
 ### Community 553 - "Community 553"
 Cohesion: 0.13
@@ -2833,7 +2842,7 @@ Nodes (6): How to Use This Skill, Step 1: Analyze User Requirements, Step 2: Gen
 
 ### Community 565 - "Community 565"
 Cohesion: 0.06
-Nodes (31): atIndex, false, iterations, main, oracleIsValidEmail, partAlphabet, random, randomPart (+23 more)
+Nodes (28): dart:math, main, wrap, main, package:admin_app/core/theme/tokens/elevation_tokens.dart, package:admin_app/core/theme/tokens/spacing_tokens.dart, package:admin_app/core/widgets/layouts/breakpoints.dart, package:admin_app/core/widgets/w_button.dart (+20 more)
 
 ### Community 566 - "Community 566"
 Cohesion: 0.40
@@ -3200,8 +3209,8 @@ Cohesion: 0.50
 Nodes (3): Deploy on Vercel, Getting Started, Learn More
 
 ### Community 724 - "Community 724"
-Cohesion: 0.20
-Nodes (9): iterations, main, oracleActive, oracleStartsWith, random, randomPath, randomRoute, segmentPool (+1 more)
+Cohesion: 0.11
+Nodes (16): SidebarNavigation, any, _appShellHarness, _hasContentPadding, main, paddings, pumpAndSettle, _pumpShellAt (+8 more)
 
 ### Community 725 - "Community 725"
 Cohesion: 0.17
@@ -3566,6 +3575,10 @@ Nodes (9): Quick Reference, Testing Patterns, Component Testing Basics, Mocking 
 ### Community 821 - "Community 821"
 Cohesion: 0.20
 Nodes (9): Quick Reference, Accessing Other Stores, Basic Store Setup, Options Store (Alternative Style), Persistence Plugin, State Management with Pinia, Store Plugins, Store Testing (+1 more)
+
+### Community 822 - "Community 822"
+Cohesion: 0.18
+Nodes (3): FavoritesController, FavoritesModule, FavoritesService
 
 ### Community 823 - "Community 823"
 Cohesion: 0.20
@@ -4080,12 +4093,16 @@ Cohesion: 1.00
 Nodes (3): login(), main(), req()
 
 ### Community 951 - "Community 951"
-Cohesion: 0.10
-Nodes (20): appRouterProvider, ../../features/auth/presentation/screens/login_screen.dart, ../../features/auth/providers/auth_provider.dart, ../../features/banners/presentation/screens/banners_management_screen.dart, ../../features/coupons/presentation/screens/coupons_management_screen.dart, ../../features/customers/presentation/screens/customers_screen.dart, ../../features/dashboard/presentation/screens/dashboard_screen.dart, ../../features/kds/presentation/screens/kds_board_screen.dart (+12 more)
+Cohesion: 0.12
+Nodes (15): appRouterProvider, ../../features/banners/presentation/screens/banners_management_screen.dart, ../../features/coupons/presentation/screens/coupons_management_screen.dart, ../../features/customers/presentation/screens/customers_screen.dart, ../../features/dashboard/presentation/screens/dashboard_screen.dart, ../../features/menu/presentation/screens/addons_management_screen.dart, ../../features/menu/presentation/screens/menu_management_screen.dart, ../../features/orders/presentation/screens/ops_operations_screen.dart (+7 more)
 
 ### Community 952 - "Community 952"
 Cohesion: 0.10
-Nodes (23): OrderDetailScreen, kdsProvider, _showPathaoDialog, _buildPrintFailureBanner, _OrderDetailScreenState, _showPathaoDialog, _updateStatus, _actionInProgress (+15 more)
+Nodes (24): OrderDetailScreen, kdsProvider, _showPathaoDialog, build, _buildPrintFailureBanner, _OrderDetailScreenState, _showPathaoDialog, _updateStatus (+16 more)
+
+### Community 953 - "Community 953"
+Cohesion: 0.20
+Nodes (10): content, _controller, dispose, emit, instance, PrintPreviewController, PrintPreviewEvent, PrintPreviewType (+2 more)
 
 ### Community 954 - "Community 954"
 Cohesion: 0.17
@@ -4096,24 +4113,32 @@ Cohesion: 0.20
 Nodes (8): DartProject, HWND, LPARAM, LRESULT, FlutterWindow(), MessageHandler(), UINT, WPARAM
 
 ### Community 956 - "Community 956"
-Cohesion: 0.06
-Nodes (32): getOrder, listOrders, OrdersRepository, ordersRepositoryProvider, updateOrderStatus, ../../auth/data/models/user_model.dart, ../../../core/errors/failures.dart, ../../../core/errors/map_dio_exception.dart (+24 more)
+Cohesion: 0.22
+Nodes (9): ../helpers/helper_functions.dart, AppLoaders, customToast, errorSnackBar, hideSnackBar, _showSnackBar, successSnackBar, TLoaders (+1 more)
+
+### Community 957 - "Community 957"
+Cohesion: 0.18
+Nodes (10): accepted, AppStatusColors, cancelled, delivered, forStatus, onTheWay, pickedUp, placed (+2 more)
+
+### Community 958 - "Community 958"
+Cohesion: 0.25
+Nodes (7): avatarUrl, email, fullName, id, props, role, UserEntity
 
 ### Community 959 - "Community 959"
-Cohesion: 0.14
-Nodes (13): ../../domain/order_workflow.dart, kds_kanban_column.dart, build, _buildSingleColumnLayout, _buildThreeColumnLayout, _buildTwoColumnLayout, compact, _hasOrders (+5 more)
+Cohesion: 0.15
+Nodes (12): kds_kanban_column.dart, build, _buildSingleColumnLayout, _buildThreeColumnLayout, _buildTwoColumnLayout, compact, _hasOrders, isLoading (+4 more)
 
 ### Community 960 - "Community 960"
 Cohesion: 0.46
 Nodes (7): createOrder(), CREDENTIALS, get(), getStores(), getToken(), post(), separator()
 
 ### Community 961 - "Community 961"
-Cohesion: 0.11
-Nodes (18): CustomPainter, ../services/print_preview_controller.dart, _CountdownRingPainter, build, child, createState, dispose, event (+10 more)
+Cohesion: 0.13
+Nodes (15): ../services/print_preview_controller.dart, build, child, createState, dispose, event, initState, _onEvent (+7 more)
 
 ### Community 962 - "Community 962"
-Cohesion: 0.03
-Nodes (59): AnimationController, actionText, animation, AppEmptyStateWidget, build, onActionPressed, subtitle, title (+51 more)
+Cohesion: 0.06
+Nodes (28): breadcrumbItems, BreadcrumbsWithHeading, build, heading, trailing, actionText, animation, AppEmptyStateWidget (+20 more)
 
 ### Community 963 - "Community 963"
 Cohesion: 0.43
@@ -4124,12 +4149,12 @@ Cohesion: 0.29
 Nodes (6): client, configuration_version, project_info, project_id, project_number, storage_bucket
 
 ### Community 965 - "Community 965"
-Cohesion: 0.11
-Nodes (18): createdAt, deliveryFee, discountAmount, fromJson, grandTotal, id, isActive, orderNumber (+10 more)
+Cohesion: 0.14
+Nodes (12): static const, AppShadows, cardSoft, floatingBar, verticalProduct, cardHeight, cardRadius, ctaFontSize (+4 more)
 
 ### Community 966 - "Community 966"
-Cohesion: 0.05
-Nodes (44): AuthFailure, CacheFailure, Failure, message, NetworkFailure, props, ServerFailure, toString (+36 more)
+Cohesion: 0.12
+Nodes (15): addonId, addons, copyWith, fromJson, imageUrl, lineTotal, menuItemId, name (+7 more)
 
 ### Community 968 - "Community 968"
 Cohesion: 0.40
@@ -4180,12 +4205,20 @@ Cohesion: 0.67
 Nodes (3): 15. Security & Auth, JWT Strategy, Security Layers
 
 ### Community 986 - "Community 986"
-Cohesion: 0.13
-Nodes (15): ../../data/delivery_state_model.dart, build, clearError, copyWith, DeliveryConfirmResult, DeliveryProgressController, deliveryProgressControllerProvider, DeliveryProgressState (+7 more)
+Cohesion: 0.22
+Nodes (8): app_theme_extension.dart, AppTheme, _inputDecorationTheme, static ThemeData get, _buildTheme, darkTheme, lightTheme, tokens/app_tokens.dart
+
+### Community 992 - "Community 992"
+Cohesion: 0.29
+Nodes (7): build, createState, isOpen, MenuAvailabilityDrawer, _MenuAvailabilityDrawerState, _menuItems, onClose
 
 ### Community 993 - "Community 993"
 Cohesion: 0.22
 Nodes (3): ReviewsController, ReviewsModule, ReviewsService
+
+### Community 994 - "Community 994"
+Cohesion: 0.25
+Nodes (8): banners, build, _controller, createState, dispose, FeaturedBannerCarousel, _FeaturedBannerCarouselState, _index
 
 ### Community 995 - "Community 995"
 Cohesion: 0.18
@@ -4193,7 +4226,7 @@ Nodes (10): gapBelowImage, heartIconSize, heartTapPadding, HomeOfferCardLayout, 
 
 ### Community 996 - "Community 996"
 Cohesion: 0.12
-Nodes (15): AppLogger, debug, error, info, _logger, TLoggerHelper, warning, package:logger/logger.dart (+7 more)
+Nodes (16): AppLogger, debug, error, info, _logger, TLoggerHelper, warning, package:logger/logger.dart (+8 more)
 
 ### Community 997 - "Community 997"
 Cohesion: 0.22
@@ -4209,7 +4242,11 @@ Nodes (14): acceptanceRate, accepted, _asDouble, _asInt, _asNum, cancelledCount,
 
 ### Community 1000 - "Community 1000"
 Cohesion: 0.09
-Nodes (24): active_orders_view.dart, ../../../../core/widgets/print_preview_overlay.dart, daily_stats_view.dart, end_of_day_screen.dart, menu_availability_view.dart, kdsNewOrdersProvider, build, _buildBody (+16 more)
+Nodes (22): active_orders_view.dart, ../../../../core/widgets/print_preview_overlay.dart, daily_stats_view.dart, end_of_day_screen.dart, menu_availability_view.dart, _buildBody, _buildDrawer, _burnInTimer (+14 more)
+
+### Community 1001 - "Community 1001"
+Cohesion: 0.28
+Nodes (8): ../../data/favorites_repository.dart, favoritesRepositoryProvider, build, FavoriteMenuItemIdsNotifier, _idsFromList, toggle, watch, Set
 
 ### Community 1002 - "Community 1002"
 Cohesion: 0.29
@@ -4225,7 +4262,7 @@ Nodes (6): client, configuration_version, project_info, project_id, project_numb
 
 ### Community 1005 - "Community 1005"
 Cohesion: 0.22
-Nodes (9): ../helpers/helper_functions.dart, AppLoaders, customToast, errorSnackBar, hideSnackBar, _showSnackBar, successSnackBar, TLoaders (+1 more)
+Nodes (8): connect, initialize, printEndOfDayReport, printKitchenTicket, printOrderReceipt, PrintService, SunmiPrintService, sunmi_print_service.dart
 
 ### Community 1006 - "Community 1006"
 Cohesion: 0.29
@@ -4240,8 +4277,8 @@ Cohesion: 0.29
 Nodes (6): client, configuration_version, project_info, project_id, project_number, storage_bucket
 
 ### Community 1009 - "Community 1009"
-Cohesion: 0.15
-Nodes (12): DioException, HttpClientAdapter, calls, close, dio, _dioWith, failures, fetch (+4 more)
+Cohesion: 0.06
+Nodes (30): mapDioException, null, _serverMessage, DioException, failures.dart, HttpClientAdapter, calls, close (+22 more)
 
 ### Community 1010 - "Community 1010"
 Cohesion: 0.22
@@ -4252,16 +4289,17 @@ Cohesion: 0.15
 Nodes (12): 1. Database — backups, PITR, pooling (P1-4), 2. Required production environment variables, 3. Health probes, 4. Observability (P2), 5. Queue reliability (P2), 6. Security follow-ups (P2), 7. Pre-launch load test (P2), 8. CI/CD (+4 more)
 
 ### Community 1012 - "Community 1012"
-Cohesion: 0.06
-Nodes (31): AnimatedContainer, FadeTransition, colors, container, isCollapsed, main, pumpAndSettle, _pumpRender (+23 more)
+Cohesion: 0.10
+Nodes (19): AnimatedContainer, FadeTransition, package:admin_app/core/theme/app_theme.dart, package:admin_app/core/widgets/a11y/focus_ring.dart, package:admin_app/core/widgets/w_dialog.dart, package:admin_app/core/widgets/w_text_input.dart, String? subtitle,
+  Widget, _harness (+11 more)
 
 ### Community 1013 - "Community 1013"
 Cohesion: 0.25
 Nodes (8): PATCH `/admin/restaurant/delivery-fee` (all optional), PATCH `/admin/restaurant/profile` (all optional), PATCH `/admin/restaurant/settings` (all optional), POST `/admin/restaurant/banners`, POST `/admin/restaurant/coupons`, POST `/admin/restaurant/operating-hours/:day`, POST `/admin/restaurant/zones`, Restaurant Admin
 
 ### Community 1014 - "Community 1014"
-Cohesion: 0.03
-Nodes (66): build, buttonTitle, CwtSectionHeading, showActionButton, textColor, AppBadge, AppFilterChip, build (+58 more)
+Cohesion: 0.04
+Nodes (48): build, buttonTitle, CwtSectionHeading, showActionButton, textColor, build, buttonTitle, CwtSectionHeading (+40 more)
 
 ### Community 1015 - "Community 1015"
 Cohesion: 0.29
@@ -4272,20 +4310,20 @@ Cohesion: 0.12
 Nodes (15): themeMode, build, _darkValue, decodeThemeMode, encodeThemeMode, kThemeModePreferenceKey, _lightValue, _loadFromStorage (+7 more)
 
 ### Community 1017 - "Community 1017"
-Cohesion: 0.03
-Nodes (40): SAFE_USER_SELECT, makeAssignment(), makeOrder(), makeRider(), mockTx(), ALL_RIDERS, LOCATIONS, RESTAURANT (+32 more)
+Cohesion: 0.05
+Nodes (14): AdminService, CodSettlementService, RiderLedgerService, PrismaService, Period, ReportsService, JwtStrategy, codDeliveryKeptAmount() (+6 more)
 
 ### Community 1018 - "Community 1018"
-Cohesion: 0.10
-Nodes (20): KitchenSection, accentColor, build, _buildHeader, compact, count, createState, _defaultEmptyState (+12 more)
+Cohesion: 0.07
+Nodes (26): AnimationController, KitchenSection, AppFullScreenLoader, _isOpen, openLoadingDialog, stopLoading, static bool, accentColor (+18 more)
 
 ### Community 1020 - "Community 1020"
 Cohesion: 0.25
 Nodes (7): graphify reference: extra exports and benchmark, Step 6b - Wiki (only if --wiki flag), Step 7 - Neo4j export (only if --neo4j or --neo4j-push flag), Step 7b - SVG export (only if --svg flag), Step 7c - GraphML export (only if --graphml flag), Step 7d - MCP server (only if --mcp flag), Step 8 - Token reduction benchmark (only if total_words > 5000)
 
 ### Community 1021 - "Community 1021"
-Cohesion: 0.11
-Nodes (18): AsyncValue, ../../features/orders/presentation/providers/order_providers.dart, AuthController, AuthSessionNotifier, activeOrderId, decideBroadcast, hashCode, heading (+10 more)
+Cohesion: 0.33
+Nodes (6): AppValidator, TValidator, validateEmail, validateEmptyText, validatePassword, validatePhoneNumber
 
 ### Community 1022 - "Community 1022"
 Cohesion: 0.33
@@ -4308,17 +4346,16 @@ Cohesion: 0.23
 Nodes (3): DevicesController, DevicesService, RegisterDeviceDto
 
 ### Community 1032 - "Community 1032"
-Cohesion: 0.04
-Nodes (52): build, _LoginScreenState, _ResetPasswordScreenState, build, createState, dispose, OnboardingScreen, _OnboardingScreenState (+44 more)
+Cohesion: 0.03
+Nodes (85): build, _ResetPasswordScreenState, build, createState, dispose, OnboardingScreen, _OnboardingScreenState, build (+77 more)
 
 ### Community 1033 - "Community 1033"
-Cohesion: 0.08
-Nodes (24): baseDelay, isTransientFailure, maxRetries, retryInterceptor, package:flutter/widgets.dart, required Widget child,
-  Duration, curve, duration (+16 more)
+Cohesion: 0.14
+Nodes (14): w_text_input.dart, build, controller, createState, debounce, debounceMilliseconds, _debounceTimer, disabled (+6 more)
 
 ### Community 1034 - "Community 1034"
-Cohesion: 0.15
-Nodes (9): ComplaintsAdminController, ListComplaintsQuery, ComplaintsController, ComplaintsModule, ComplaintsService, CreateComplaintDto, UpdateComplaintDto, ComplaintStatus (+1 more)
+Cohesion: 0.33
+Nodes (6): Failure, Failure, CartAddon, CartItem, Equatable, OrderModel
 
 ### Community 1036 - "Community 1036"
 Cohesion: 0.22
@@ -4328,13 +4365,17 @@ Nodes (8): name, private, scripts, build, dev, lint, start, version
 Cohesion: 0.22
 Nodes (9): devDependencies, eslint, eslint-config-next, tailwindcss, @tailwindcss/postcss, @types/node, @types/react, @types/react-dom (+1 more)
 
+### Community 1038 - "Community 1038"
+Cohesion: 0.33
+Nodes (5): ../../features/auth/presentation/screens/login_screen.dart, ../../features/auth/providers/auth_provider.dart, ../../features/kds/presentation/screens/kds_board_screen.dart, GoRouter, authState
+
 ### Community 1041 - "Community 1041"
 Cohesion: 0.11
 Nodes (17): a, address, coordinates, deliveryLat, deliveryLng, dLat, dLng, _haversineKm (+9 more)
 
 ### Community 1042 - "Community 1042"
-Cohesion: 0.17
-Nodes (10): mapDioException, null, _serverMessage, failures.dart, return, city, coord, formatAddressLine (+2 more)
+Cohesion: 0.40
+Nodes (4): assetPath, OnboardingSlideModel, subtitle, title
 
 ### Community 1044 - "Community 1044"
 Cohesion: 0.29
@@ -4352,6 +4393,10 @@ Nodes (5): Earnings, GET `/earnings/cod-settlements/pending`, GET `/earnings/rid
 Cohesion: 0.50
 Nodes (3): AuthState, useAuthStore, User
 
+### Community 1058 - "Community 1058"
+Cohesion: 0.67
+Nodes (3): GET `/menu/restaurant/:restaurantId/filter`, GET `/menu/restaurant/:restaurantId/search`, Menu (Public)
+
 ### Community 1074 - "Community 1074"
 Cohesion: 0.50
 Nodes (4): Authentication, Bearer token, Rate limits (auth routes), Token response
@@ -4359,6 +4404,10 @@ Nodes (4): Authentication, Bearer token, Rate limits (auth routes), Token respon
 ### Community 1075 - "Community 1075"
 Cohesion: 0.50
 Nodes (4): Delivery Fee, GET `/delivery-fee/geocode`, GET `/delivery-fee/reverse-geocode`, POST `/delivery-fee/quote`
+
+### Community 1076 - "Community 1076"
+Cohesion: 0.67
+Nodes (3): PATCH `/rider/profile` (all optional), POST `/rider/documents`, Rider
 
 ### Community 1077 - "Community 1077"
 Cohesion: 0.50
@@ -4369,8 +4418,16 @@ Cohesion: 0.50
 Nodes (4): Global behavior, Overview, Pagination, Roles
 
 ### Community 1079 - "Community 1079"
-Cohesion: 0.20
-Nodes (13): ../../../../core/storage/earnings_cache.dart, ../../data/earnings_repository.dart, earningsRepositoryProvider, ../../data/earnings_summary.dart, EarningsSummary, build, _cache, EarningsPeriodNotifier (+5 more)
+Cohesion: 0.13
+Nodes (20): ../../../../core/storage/earnings_cache.dart, ../../data/earnings_repository.dart, earningsRepositoryProvider, ../../data/earnings_summary.dart, EarningsSummary, build, _cache, EarningsPeriodNotifier (+12 more)
+
+### Community 1080 - "Community 1080"
+Cohesion: 0.67
+Nodes (3): CustomPainter, _CountdownRingPainter, _PerforationPainter
+
+### Community 1081 - "Community 1081"
+Cohesion: 0.67
+Nodes (3): 14. Database Schema Summary, Core Tables, Order Status Lifecycle
 
 ### Community 1082 - "Community 1082"
 Cohesion: 0.13
@@ -4384,73 +4441,49 @@ Nodes (3): Complaints Admin, GET query, PATCH body (all optional)
 Cohesion: 0.67
 Nodes (3): Coupons, GET `/coupons/public`, POST `/coupons/validate`
 
-### Community 1086 - "Community 1086"
-Cohesion: 0.22
-Nodes (8): app_theme_extension.dart, AppTheme, _inputDecorationTheme, static ThemeData get, _buildTheme, darkTheme, lightTheme, tokens/app_tokens.dart
-
 ### Community 1087 - "Community 1087"
 Cohesion: 0.67
 Nodes (3): GET query, Media Admin, POST
 
 ### Community 1088 - "Community 1088"
-Cohesion: 0.05
-Nodes (34): app_colors.dart, app_spacing.dart, app_tokens.dart, app_typography.dart, AppTheme, AppTheme, _inputDecorationTheme, breadcrumbItems (+26 more)
+Cohesion: 0.02
+Nodes (82): AuthFormScaffold, build, child, footer, headerHeight, showBack, subtitle, title (+74 more)
 
 ### Community 1089 - "Community 1089"
 Cohesion: 0.67
 Nodes (3): PATCH `/users/me`, PATCH `/users/rider/online`, Users
 
-### Community 1090 - "Community 1090"
-Cohesion: 0.20
-Nodes (11): @immutable, BreadcrumbSegment, HeaderSearchResult, NavItem, NavSection, MapMarker, AppThemeExtension, ThemeExtension (+3 more)
-
-### Community 1091 - "Community 1091"
-Cohesion: 0.22
-Nodes (13): cashRepositoryProvider, ../../data/cash_repository.dart, CashSummary, ../../data/cash_summary.dart, build, CashPeriodNotifier, cashPeriodProvider, CashSummaryNotifier (+5 more)
-
 ### Community 1093 - "Community 1093"
-Cohesion: 0.13
-Nodes (14): ../commerce/floating_cart_bar.dart, customer_bottom_nav_destinations.dart, ../../../features/home/presentation/providers/zone_check_provider.dart, ../../../features/home/presentation/widgets/zone_takeover.dart, ../layout/responsive_center.dart, createState, dispose, initState (+6 more)
+Cohesion: 0.10
+Nodes (20): AppShell, ../commerce/floating_cart_bar.dart, customer_bottom_nav_destinations.dart, ../../../features/home/presentation/providers/zone_check_provider.dart, ../../../features/home/presentation/widgets/zone_takeover.dart, ../layout/responsive_center.dart, AppShell, _AppShellState (+12 more)
 
 ### Community 1094 - "Community 1094"
-Cohesion: 0.07
-Nodes (28): GlobalKey, SidebarNavigation, any, _appShellHarness, _hasContentPadding, main, paddings, pumpAndSettle (+20 more)
+Cohesion: 0.15
+Nodes (12): GlobalKey, app, _headerHarness, initialLocation, main, notificationCount, router, _scaffoldKey (+4 more)
 
 ### Community 1095 - "Community 1095"
-Cohesion: 0.04
-Nodes (54): ApiClient, AuthRepository, authRepositoryProvider, login, _MockRemote, cash_summary.dart, chat_message.dart, ../../../../core/network/api_endpoints.dart (+46 more)
+Cohesion: 0.03
+Nodes (62): ApiClient, AuthRepository, authRepositoryProvider, login, _dioError, main, _MockRemote, remote (+54 more)
 
 ### Community 1096 - "Community 1096"
 Cohesion: 0.13
 Nodes (15): dispatch_status_chip.dart, AcceptedOrderListTile, _AcceptedOrderListTileState, build, createState, didUpdateWidget, dispose, _elapsed (+7 more)
 
 ### Community 1098 - "Community 1098"
-Cohesion: 0.09
-Nodes (20): _item, main, makeContainer, storage, cart, main, wrap, clear (+12 more)
+Cohesion: 0.18
+Nodes (10): _item, main, makeContainer, storage, cart, main, wrap, package:customer_app/features/cart/domain/entities/cart_item.dart (+2 more)
 
 ### Community 1100 - "Community 1100"
 Cohesion: 0.18
 Nodes (10): CountdownState, fraction, from, hashCode, isCritical, isWarning, kCountdownCriticalThresholdSeconds, kCountdownWarningThresholdSeconds (+2 more)
 
 ### Community 1102 - "Community 1102"
-Cohesion: 0.03
-Nodes (86): build, NotificationsScreen, onTap, build, OrderDetailScreen, build, ProfileScreen, build (+78 more)
+Cohesion: 0.07
+Nodes (36): build, NotificationsScreen, onTap, build, NotificationsScreen, build, build, ProfileScreen (+28 more)
 
 ### Community 1103 - "Community 1103"
 Cohesion: 0.24
 Nodes (10): ../../data/riders_repository.dart, ridersRepositoryProvider, activeRiders, approveRider, build, _fetchBoth, pendingRiders, refresh (+2 more)
-
-### Community 1106 - "Community 1106"
-Cohesion: 0.15
-Nodes (11): int get, hashCode, latitude, longitude, operator, toString, AppMapRoutePoint, hashCode (+3 more)
-
-### Community 1109 - "Community 1109"
-Cohesion: 0.67
-Nodes (3): GET `/menu/restaurant/:restaurantId/filter`, GET `/menu/restaurant/:restaurantId/search`, Menu (Public)
-
-### Community 1110 - "Community 1110"
-Cohesion: 0.67
-Nodes (3): PATCH `/rider/profile` (all optional), POST `/rider/documents`, Rider
 
 ### Community 1113 - "Community 1113"
 Cohesion: 0.18
@@ -4460,29 +4493,25 @@ Nodes (10): AppMapMarker, hashCode, headingDegrees, iconAsset, id, latitude, lon
 Cohesion: 0.28
 Nodes (8): build, child, createState, initState, NetworkListener, _NetworkListenerState, networkConnectivityProvider, network_manager.dart
 
-### Community 1136 - "Community 1136"
-Cohesion: 0.33
-Nodes (6): AppShell, AppShell, _AppShellState, build, zoneStatusProvider, WidgetsBindingObserver
-
 ## Knowledge Gaps
-- **11428 isolated node(s):** `version`, `configurations`, `allow`, `PreToolUse`, `allow` (+11423 more)
+- **11461 isolated node(s):** `version`, `configurations`, `allow`, `PreToolUse`, `allow` (+11456 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **104 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **102 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `stream` connect `Community centered on bool_get` to `Community centered on core_theme_home_promo_banner_layout_dart`, `Community centered on apps_rider_app_dart_tool_hooks_runner_objective_c_e8072a2455_input_json_e8072a2455_input`, `Community centered on apps_rider_app_lib_core_network_api_client_dart_network_api_client`, `Community centered on websockets_socket_service`, `Community centered on core_services_order_alert_service_dart`?**
+- **Why does `stream` connect `Community centered on data_earnings_summary` to `Community centered on apps_rider_app_dart_tool_hooks_runner_objective_c_e8072a2455_input_json_e8072a2455_input`, `Community centered on apps_rider_app_lib_core_network_api_client_dart_network_api_client`, `Community centered on websockets_socket_service`, `Community 953`, `Community centered on core_services_order_alert_service_dart`?**
   _High betweenness centrality (0.029) - this node is a cross-community bridge._
-- **Why does `RequestOptions` connect `Community centered on apps_kitchen_app_lib_core_config_api_host_resolver_dart_config_api_host_resolver` to `Community centered on apps_rider_app_dart_tool_hooks_runner_objective_c_e8072a2455_input_json_e8072a2455_input`, `Community centered on apps_rider_app_lib_core_network_api_client_dart_network_api_client`?**
+- **Why does `RequestOptions` connect `Community centered on data_menu_repository_categoriesprovider` to `Community centered on apps_rider_app_dart_tool_hooks_runner_objective_c_e8072a2455_input_json_e8072a2455_input`, `Community centered on apps_rider_app_lib_core_network_api_client_dart_network_api_client`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `api` connect `Community centered on apps_kitchen_app_lib_core_config_api_host_resolver_dart_config_api_host_resolver` to `Community centered on animatedcontainer`, `Community 547`, `Community centered on globalkey`, `Community centered on data_menu_repository_categoriesprovider`, `Community centered on navigation_app_shell_test`, `Community centered on apps_rider_app_lib_features_shift_presentation_screens_home_screen_dart_screens_home_screen`, `Community centered on app_curved_edges_clipper_dart`, `Community centered on coordinate_conversions_dart`, `Community centered on core_services_kitchen_preferences_dart`?**
+- **Why does `api` connect `Community centered on data_menu_repository_categoriesprovider` to `Community 547`, `Community centered on globalkey`, `Community centered on navigation_app_shell_test`, `Community centered on apps_rider_app_lib_features_shift_presentation_screens_home_screen_dart_screens_home_screen`, `Community centered on app_curved_edges_clipper_dart`, `Community centered on coordinate_conversions_dart`, `Community centered on core_services_kitchen_preferences_dart`, `Community centered on apps_kitchen_app_lib_core_config_api_host_resolver_dart_config_api_host_resolver`?**
   _High betweenness centrality (0.010) - this node is a cross-community bridge._
 - **What connects `version`, `configurations`, `allow` to the rest of the system?**
-  _11432 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _11465 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community centered on constants_image_strings` be split into smaller, more focused modules?**
   _Cohesion score 0.013157894736842105 - nodes in this community are weakly interconnected._
 - **Should `Community centered on a11y_a11y_announcer` be split into smaller, more focused modules?**
-  _Cohesion score 0.052564102564102565 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09523809523809523 - nodes in this community are weakly interconnected._
 - **Should `Community centered on core_theme_app_theme_extension_dart` be split into smaller, more focused modules?**
-  _Cohesion score 0.08695652173913043 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05263157894736842 - nodes in this community are weakly interconnected._

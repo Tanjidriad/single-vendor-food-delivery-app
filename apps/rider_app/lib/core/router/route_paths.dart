@@ -23,6 +23,7 @@ class RoutePaths {
   static const String cash = '/cash';
   static const String notifications = '/notifications';
   static const String profileEdit = '/profile/edit';
+  static const String profileDocuments = '/profile/documents';
   static const String help = '/help';
   static const String deliveredDetail = '/delivered/:orderId';
 

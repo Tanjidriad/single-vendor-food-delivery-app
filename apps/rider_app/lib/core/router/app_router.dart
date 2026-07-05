@@ -18,6 +18,7 @@ import '../../features/orders/presentation/screens/history_screen.dart';
 import '../../features/orders/presentation/screens/incoming_order_screen.dart';
 import '../../features/performance/presentation/screens/performance_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
+import '../../features/profile/presentation/screens/documents_screen.dart';
 import '../../features/profile/presentation/screens/help_center_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/shift/presentation/screens/home_screen.dart';
@@ -111,6 +112,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: RoutePaths.profileEdit,
         parentNavigatorKey: _rootKey,
         builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.profileDocuments,
+        parentNavigatorKey: _rootKey,
+        builder: (context, state) => const DocumentsScreen(),
       ),
       GoRoute(
         path: RoutePaths.help,

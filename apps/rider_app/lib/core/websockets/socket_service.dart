@@ -237,15 +237,16 @@ class SocketService {
   }
 
   void _scheduleReconnect() {
-    if (_manualDisconnect || !_lifecycleAllowsReconnect) return;
+    if (!shouldScheduleReconnect(
+      manualDisconnect: _manualDisconnect,
+      lifecycleAllowsReconnect: _lifecycleAllowsReconnect,
+    )) {
+      return;
+    }
     _reconnectTimer?.cancel();
-    final seconds = switch (_reconnectAttempt) {
-      0 => 3,
-      1 => 6,
-      _ => 15,
-    };
+    final delay = reconnectBackoff(_reconnectAttempt);
     _reconnectAttempt++;
-    _reconnectTimer = Timer(Duration(seconds: seconds), () async {
+    _reconnectTimer = Timer(delay, () async {
       debugPrint('[SocketService] Reconnect attempt $_reconnectAttempt');
       await connect();
     });
@@ -269,3 +270,25 @@ class SocketService {
     _connectedController.close();
   }
 }
+
+/// Reconnect backoff schedule: 3s on the first retry, 6s on the second, then a
+/// steady 15s for every subsequent attempt. Keeping this pure (no socket, no
+/// timer) makes the reconnection cadence directly testable. Exposed for tests.
+Duration reconnectBackoff(int attempt) {
+  final seconds = switch (attempt) {
+    0 => 3,
+    1 => 6,
+    _ => 15,
+  };
+  return Duration(seconds: seconds);
+}
+
+/// Whether an automatic reconnect should be scheduled. Reconnection must be
+/// suppressed after a deliberate/manual disconnect (e.g. logout) and while the
+/// app is backgrounded (lifecycle paused), so a signed-out or backgrounded
+/// rider is never dragged back online. Exposed for tests.
+bool shouldScheduleReconnect({
+  required bool manualDisconnect,
+  required bool lifecycleAllowsReconnect,
+}) =>
+    !manualDisconnect && lifecycleAllowsReconnect;

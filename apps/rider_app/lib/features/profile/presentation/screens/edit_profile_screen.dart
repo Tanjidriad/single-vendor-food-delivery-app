@@ -12,6 +12,7 @@ import '../../data/rider_profile.dart';
 import '../../data/rider_profile_repository.dart';
 import '../providers/rider_profile_provider.dart';
 import '../widgets/profile_avatar.dart';
+import '../widgets/profile_ui_primitives.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -93,7 +94,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         backgroundColor: Colors.transparent,
         centerTitle: true,
         title: Text(
-          'Edit Profile',
+          'Edit profile',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
               ),
@@ -165,7 +166,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 child: ProfileAvatar(
                   fullName: profile.fullName,
                   avatarUrl: profile.avatarUrl,
-                  radius: 44,
+                  radius: 40,
                   showCameraBadge: true,
                   onPhotoUpdated: () => ref.invalidate(riderProfileProvider),
                 ),
@@ -180,49 +181,67 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.section),
-              _FormSection(
-                icon: LucideIcons.user,
-                title: 'Personal Information',
-                child: _ProfileField(
-                  label: 'Full name',
-                  controller: _nameCtrl,
-                  hint: 'Your full name',
-                ),
+              const ProfileSectionLabel(label: 'Personal'),
+              _FilledField(
+                label: 'Full name',
+                controller: _nameCtrl,
+                hint: 'Your full name',
+                textCapitalization: TextCapitalization.words,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _LockedField(
+                label: 'Phone',
+                value: profile.phone ?? '—',
               ),
               const SizedBox(height: AppSpacing.section),
-              _FormSection(
-                icon: LucideIcons.briefcase,
-                title: 'Work Details',
-                child: Column(
-                  children: [
-                    _ProfileField(
-                      label: 'Vehicle type',
-                      controller: _vehicleTypeCtrl,
-                      hint: 'e.g. Motorcycle',
-                      showChevron: true,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    _ProfileField(
-                      label: 'Vehicle model',
+              const ProfileSectionLabel(label: 'Vehicle'),
+              _FilledField(
+                label: 'Vehicle type',
+                controller: _vehicleTypeCtrl,
+                hint: 'e.g. Motorcycle',
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _FilledField(
+                      label: 'Model',
                       controller: _vehicleModelCtrl,
-                      hint: 'e.g. Honda CB150',
-                      showChevron: true,
+                      hint: 'e.g. TVS Apache',
                     ),
-                    const SizedBox(height: AppSpacing.lg),
-                    _ProfileField(
-                      label: 'Registration / plate',
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: _FilledField(
+                      label: 'Plate no.',
                       controller: _plateCtrl,
-                      hint: 'Plate number',
-                      showChevron: true,
+                      hint: 'DHK-L-12-3456',
                     ),
-                    const SizedBox(height: AppSpacing.lg),
-                    _ProfileField(
-                      label: 'Delivery zone',
-                      controller: _zoneCtrl,
-                      hint: 'Your primary zone',
-                      showChevron: true,
-                    ),
-                  ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _FilledField(
+                label: 'Zone',
+                controller: _zoneCtrl,
+                hint: 'Your primary zone',
+                suffixIcon: const Icon(
+                  LucideIcons.mapPin,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: AppSpacing.xs,
+                  top: AppSpacing.sm,
+                ),
+                child: Text(
+                  'Zone changes apply after your current shift ends.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                 ),
               ),
             ],
@@ -233,118 +252,125 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 }
 
-class _FormSection extends StatelessWidget {
-  const _FormSection({
-    required this.icon,
-    required this.title,
-    required this.child,
-  });
-
-  final IconData icon;
-  final String title;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: Icon(icon, size: 18, color: AppColors.primary),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                  ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        child,
-      ],
-    );
-  }
-}
-
-class _ProfileField extends StatelessWidget {
-  const _ProfileField({
+/// Filled white field with the label floating inside the card, matching the
+/// grouped-card look of the profile screen.
+class _FilledField extends StatelessWidget {
+  const _FilledField({
     required this.label,
     required this.controller,
     required this.hint,
-    this.showChevron = false,
+    this.suffixIcon,
+    this.textCapitalization = TextCapitalization.none,
   });
 
   final String label;
   final TextEditingController controller;
   final String hint;
-  final bool showChevron;
+  final Widget? suffixIcon;
+  final TextCapitalization textCapitalization;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
-          ),
+    OutlineInputBorder border(Color color, {double width = 1}) {
+      return OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderSide: BorderSide(color: color, width: width),
+      );
+    }
+
+    return TextField(
+      controller: controller,
+      textCapitalization: textCapitalization,
+      style: textTheme.bodyLarge?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        labelStyle: textTheme.bodySmall?.copyWith(
+          color: AppColors.textSecondary,
+          fontWeight: FontWeight.w500,
         ),
-        const SizedBox(height: AppSpacing.sm),
-        TextField(
-          controller: controller,
-          style: textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: textTheme.bodyLarge?.copyWith(
-              color: AppColors.textDisabled,
-              fontWeight: FontWeight.w500,
-            ),
-            filled: true,
-            fillColor: AppColors.surfaceLight,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.lg,
-            ),
-            suffixIcon: showChevron
-                ? const Icon(
-                    LucideIcons.chevronDown,
-                    size: 18,
+        floatingLabelStyle: textTheme.bodySmall?.copyWith(
+          color: AppColors.textSecondary,
+          fontWeight: FontWeight.w500,
+        ),
+        hintText: hint,
+        hintStyle: textTheme.bodyLarge?.copyWith(
+          color: AppColors.textDisabled,
+          fontWeight: FontWeight.w500,
+        ),
+        filled: true,
+        fillColor: AppColors.surfaceLight,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+        suffixIcon: suffixIcon,
+        border: border(AppColors.borderLight),
+        enabledBorder: border(AppColors.borderLight),
+        focusedBorder: border(AppColors.primary, width: 1.5),
+      ),
+    );
+  }
+}
+
+/// Read-only field for values that can't be edited in-app (login identity).
+class _LockedField extends StatelessWidget {
+  const _LockedField({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceElevated,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
                     color: AppColors.textDisabled,
-                  )
-                : null,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              borderSide: const BorderSide(color: AppColors.borderLight),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              borderSide: const BorderSide(color: AppColors.borderLight),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-      ],
+          const Icon(
+            LucideIcons.lock,
+            size: 16,
+            color: AppColors.textDisabled,
+          ),
+        ],
+      ),
     );
   }
 }

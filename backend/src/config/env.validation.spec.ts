@@ -32,15 +32,15 @@ describe('validateEnv', () => {
     ).toThrow(/OTP delivery/);
   });
 
-  it('accepts production config with Twilio SMS', () => {
+  it('accepts production config with rtcom.xyz SMS', () => {
     expect(() =>
       validateEnv({
         ...baseDev,
         NODE_ENV: 'production',
         CORS_ORIGINS: 'https://app.example.com',
-        TWILIO_ACCOUNT_SID: 'ACxxx',
-        TWILIO_AUTH_TOKEN: 'token',
-        TWILIO_FROM_NUMBER: '+15551234567',
+        RTCOM_ACODE: 'acode-123',
+        RTCOM_API_KEY: 'api-key-123',
+        RTCOM_SENDER_ID: 'FoodDelivery',
         REDIS_URL: 'redis://localhost:6379',
         SENTRY_DSN: 'https://examplePublicKey@o0.ingest.sentry.io/0',
       }),

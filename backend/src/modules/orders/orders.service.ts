@@ -806,6 +806,12 @@ export class OrdersService {
     const updated = await this.orderStatusService.transitionOrder(user, orderId, OrderStatus.REJECTED, {
       note: note ?? 'Order rejected by restaurant',
     });
+    // Prepaid (online) orders must be refunded when the restaurant rejects —
+    // no-op for COD. Idempotent, so a repeated reject never double-refunds.
+    await this.refundsService.enqueuePrepaidRefund(
+      orderId,
+      'Order rejected by restaurant — prepaid refund',
+    );
     this.broadcastStatus(updated as any);
     return updated;
   }
@@ -840,6 +846,15 @@ export class OrdersService {
     });
 
     await this.dispatchService.releaseAssignmentsForTerminalOrder(orderId, this.prisma);
+
+    // Prepaid (online) orders get an automatic refund request on cancellation —
+    // no-op for COD. Idempotent, safe for both customer- and staff-initiated cancels.
+    await this.refundsService.enqueuePrepaidRefund(
+      orderId,
+      cancelledBy === 'CUSTOMER'
+        ? 'Order cancelled by customer — prepaid refund'
+        : 'Order cancelled by restaurant — prepaid refund',
+    );
 
     this.broadcastStatus(updated as any);
     return updated;

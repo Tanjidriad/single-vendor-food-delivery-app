@@ -194,7 +194,13 @@ export class RefundsService {
     });
   }
 
-  async enqueueDeliveryFailedRefund(orderId: string) {
+  /**
+   * Create a refund request for a prepaid (ONLINE + PAID) order. It is a no-op
+   * for COD or not-yet-paid orders, so it is safe to call on ANY terminal path
+   * (reject, cancel, delivery failure). Idempotent via {@link create}, so
+   * calling it more than once for the same order never creates a second refund.
+   */
+  async enqueuePrepaidRefund(orderId: string, reason: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
     });
@@ -205,7 +211,14 @@ export class RefundsService {
     return this.create({
       orderId,
       amount: order.grandTotal,
-      reason: 'Delivery failed — prepaid order refund',
+      reason,
     });
+  }
+
+  async enqueueDeliveryFailedRefund(orderId: string) {
+    return this.enqueuePrepaidRefund(
+      orderId,
+      'Delivery failed — prepaid order refund',
+    );
   }
 }

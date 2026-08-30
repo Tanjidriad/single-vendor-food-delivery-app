@@ -12,7 +12,7 @@ class AppConfig {
   /// loudly instead of quietly hitting localhost.
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: kDebugMode ? 'http://localhost:3000/api/v1' : '',
+    defaultValue: 'http://localhost:3000/api/v1',
   );
 
   static const bool enableNetworkLogging = kDebugMode;

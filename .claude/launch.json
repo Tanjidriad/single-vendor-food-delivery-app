@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "admin-panel", "run", "dev"],
       "port": 8000
+    },
+    {
+      "name": "customer-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "customer-web", "run", "dev"],
+      "port": 3001
     }
   ]
 }

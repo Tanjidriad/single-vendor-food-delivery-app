@@ -492,13 +492,14 @@ class KdsNotifier extends Notifier<KdsState> {
     String orderId, {
     required String trackingId,
     String? trackingUrl,
+    String deliveryService = 'Pathao Parcel',
   }) async {
     try {
       await _apiClient.post(
         '/orders/$orderId/dispatch-external',
         data: {
-          'deliveryService': 'Pathao Parcel',
-          'trackingId': trackingId,
+          'deliveryService': deliveryService,
+          if (trackingId.isNotEmpty) 'trackingId': trackingId,
           if (trackingUrl != null && trackingUrl.isNotEmpty)
             'trackingUrl': trackingUrl,
         },

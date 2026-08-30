@@ -616,10 +616,15 @@ export class OrdersService {
           orderId,
           phase: 'READY_FOR_PICKUP',
         }, {
+          // The fixed jobId dedupes in-flight jobs, but a retained
+          // completed/failed job with the same id silently blocks every
+          // future re-dispatch of this order — so never retain them.
           jobId: `auto-assign:${orderId}`,
           priority: 1,
           attempts: 3,
           backoff: { type: 'exponential', delay: 2000 },
+          removeOnComplete: true,
+          removeOnFail: true,
         });
       }
     }
@@ -793,10 +798,15 @@ export class OrdersService {
       orderId,
       phase: 'ORDER_ACCEPTED',
     }, {
+      // The fixed jobId dedupes in-flight jobs, but a retained
+      // completed/failed job with the same id silently blocks every
+      // future re-dispatch of this order — so never retain them.
       jobId: `auto-assign:${orderId}`,
       priority: 5,
       attempts: 3,
       backoff: { type: 'exponential', delay: 2000 },
+      removeOnComplete: true,
+      removeOnFail: true,
     });
 
     return order;
@@ -1518,10 +1528,15 @@ export class OrdersService {
           restaurantId: user.restaurantId, riderProfileId: user.riderProfileId,
           orderId, phase: 'REASSIGN',
         }, {
+          // The fixed jobId dedupes in-flight jobs, but a retained
+          // completed/failed job with the same id silently blocks every
+          // future re-dispatch of this order — so never retain them.
           jobId: `auto-assign:${orderId}`,
           priority: 1,
           attempts: 3,
           backoff: { type: 'exponential', delay: 2000 },
+          removeOnComplete: true,
+          removeOnFail: true,
         });
         this.broadcastStatus(updated);
         return updated;

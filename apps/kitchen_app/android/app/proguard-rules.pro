@@ -20,6 +20,10 @@
 -dontwarn com.google.firebase.**
 -dontwarn com.google.android.gms.**
 
+# Play Core Split Install (Flutter Deferred Components)
+-dontwarn com.google.android.play.core.splitcompat.**
+-dontwarn com.google.android.play.core.splitinstall.**
+-dontwarn com.google.android.play.core.tasks.**
 # Sunmi printer SDK
 -keep class com.sunmi.** { *; }
 -dontwarn com.sunmi.**

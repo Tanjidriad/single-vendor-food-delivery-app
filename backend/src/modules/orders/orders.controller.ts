@@ -174,7 +174,7 @@ export class OrdersController {
   }
 
   @Post(':id/dispatch-external')
-  @Roles(UserRole.OWNER, UserRole.MANAGER, UserRole.CASHIER)
+  @Roles(UserRole.OWNER, UserRole.MANAGER, UserRole.CASHIER, UserRole.KITCHEN)
   dispatchExternal(
     @CurrentUser() user: JwtPayload,
     @Param('id') id: string,

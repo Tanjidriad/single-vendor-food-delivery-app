@@ -1,6 +1,11 @@
 import { Test } from '@nestjs/testing';
 import { getQueueToken } from '@nestjs/bullmq';
+import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+
+jest.mock('../../common/utils/redis-lock.util', () => ({
+  acquireCronLock: jest.fn().mockResolvedValue(true),
+}));
 import {
   AssignmentStatus,
   OrderStatus,
@@ -183,8 +188,10 @@ describe('DispatchService', () => {
 
       // getOwnedAssignment
       prisma.riderAssignment.findUnique.mockResolvedValueOnce(assignment);
-      // reject update
-      prisma.riderAssignment.update.mockResolvedValueOnce({
+      // atomic NOTIFIED → REJECTED transition
+      prisma.riderAssignment.updateMany.mockResolvedValueOnce({ count: 1 });
+      // re-fetch of the rejected row
+      prisma.riderAssignment.findUniqueOrThrow.mockResolvedValueOnce({
         ...assignment,
         status: AssignmentStatus.REJECTED,
         rejectedAt: new Date(),
@@ -225,6 +232,50 @@ describe('DispatchService', () => {
       expect(prisma.riderOrderRejection.create).toHaveBeenCalledWith({
         data: { orderId: 'order-1', riderId: 'rider-1', reason: 'REJECTED' },
       });
+    });
+
+    it('refuses to reject an already-accepted assignment and does not reassign', async () => {
+      const assignment = makeAssignment({ status: AssignmentStatus.ACCEPTED });
+      prisma.riderAssignment.findUnique.mockResolvedValueOnce(assignment);
+
+      const user = { sub: 'user-1', role: UserRole.RIDER, riderProfileId: 'rider-1' };
+      await expect(service.reject(user, 'asgn-1')).rejects.toThrow(
+        'Assignment is not pending',
+      );
+
+      expect(prisma.riderAssignment.updateMany).not.toHaveBeenCalled();
+      expect(prisma.riderAssignment.create).not.toHaveBeenCalled();
+      expect(prisma.riderOrderRejection.create).not.toHaveBeenCalled();
+    });
+
+    it('treats a repeated reject as idempotent success', async () => {
+      const assignment = makeAssignment({ status: AssignmentStatus.REJECTED });
+      prisma.riderAssignment.findUnique.mockResolvedValueOnce(assignment);
+
+      const user = { sub: 'user-1', role: UserRole.RIDER, riderProfileId: 'rider-1' };
+      const result = await service.reject(user, 'asgn-1');
+
+      expect(result.status).toBe(AssignmentStatus.REJECTED);
+      expect(prisma.riderAssignment.updateMany).not.toHaveBeenCalled();
+      expect(realtime.emitAssignmentRejected).not.toHaveBeenCalled();
+    });
+
+    it('does not reassign when reject loses the race against expiry', async () => {
+      const assignment = makeAssignment(); // NOTIFIED at fetch time
+      prisma.riderAssignment.findUnique.mockResolvedValueOnce(assignment);
+      // Expiry won the race: the conditional update matches nothing…
+      prisma.riderAssignment.updateMany.mockResolvedValueOnce({ count: 0 });
+      // …and the row is now EXPIRED.
+      prisma.riderAssignment.findUnique.mockResolvedValueOnce({
+        ...assignment,
+        status: AssignmentStatus.EXPIRED,
+      });
+
+      const user = { sub: 'user-1', role: UserRole.RIDER, riderProfileId: 'rider-1' };
+      await expect(service.reject(user, 'asgn-1')).rejects.toThrow(
+        'Assignment is not pending',
+      );
+      expect(prisma.riderAssignment.create).not.toHaveBeenCalled();
     });
   });
 
@@ -439,6 +490,67 @@ describe('DispatchService', () => {
           orderBy: [{ status: 'desc' }, { createdAt: 'asc' }],
         }),
       );
+    });
+  });
+
+  // ---------- Stranded-order recovery sweep ----------
+
+  describe('sweepUnassignedOrders()', () => {
+    it('re-dispatches assignable orders with no live assignment, continuing past failures', async () => {
+      prisma.order.findMany.mockResolvedValueOnce([
+        { id: 'order-1', restaurantId: 'rest-1' },
+        { id: 'order-2', restaurantId: 'rest-1' },
+      ]);
+      const autoAssign = jest
+        .spyOn(service, 'autoAssign')
+        .mockRejectedValueOnce(
+          new BadRequestException('No online riders available'),
+        )
+        .mockResolvedValueOnce(makeAssignment() as any);
+
+      await service.sweepUnassignedOrders();
+
+      // The first failure must not abort the loop — both orders attempted.
+      expect(autoAssign).toHaveBeenCalledTimes(2);
+      expect(autoAssign).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          sub: 'system:dispatch-sweep',
+          role: UserRole.KITCHEN,
+          restaurantId: 'rest-1',
+        }),
+        'order-1',
+      );
+      expect(autoAssign).toHaveBeenNthCalledWith(2, expect.anything(), 'order-2');
+
+      // Only orders without a live assignment are eligible.
+      const where = prisma.order.findMany.mock.calls[0][0].where;
+      expect(where.OR).toEqual([
+        { assignment: null },
+        {
+          assignment: {
+            status: {
+              in: [AssignmentStatus.EXPIRED, AssignmentStatus.REJECTED],
+            },
+          },
+        },
+      ]);
+      expect(where.status).toEqual({
+        in: [
+          OrderStatus.ACCEPTED,
+          OrderStatus.PREPARING,
+          OrderStatus.READY_FOR_PICKUP,
+        ],
+      });
+    });
+
+    it('does nothing when no stranded orders exist', async () => {
+      prisma.order.findMany.mockResolvedValueOnce([]);
+      const autoAssign = jest.spyOn(service, 'autoAssign');
+
+      await service.sweepUnassignedOrders();
+
+      expect(autoAssign).not.toHaveBeenCalled();
     });
   });
 });

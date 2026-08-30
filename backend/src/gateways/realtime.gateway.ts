@@ -162,6 +162,19 @@ export class RealtimeGateway
     return { joined: data.orderId };
   }
 
+  @SubscribeMessage('order:leave')
+  handleLeaveOrder(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { orderId: string },
+  ) {
+    const user = client.data.user as JwtPayload | undefined;
+    if (!user || !data?.orderId) {
+      return { left: null, error: 'unauthorized' };
+    }
+    client.leave(`order:${data.orderId}`);
+    return { left: data.orderId };
+  }
+
   /** Whether a user may view/subscribe to an order's realtime feed. */
   private canAccessOrder(
     user: JwtPayload,
@@ -222,6 +235,7 @@ export class RealtimeGateway
     });
 
     const payload = {
+      orderId: data.orderId,
       riderId: user.riderProfileId,
       latitude: data.latitude,
       longitude: data.longitude,

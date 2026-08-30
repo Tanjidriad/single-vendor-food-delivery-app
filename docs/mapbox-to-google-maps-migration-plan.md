@@ -1,5 +1,11 @@
 # Mapbox → Google Maps Migration Plan
 
+> **Status notice (2026-08-08):** The canonical multi-branch plan is
+> `docs/architecture/10-BRANCH-LOCATION-DELIVERY-IMPLEMENTATION-PLAN.md`.
+> Its Google API decisions supersede legacy endpoint examples in this file.
+> Do not add the legacy Directions or Distance Matrix APIs; use Routes API
+> `computeRoutes` and `computeRouteMatrix` instead.
+
 ## Context
 
 The WASABI food delivery platform uses Mapbox for maps across `customer_app` and `rider_app` (kitchen_app has no maps). The backend already uses Google Maps as primary with Mapbox as fallback. We're migrating fully to Google Maps for consistency, better pricing control, and to eliminate the Mapbox dependency.

@@ -36,10 +36,27 @@ export class PaymentsService {
       throw new BadRequestException('Order is already paid');
     }
 
-    const callbackUrl = this.config.get<string>('bkash.callbackUrl');
-    if (!callbackUrl?.trim()) {
+    const callbackUrlBase = this.config.get<string>('bkash.callbackUrl');
+    if (!callbackUrlBase?.trim()) {
       throw new ServiceUnavailableException(
         'BKASH_CALLBACK_URL is not configured',
+      );
+    }
+    let callbackUrl: string;
+    try {
+      const parsed = new URL(callbackUrlBase.trim());
+      if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error();
+      if (
+        this.config.get<string>('nodeEnv') === 'production' &&
+        parsed.protocol !== 'https:'
+      ) {
+        throw new Error();
+      }
+      parsed.searchParams.set('orderId', order.id);
+      callbackUrl = parsed.toString();
+    } catch {
+      throw new ServiceUnavailableException(
+        'BKASH_CALLBACK_URL must be a valid HTTPS web URL',
       );
     }
 
@@ -47,7 +64,7 @@ export class PaymentsService {
       amount: order.grandTotal,
       merchantInvoiceNumber: order.id,
       payerReference: order.customerPhone || order.customerId,
-      callbackUrl: callbackUrl.trim(),
+      callbackUrl,
     });
 
     await this.prisma.payment.update({
@@ -63,7 +80,7 @@ export class PaymentsService {
       status: PaymentStatus.PENDING,
       paymentId: created.paymentId,
       checkoutUrl: created.checkoutUrl,
-      callbackUrl: callbackUrl.trim(),
+      callbackUrl,
       sandboxHint:
         this.config.get<boolean>('bkash.sandbox') !== false
           ? {

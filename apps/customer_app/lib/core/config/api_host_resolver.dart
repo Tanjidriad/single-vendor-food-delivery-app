@@ -79,8 +79,10 @@ class ApiHostResolver {
   }
 
   static String _platformDefault() {
-    if (kIsWeb) return 'http://localhost:3000/api/v1';
-    if (Platform.isAndroid) return 'http://10.0.2.2:3000/api/v1';
+    // Android can't reach the host machine via `localhost`; use the LAN IP.
+    if (!kIsWeb && Platform.isAndroid) {
+      return 'http://192.168.0.116:3000/api/v1';
+    }
     return 'http://localhost:3000/api/v1';
   }
 

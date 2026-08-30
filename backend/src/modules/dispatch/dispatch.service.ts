@@ -129,6 +129,69 @@ export class DispatchService implements OnModuleInit {
     }
   }
 
+  private static readonly UNASSIGNED_SWEEP_CAP = 10;
+  private static readonly UNASSIGNED_SWEEP_MIN_AGE_MS = 90_000;
+
+  /**
+   * Safety net for orders whose dispatch waterfall exhausted all riders:
+   * nothing else re-attempts them when a rider frees up capacity by finishing
+   * a trip or a rejection cooldown lapses. The rider-online and
+   * READY_FOR_PICKUP triggers cover their own cases; this sweep catches the
+   * rest so no assignable order strands.
+   */
+  @Cron(CronExpression.EVERY_MINUTE)
+  async sweepUnassignedOrders() {
+    if (!(await acquireCronLock(this.config, 'sweep-unassigned-orders', 55))) return;
+    const orders = await this.prisma.order.findMany({
+      where: {
+        status: {
+          in: [
+            OrderStatus.ACCEPTED,
+            OrderStatus.PREPARING,
+            OrderStatus.READY_FOR_PICKUP,
+          ],
+        },
+        // Leave freshly-touched orders to their queued auto-assign job so the
+        // sweep doesn't race it and surface a spurious dispatch.failed event.
+        updatedAt: {
+          lt: new Date(Date.now() - DispatchService.UNASSIGNED_SWEEP_MIN_AGE_MS),
+        },
+        OR: [
+          { assignment: null },
+          {
+            assignment: {
+              status: {
+                in: [AssignmentStatus.EXPIRED, AssignmentStatus.REJECTED],
+              },
+            },
+          },
+        ],
+      },
+      select: { id: true, restaurantId: true },
+      orderBy: [{ status: 'desc' }, { createdAt: 'asc' }],
+      take: DispatchService.UNASSIGNED_SWEEP_CAP,
+    });
+
+    for (const order of orders) {
+      try {
+        await this.autoAssign(
+          {
+            sub: 'system:dispatch-sweep',
+            role: UserRole.KITCHEN,
+            restaurantId: order.restaurantId,
+          },
+          order.id,
+        );
+        this.logger.log(`Unassigned sweep: re-dispatched order ${order.id}`);
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err);
+        this.logger.debug(
+          `Unassigned sweep: order ${order.id} not dispatched: ${reason}`,
+        );
+      }
+    }
+  }
+
   async assign(
     staff: JwtPayload,
     orderId: string,
@@ -473,12 +536,45 @@ export class DispatchService implements OnModuleInit {
   async reject(user: JwtPayload, assignmentId: string) {
     const assignment = await this.getOwnedAssignment(user, assignmentId);
 
-    const updated = await this.prisma.riderAssignment.update({
-      where: { id: assignmentId },
+    // Idempotency: repeated reject taps succeed without re-running the
+    // reassignment flow.
+    if (assignment.status === AssignmentStatus.REJECTED) {
+      return assignment;
+    }
+
+    // Only a pending offer can be declined. Backing out of an accepted trip
+    // must go through the delivery-exception flow — a bare reject here would
+    // re-offer an order whose food may already be on the rider's bike.
+    if (assignment.status !== AssignmentStatus.NOTIFIED) {
+      throw new BadRequestException('Assignment is not pending');
+    }
+
+    const rejected = await this.prisma.riderAssignment.updateMany({
+      where: {
+        id: assignmentId,
+        riderId: user.riderProfileId!,
+        status: AssignmentStatus.NOTIFIED,
+      },
       data: {
         status: AssignmentStatus.REJECTED,
         rejectedAt: new Date(),
       },
+    });
+
+    if (rejected.count === 0) {
+      // Raced with accept/expiry between fetch and update.
+      const current = await this.prisma.riderAssignment.findUnique({
+        where: { id: assignmentId },
+        include: { order: true },
+      });
+      if (current?.status === AssignmentStatus.REJECTED) {
+        return current;
+      }
+      throw new BadRequestException('Assignment is not pending');
+    }
+
+    const updated = await this.prisma.riderAssignment.findUniqueOrThrow({
+      where: { id: assignmentId },
       include: { order: true },
     });
 

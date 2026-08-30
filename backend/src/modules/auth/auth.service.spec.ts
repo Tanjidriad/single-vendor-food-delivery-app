@@ -21,6 +21,9 @@ function makeDeps(overrides: { user?: any; storedToken?: any; otp?: any } = {}) 
       create: jest.fn().mockResolvedValue({}),
     },
     user: {
+      findFirst: jest.fn().mockResolvedValue(
+        overrides.user === undefined ? { id: 'user-1' } : overrides.user,
+      ),
       findUnique: jest.fn().mockResolvedValue(
         overrides.user === undefined
           ? { id: 'user-1', role: 'CUSTOMER', status: UserStatus.ACTIVE, restaurantId: null, branchId: null, riderProfile: null }
@@ -28,6 +31,7 @@ function makeDeps(overrides: { user?: any; storedToken?: any; otp?: any } = {}) 
       ),
     },
     otpCode: {
+      create: jest.fn().mockResolvedValue({}),
       findFirst: jest.fn().mockResolvedValue(
         overrides.otp === undefined ? { id: 'otp-1' } : overrides.otp,
       ),
@@ -42,9 +46,25 @@ function makeDeps(overrides: { user?: any; storedToken?: any; otp?: any } = {}) 
     getOrThrow: jest.fn().mockReturnValue('a-secret'),
     get: jest.fn().mockReturnValue(undefined), // fall back to code defaults
   };
-  const sms: any = { sendOtp: jest.fn() };
-  return { service: new AuthService(prisma, jwt, config, sms), prisma, jwt };
+  const sms: any = { isEnabled: jest.fn().mockReturnValue(false), sendOtp: jest.fn() };
+  return { service: new AuthService(prisma, jwt, config, sms), prisma, jwt, sms };
 }
+
+describe('AuthService.sendOtp — account enumeration resistance', () => {
+  it('returns the same generic success shape for an unknown reset account', async () => {
+    const { service, prisma, sms } = makeDeps({ user: null });
+
+    const result = await service.sendOtp({
+      phone: '+8801700000000',
+      purpose: 'RESET_PASSWORD',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.message).not.toMatch(/not found/i);
+    expect(prisma.otpCode.create).not.toHaveBeenCalled();
+    expect(sms.sendOtp).not.toHaveBeenCalled();
+  });
+});
 
 describe('AuthService.refresh — token rotation', () => {
   it('revokes the presented refresh token and issues a fresh pair', async () => {

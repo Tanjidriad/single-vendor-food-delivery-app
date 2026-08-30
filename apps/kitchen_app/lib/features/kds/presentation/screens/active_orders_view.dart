@@ -451,6 +451,10 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
     // Capture before any await — required by use_build_context_synchronously
     final messenger = ScaffoldMessenger.of(context);
 
+    final serviceController = TextEditingController(text: 'Pathao Parcel');
+    final trackingController = TextEditingController();
+    final urlController = TextEditingController();
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -459,13 +463,49 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
           children: [
             Icon(Icons.local_shipping_rounded, color: AppColors.primary),
             SizedBox(width: 10),
-            Text('Send to Pathao'),
+            Text('Send to courier'),
           ],
         ),
-        content: const Text(
-          'Pathao will automatically create a parcel and assign a tracking ID. '
-          'The customer will be notified with a live tracking link.',
-          style: TextStyle(fontSize: 14, height: 1.5),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Book the parcel on the courier (Pathao, etc.), then paste its '
+              'tracking ID here. The customer is notified with the tracking link.',
+              style: TextStyle(fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: serviceController,
+              decoration: const InputDecoration(
+                labelText: 'Courier',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: trackingController,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Tracking ID',
+                hintText: 'e.g. PATHAO-987123',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: urlController,
+              keyboardType: TextInputType.url,
+              decoration: const InputDecoration(
+                labelText: 'Tracking URL (optional)',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -482,7 +522,27 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
       ),
     );
 
+    final deliveryService = serviceController.text.trim().isEmpty
+        ? 'Pathao Parcel'
+        : serviceController.text.trim();
+    final trackingId = trackingController.text.trim();
+    final trackingUrl = urlController.text.trim();
+    serviceController.dispose();
+    trackingController.dispose();
+    urlController.dispose();
+
     if (confirmed != true) return;
+
+    if (trackingId.isEmpty) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Enter the courier tracking ID before sending.'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
     // Show a loading snackbar while the API call is in flight
     messenger.showSnackBar(
@@ -498,7 +558,7 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
               ),
             ),
             SizedBox(width: 12),
-            Text('Creating Pathao parcel…'),
+            Text('Dispatching order…'),
           ],
         ),
         duration: Duration(seconds: 10),
@@ -511,13 +571,15 @@ class _ActiveOrdersViewState extends ConsumerState<ActiveOrdersView> {
           .read(kdsProvider.notifier)
           .dispatchToPathao(
             orderId,
-            trackingId: '', // backend auto-generates via Pathao API
+            deliveryService: deliveryService,
+            trackingId: trackingId,
+            trackingUrl: trackingUrl,
           );
       ref.read(kdsProvider.notifier).dismissDispatchAlert(orderId);
       messenger.hideCurrentSnackBar();
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text('✓ Order dispatched via Pathao — tracking ID assigned'),
+        SnackBar(
+          content: Text('✓ Order dispatched via $deliveryService'),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
         ),

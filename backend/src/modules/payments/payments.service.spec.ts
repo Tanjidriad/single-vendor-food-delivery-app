@@ -1,4 +1,7 @@
-import { BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { PaymentMethod, PaymentStatus } from '@prisma/client';
 import { PaymentsService } from './payments.service';
 
@@ -38,16 +41,58 @@ describe('PaymentsService.executeOnline', () => {
     };
     prisma = {
       order: { findUnique: jest.fn() },
+      payment: { update: jest.fn().mockResolvedValue({}) },
       $transaction: jest.fn(async (cb: any) => cb(tx)),
     };
     realtime = { emitRestaurantNewOrder: jest.fn() };
     gateway = {
       id: 'bkash',
+      createPayment: jest.fn(),
       executePayment: jest.fn(),
       queryPayment: jest.fn(),
     };
     config = { get: jest.fn() };
     service = new PaymentsService(prisma, config, realtime, gateway);
+  });
+
+  it('adds the order id to the configured bKash callback URL', async () => {
+    prisma.order.findUnique.mockResolvedValue(makeOrder());
+    config.get.mockImplementation((key: string) => {
+      if (key === 'bkash.callbackUrl') {
+        return 'https://food.example.com/payment/callback?source=bkash';
+      }
+      if (key === 'nodeEnv') return 'production';
+      return undefined;
+    });
+    gateway.createPayment.mockResolvedValue({
+      paymentId: 'pay-456',
+      checkoutUrl: 'https://sandbox.bka.sh/checkout/pay-456',
+    });
+
+    const result = await service.initiateOnline('order-1', 'cust-1');
+
+    expect(result.callbackUrl).toBe(
+      'https://food.example.com/payment/callback?source=bkash&orderId=order-1',
+    );
+    expect(gateway.createPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ callbackUrl: result.callbackUrl }),
+    );
+  });
+
+  it('rejects an insecure callback URL in production', async () => {
+    prisma.order.findUnique.mockResolvedValue(makeOrder());
+    config.get.mockImplementation((key: string) => {
+      if (key === 'bkash.callbackUrl') {
+        return 'http://food.example.com/payment/callback';
+      }
+      if (key === 'nodeEnv') return 'production';
+      return undefined;
+    });
+
+    await expect(
+      service.initiateOnline('order-1', 'cust-1'),
+    ).rejects.toBeInstanceOf(ServiceUnavailableException);
+    expect(gateway.createPayment).not.toHaveBeenCalled();
   });
 
   it('settles and notifies the restaurant once on success', async () => {

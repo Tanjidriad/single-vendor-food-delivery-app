@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo_Black, Fraunces, Inter } from "next/font/google";
-import { Toaster } from "sonner";
+import { BrandToaster } from "@/components/ui/toast";
 
 import { QueryProvider } from "@/providers/query-provider";
 import { AuthBootstrap } from "@/components/auth-bootstrap";
@@ -85,7 +85,7 @@ export default function RootLayout({
           {children}
         </QueryProvider>
         <Analytics />
-        <Toaster richColors position="top-center" />
+        <BrandToaster />
       </body>
     </html>
   );

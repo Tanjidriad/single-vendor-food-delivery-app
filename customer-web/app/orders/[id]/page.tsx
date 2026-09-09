@@ -37,11 +37,7 @@ import {
   useReorder,
 } from "@/lib/api/queries/orders";
 import { useInitiateOnlinePayment } from "@/lib/api/queries/payments";
-import {
-  getRealtimeAccessToken,
-  getSocket,
-  REALTIME_EVENTS,
-} from "@/lib/realtime/socket";
+import { connectRealtime, REALTIME_EVENTS } from "@/lib/realtime/socket";
 import { formatTk } from "@/lib/utils";
 import { ApiError } from "@/lib/api/client";
 import { isTrustedPaymentUrl } from "@/lib/payments";
@@ -64,8 +60,10 @@ export default function OrderPage({
   const router = useRouter();
   const { isAuthenticated, hydrated } = useAuth();
 
+  // Stop the 20s safety-net poll once the order can no longer change.
+  const [livePolling, setLivePolling] = useState(true);
   const { data: order, isLoading, isError, refetch } = useOrder(id, {
-    poll: true,
+    poll: livePolling,
   });
   const cancelOrder = useCancelOrder();
   const confirmDelivery = useConfirmDelivery();
@@ -79,9 +77,8 @@ export default function OrderPage({
   // Realtime: join the order room and react to live status / rider updates.
   useEffect(() => {
     if (!isAuthenticated || !id) return;
-    let disposed = false;
-    let socket: ReturnType<typeof getSocket> | null = null;
-    const join = () => socket?.emit("order:join", { orderId: id });
+    const socket = connectRealtime();
+    const join = () => socket.emit("order:join", { orderId: id });
 
     const onStatus = (payload?: { id?: string; orderId?: string }) => {
       const payloadOrderId = payload?.orderId ?? payload?.id;
@@ -90,25 +87,29 @@ export default function OrderPage({
     const onRider = (payload: RiderLocation) => {
       if (!payload.orderId || payload.orderId === id) setRiderLoc(payload);
     };
-    void getRealtimeAccessToken()
-      .then((token) => {
-        if (disposed) return;
-        socket = getSocket(token);
-        join();
-        socket.on("connect", join);
-        socket.on(REALTIME_EVENTS.orderStatusChanged, onStatus);
-        socket.on(REALTIME_EVENTS.riderLocation, onRider);
-      })
-      .catch(() => undefined);
+    // Rider position arrives only over the socket, so a dropped connection
+    // would otherwise leave a stale marker sitting on the map looking live.
+    const onDisconnect = () => setRiderLoc(null);
+
+    join();
+    socket.on("connect", join);
+    socket.on("disconnect", onDisconnect);
+    socket.on(REALTIME_EVENTS.orderStatusChanged, onStatus);
+    socket.on(REALTIME_EVENTS.riderLocation, onRider);
 
     return () => {
-      disposed = true;
-      socket?.emit("order:leave", { orderId: id });
-      socket?.off("connect", join);
-      socket?.off(REALTIME_EVENTS.orderStatusChanged, onStatus);
-      socket?.off(REALTIME_EVENTS.riderLocation, onRider);
+      socket.emit("order:leave", { orderId: id });
+      socket.off("connect", join);
+      socket.off("disconnect", onDisconnect);
+      socket.off(REALTIME_EVENTS.orderStatusChanged, onStatus);
+      socket.off(REALTIME_EVENTS.riderLocation, onRider);
     };
   }, [isAuthenticated, id, refetch]);
+
+  // Terminal orders never change again; drop the poll.
+  useEffect(() => {
+    if (order && isTerminal(order.status)) setLivePolling(false);
+  }, [order]);
 
   if (hydrated && !isAuthenticated) {
     return (

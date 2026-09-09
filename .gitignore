@@ -102,3 +102,6 @@ scratch_ionic_coupon/
 
 # Codex config (may contain API tokens)
 .codex/
+
+# Throwaway backups of env files — never commit these
+*.bak.claude

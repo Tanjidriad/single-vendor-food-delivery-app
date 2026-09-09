@@ -19,7 +19,7 @@ export function BrandStory() {
   const { data: restaurant } = useRestaurant();
   return (
     <section className="mx-auto mt-20 max-w-[1440px] px-4 sm:mt-28 sm:px-6 lg:px-10">
-      <div className="grain relative overflow-hidden border-y-4 border-[var(--menu-red)] bg-[var(--menu-ink)] text-white">
+      <div className="grain relative overflow-hidden border-y-4 border-[var(--menu-red)] bg-[var(--menu-bar)] text-white">
         <div className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(210,31,60,0.28),transparent_65%)]" />
 
         <div className="relative grid gap-8 p-6 sm:p-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-12 lg:p-14">

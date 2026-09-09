@@ -27,7 +27,8 @@
       "PowerShell(Head -20)",
       "Bash(xargs cat)",
       "Bash(npx jest *)",
-      "Bash(graphify query *)"
+      "Bash(graphify query *)",
+      "Bash(curl -s https://api.github.com/repos/garrytan/gstack)"
     ]
   }
 }

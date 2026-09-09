@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingBag, UserRound } from "lucide-react";
+import { Search, ShoppingBag, UserRound } from "lucide-react";
 
 import { ToriiMark } from "@/components/brand";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -11,12 +12,34 @@ import { useAuth } from "@/lib/auth/use-auth";
 import { useCartStore } from "@/store/cart-store";
 import { cn } from "@/lib/utils";
 
+/** Scroll distance after which the bar condenses. */
+const CONDENSE_AFTER = 70;
+
 export function LandingNav() {
   const pathname = usePathname();
   const { isAuthenticated, hydrated } = useAuth();
+  const [condensed, setCondensed] = useState(false);
   const count = useCartStore((state) =>
     state.lines.reduce((total, line) => total + line.quantity, 0)
   );
+
+  // Condense once the hero starts leaving, so scrolling the menu keeps more of
+  // the screen without ever losing the basket or account controls.
+  useEffect(() => {
+    let queued = false;
+    const onScroll = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        setCondensed(window.scrollY > CONDENSE_AFTER);
+        queued = false;
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const links = [
     { href: "/", label: "Home" },
     { href: "/menu", label: "Menu" },
@@ -25,15 +48,32 @@ export function LandingNav() {
   ];
 
   return (
-    <nav className="sticky top-0 z-[var(--z-sticky)] w-full border-b-4 border-[var(--menu-red)] bg-[var(--menu-ink)] text-white">
-      <div className="mx-auto flex h-16 max-w-[1440px] items-center px-4 sm:h-[72px] sm:px-6 lg:px-10">
+    <nav className="sticky top-0 z-[var(--z-sticky)] w-full border-b-4 border-[var(--menu-red)] bg-[var(--menu-bar)] text-white">
+      <div
+        className={cn(
+          "mx-auto flex max-w-[1440px] items-center px-4 transition-[height] duration-300 ease-out sm:px-6 lg:px-10",
+          condensed ? "h-14 sm:h-14" : "h-16 sm:h-[72px]"
+        )}
+      >
         <Link href="/" aria-label="Wasabi home" className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-200">
-          <span className="grid h-9 w-9 place-items-center bg-[var(--menu-red)] sm:h-10 sm:w-10">
+          <span
+            className={cn(
+              "grid place-items-center bg-[var(--menu-red)] transition-[width,height] duration-300 ease-out",
+              condensed ? "h-8 w-8" : "h-9 w-9 sm:h-10 sm:w-10"
+            )}
+          >
             <ToriiMark className="h-4 w-6 text-white" />
           </span>
           <span>
             <span className="block text-[8px] font-black leading-none tracking-[0.2em] text-white/45">芥末</span>
-            <span className="font-street block text-lg leading-none sm:text-xl">WASABI</span>
+            <span
+              className={cn(
+                "font-street block leading-none transition-[font-size] duration-300 ease-out",
+                condensed ? "text-base sm:text-lg" : "text-lg sm:text-xl"
+              )}
+            >
+              WASABI
+            </span>
           </span>
         </Link>
 
@@ -55,17 +95,29 @@ export function LandingNav() {
           })}
         </div>
 
-        <div className="ml-auto flex items-center border-l border-white/10 lg:ml-0">
-          <div className="grid h-12 w-11 place-items-center sm:h-14 sm:w-12 [&>button]:border-0 [&>button]:bg-transparent [&>button]:text-white/65">
+        <div className="ml-auto flex items-center self-stretch border-l border-white/10 lg:ml-0">
+          {/* Points at /menu, which is where the real dish search lives. */}
+          <Link
+            href="/menu"
+            aria-label="Search the menu"
+            className="grid w-11 place-items-center self-stretch text-white/65 transition-colors hover:bg-[var(--menu-red)] hover:text-white sm:w-12"
+          >
+            <Search className="h-[18px] w-[18px]" />
+          </Link>
+          <div className="grid w-11 place-items-center self-stretch border-l border-white/10 sm:w-12 [&>button]:border-0 [&>button]:bg-transparent [&>button]:text-white/65">
             <ThemeToggle />
           </div>
-          <div className="grid h-12 w-11 place-items-center border-l border-white/10 sm:h-14 sm:w-12">
-            <NotificationBell />
-          </div>
+          {/* The bell renders nothing when signed out, so the cell must go too —
+              otherwise the bar keeps a 44px hole and a stray divider. */}
+          {hydrated && isAuthenticated && (
+            <div className="grid w-11 place-items-center self-stretch border-l border-white/10 sm:w-12">
+              <NotificationBell />
+            </div>
+          )}
           <Link
             href="/menu"
             aria-label={count > 0 ? `Open menu, ${count} items in basket` : "Open menu"}
-            className="relative grid h-12 w-11 place-items-center border-l border-white/10 text-white/65 transition-colors hover:bg-[var(--menu-red)] hover:text-white sm:h-14 sm:w-12"
+            className="relative grid w-11 place-items-center self-stretch border-l border-white/10 text-white/65 transition-colors hover:bg-[var(--menu-red)] hover:text-white sm:w-12"
           >
             <ShoppingBag className="h-[18px] w-[18px]" />
             {count > 0 && (
@@ -77,7 +129,7 @@ export function LandingNav() {
           <Link
             href={hydrated && isAuthenticated ? "/account" : "/login"}
             aria-label={hydrated && isAuthenticated ? "Account" : "Sign in"}
-            className="grid h-12 w-11 place-items-center border-l border-white/10 text-white/65 transition-colors hover:bg-white hover:text-[var(--menu-ink)] sm:h-14 sm:w-12"
+            className="grid w-11 place-items-center self-stretch border-l border-white/10 text-white/65 transition-colors hover:bg-white hover:text-[var(--menu-bar)] sm:w-12"
           >
             <UserRound className="h-[18px] w-[18px]" />
           </Link>

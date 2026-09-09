@@ -38,7 +38,7 @@ export function FulfillmentOptions() {
 
           <Link
             href="/menu"
-            className="group inline-flex h-14 flex-none items-center gap-3 border-2 border-white bg-white px-7 text-xs font-black uppercase tracking-[0.08em] text-[var(--menu-red)] transition-colors hover:bg-[var(--menu-ink)] hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/40"
+            className="group inline-flex h-14 flex-none items-center gap-3 border-2 border-white bg-white px-7 text-xs font-black uppercase tracking-[0.08em] text-[var(--menu-red)] transition-colors hover:bg-[var(--menu-bar)] hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/40"
           >
             Browse the full menu
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

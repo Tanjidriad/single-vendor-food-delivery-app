@@ -27,7 +27,7 @@ export function HowItWorks() {
       id="how-it-works"
       className="mx-auto max-w-[1440px] scroll-mt-24 px-4 pt-20 sm:px-6 sm:pt-28 lg:px-10"
     >
-      <div className="grain relative overflow-hidden border-l-8 border-[var(--menu-red)] bg-[var(--menu-ink)] px-6 py-10 text-white sm:px-10 sm:py-14 lg:px-14 lg:py-16">
+      <div className="grain relative overflow-hidden border-l-8 border-[var(--menu-red)] bg-[var(--menu-bar)] px-6 py-10 text-white sm:px-10 sm:py-14 lg:px-14 lg:py-16">
         <div className="pointer-events-none absolute -right-20 -top-24 font-display text-[18rem] font-black leading-none text-white/[0.025]">
           3
         </div>

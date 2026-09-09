@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:rider_app/core/theme/app_colors.dart';
 
 import '../../../../core/router/route_paths.dart';
+import '../../../../core/theme/app_tokens.dart';
 import '../../../../core/widgets/buttons/app_primary_button.dart';
 import '../../../../core/widgets/inputs/app_text_field.dart';
 import '../../../../core/widgets/inputs/app_otp_input.dart';
@@ -27,7 +29,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  bool _rememberMe = true;
+
 
   final _vehicleTypeCtrl = TextEditingController();
   final _vehicleModelCtrl = TextEditingController();
@@ -96,8 +98,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         _startTimer();
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+      }
     } finally {
       if (mounted) setState(() => _sendingOtp = false);
     }
@@ -119,8 +122,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         _nextStep(2);
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -167,12 +171,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         _registered = true;
       }
       if (mounted) {
-        _sendOtp();
+        unawaited(_sendOtp());
         _nextStep(1);
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -198,8 +203,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       );
       if (mounted) setState(() => _docs[type] = picked.path);
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -219,8 +225,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       );
       if (mounted) _nextStep(4);
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -275,9 +282,24 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       showBack: _step > 0 && _step < 4,
       onBack: _step > 0 && _step < 4 ? () => _nextStep(_step - 1) : null,
       footer: footer,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: Container(key: ValueKey<int>(_step), child: content),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.full),
+            child: LinearProgressIndicator(
+              value: (_step + 1) / 5,
+              minHeight: 4,
+              backgroundColor: AppColors.surfaceElevated,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xxl),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: Container(key: ValueKey<int>(_step), child: content),
+          ),
+        ],
       ),
     );
   }
@@ -315,49 +337,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           obscureText: true,
         ),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: Checkbox(
-                    value: _rememberMe,
-                    onChanged: (v) => setState(() => _rememberMe = v ?? true),
-                    activeColor: const Color(0xFF10B981),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    side: const BorderSide(color: Color(0xFFD1D5DB)),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Remember me',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-            TextButton(
-              onPressed: () {},
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: const Text(
-                'Forgot password?',
-                style: TextStyle(
-                  color: Color(0xFFEF4444),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ],
-        ),
         if (_error != null) _ErrorText(_error!),
         const SizedBox(height: 32),
         AppPrimaryButton(
@@ -373,7 +352,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (_devCode != null) ...[
+        if (kDebugMode && _devCode != null) ...[
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -609,49 +588,38 @@ class _VerificationStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 16),
-        // Simple OTP-like visual circles as a placeholder for verification
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildCircle('—'),
-            const SizedBox(width: 12),
-            _buildCircle('—'),
-            const SizedBox(width: 12),
-            _buildCircle('—'),
-            const SizedBox(width: 12),
-            _buildCircle('—'),
-          ],
-        ),
-        const SizedBox(height: 48),
-        AppPrimaryButton(text: 'Continue', onPressed: onDone),
-        const SizedBox(height: 24),
-        const Text(
-          "Didn't get an email? Resend",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+        const SizedBox(height: AppSpacing.lg),
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.xxl),
+          decoration: BoxDecoration(
+            color: AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
+          child: Column(
+            children: [
+              const Icon(LucideIcons.clock, size: 48, color: AppColors.primary),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                'Application submitted',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'We will review your documents and notify you when approved.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                      height: 1.4,
+                    ),
+              ),
+            ],
           ),
         ),
+        const SizedBox(height: AppSpacing.xxxl),
+        AppPrimaryButton(text: 'Back to login', onPressed: onDone),
       ],
-    );
-  }
-
-  Widget _buildCircle(String char) {
-    return Container(
-      width: 56,
-      height: 56,
-      alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF3F4F6),
-        shape: BoxShape.circle,
-      ),
-      child: Text(
-        char,
-        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-      ),
     );
   }
 }

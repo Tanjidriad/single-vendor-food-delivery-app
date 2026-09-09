@@ -19,14 +19,16 @@ class AuthRemoteDataSource {
   }
 
   Future<Map<String, dynamic>> register({
-    required String email,
+    String? email,
+    String? phone,
     required String password,
     required String fullName,
   }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       ApiEndpoints.authRegister,
       data: {
-        'email': email,
+        'email': ?email,
+        'phone': ?phone,
         'password': password,
         'fullName': fullName,
       },
@@ -39,36 +41,68 @@ class AuthRemoteDataSource {
   }
 
   Future<Map<String, dynamic>> sendOtp({
-    required String email,
+    String? phone,
+    String? email,
     required String purpose,
   }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       ApiEndpoints.authOtpSend,
-      data: {'email': email, 'purpose': purpose},
+      data: {
+        'phone': ?phone,
+        'email': ?email,
+        'purpose': purpose,
+      },
     );
     return response.data!;
   }
 
+  /// Verifies OTP and returns auth tokens (used for LOGIN purpose).
+  Future<Map<String, dynamic>> verifyOtpLogin({
+    String? phone,
+    String? email,
+    required String code,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiEndpoints.authOtpVerify,
+      data: {
+        'phone': ?phone,
+        'email': ?email,
+        'code': code,
+        'purpose': 'LOGIN',
+      },
+    );
+    return response.data!;
+  }
+
+  /// Verifies OTP without returning tokens (used for VERIFY_PHONE purpose).
   Future<void> verifyOtp({
-    required String email,
+    String? phone,
+    String? email,
     required String code,
     required String purpose,
   }) async {
     await _dio.post(
       ApiEndpoints.authOtpVerify,
-      data: {'email': email, 'code': code, 'purpose': purpose},
+      data: {
+        'phone': ?phone,
+        'email': ?email,
+        'code': code,
+        'purpose': purpose,
+      },
     );
   }
 
   Future<void> resetPassword({
-    required String email,
+    String? email,
+    String? phone,
     required String code,
     required String newPassword,
   }) async {
     await _dio.post(
       ApiEndpoints.authForgotPasswordReset,
       data: {
-        'email': email,
+        'email': ?email,
+        'phone': ?phone,
         'code': code,
         'newPassword': newPassword,
       },

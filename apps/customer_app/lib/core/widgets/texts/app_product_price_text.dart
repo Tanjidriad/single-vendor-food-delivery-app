@@ -19,10 +19,11 @@ class AppProductPriceText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final text = AppFormatter.formatCurrency(price);
     final base = isLarge
-        ? Theme.of(context).textTheme.headlineSmall
-        : Theme.of(context).textTheme.titleMedium;
+        ? theme.textTheme.headlineSmall
+        : theme.textTheme.titleMedium;
 
     return Text(
       text,
@@ -31,7 +32,10 @@ class AppProductPriceText extends StatelessWidget {
       style: base?.copyWith(
         fontWeight: FontWeight.w700,
         decoration: lineThrough ? TextDecoration.lineThrough : null,
-        color: lineThrough ? Theme.of(context).textTheme.bodySmall?.color : null,
+        // Theme-driven so prices stay readable in light and dark.
+        color: lineThrough
+            ? theme.colorScheme.onSurfaceVariant
+            : theme.colorScheme.onSurface,
       ),
     );
   }

@@ -60,7 +60,7 @@ export class UploadsController {
   }
 
   @Post('avatar')
-  @Roles(UserRole.CUSTOMER)
+  @Roles(UserRole.CUSTOMER, UserRole.RIDER)
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -76,5 +76,24 @@ export class UploadsController {
   )
   uploadAvatar(@UploadedFile() file: Express.Multer.File) {
     return this.uploadsService.uploadImage(file, 'avatars');
+  }
+
+  @Post('image/delivery-proof')
+  @Roles(UserRole.RIDER)
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  uploadDeliveryProof(@UploadedFile() file: Express.Multer.File) {
+    return this.uploadsService.uploadImage(file, 'delivery-proof');
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _kAutoPrint = 'kitchen_auto_print';
@@ -7,6 +8,7 @@ const _kSoundEnabled = 'kitchen_sound_enabled';
 const _kShowTestOrders = 'kitchen_show_test_orders';
 const _kThemeMode = 'kitchen_theme_mode';
 const _kCompactDensity = 'kitchen_compact_density';
+const _kClosingPin = 'kitchen_closing_pin';
 
 class KitchenPreferences {
   const KitchenPreferences({
@@ -15,6 +17,7 @@ class KitchenPreferences {
     required this.showTestOrders,
     required this.themeMode,
     required this.compactDensity,
+    required this.closingPin,
   });
 
   final bool autoPrint;
@@ -22,6 +25,10 @@ class KitchenPreferences {
   final bool showTestOrders;
   final ThemeMode themeMode;
   final bool compactDensity;
+  /// 4-digit PIN required to close the restaurant. Empty string = no PIN set.
+  final String closingPin;
+
+  bool get hasPinSet => closingPin.isNotEmpty;
 
   KitchenPreferences copyWith({
     bool? autoPrint,
@@ -29,6 +36,7 @@ class KitchenPreferences {
     bool? showTestOrders,
     ThemeMode? themeMode,
     bool? compactDensity,
+    String? closingPin,
   }) {
     return KitchenPreferences(
       autoPrint: autoPrint ?? this.autoPrint,
@@ -36,6 +44,7 @@ class KitchenPreferences {
       showTestOrders: showTestOrders ?? this.showTestOrders,
       themeMode: themeMode ?? this.themeMode,
       compactDensity: compactDensity ?? this.compactDensity,
+      closingPin: closingPin ?? this.closingPin,
     );
   }
 }
@@ -47,6 +56,7 @@ final kitchenPreferencesProvider =
 
 class KitchenPreferencesNotifier extends Notifier<KitchenPreferences> {
   SharedPreferences? _prefs;
+  static const _secureStorage = FlutterSecureStorage();
 
   @override
   KitchenPreferences build() {
@@ -57,6 +67,7 @@ class KitchenPreferencesNotifier extends Notifier<KitchenPreferences> {
       showTestOrders: false,
       themeMode: ThemeMode.system,
       compactDensity: false,
+      closingPin: '',
     );
   }
 
@@ -66,12 +77,20 @@ class KitchenPreferencesNotifier extends Notifier<KitchenPreferences> {
 
   Future<void> _load() async {
     final prefs = await _ensurePrefs();
+    final pin = await _secureStorage.read(key: _kClosingPin) ??
+        prefs.getString(_kClosingPin) ??
+        '';
+    if (prefs.containsKey(_kClosingPin)) {
+      await _secureStorage.write(key: _kClosingPin, value: pin);
+      await prefs.remove(_kClosingPin);
+    }
     state = KitchenPreferences(
       autoPrint: prefs.getBool(_kAutoPrint) ?? true,
       soundEnabled: prefs.getBool(_kSoundEnabled) ?? true,
       showTestOrders: prefs.getBool(_kShowTestOrders) ?? false,
       themeMode: _parseThemeMode(prefs.getString(_kThemeMode)),
       compactDensity: prefs.getBool(_kCompactDensity) ?? false,
+      closingPin: pin,
     );
   }
 
@@ -110,5 +129,15 @@ class KitchenPreferencesNotifier extends Notifier<KitchenPreferences> {
     final prefs = await _ensurePrefs();
     await prefs.setBool(_kCompactDensity, value);
     state = state.copyWith(compactDensity: value);
+  }
+
+  Future<void> setClosingPin(String pin) async {
+    await _secureStorage.write(key: _kClosingPin, value: pin);
+    state = state.copyWith(closingPin: pin);
+  }
+
+  Future<void> clearClosingPin() async {
+    await _secureStorage.delete(key: _kClosingPin);
+    state = state.copyWith(closingPin: '');
   }
 }

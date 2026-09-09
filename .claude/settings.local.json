@@ -14,7 +14,21 @@
       "Bash(powershell -NoProfile -Command 'Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }')",
       "Bash(git clone *)",
       "Bash(echo \"---EXIT:$?---\")",
-      "Read(//c/Users/riads/.claude/skills/gstack/**)"
+      "Read(//c/Users/riads/.claude/skills/gstack/**)",
+      "mcp__visualize__read_me",
+      "mcp__visualize__show_widget",
+      "Bash(grep -v \"//\\\\|import\")",
+      "Bash(grep -n \"http://\\\\|https://\\\\|allowsInlineMediaPlayback\\\\|debuggingEnabled\\\\|mixedContent\" C:/Users/riads/Desktop/Food_delivery/apps/customer_app/lib/features/checkout/presentation/screens/bkash_payment_screen.dart)",
+      "Bash(npx tsc *)",
+      "Bash(Select-Object -Last 20)",
+      "WebFetch(domain:pub.dev)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\riads\\\\Desktop\\\\Food_delivery\" -Directory -Force | Where-Object { $_.Name -notin @\\('.git', '.github', '.vscode', '.cursor', '.agents', '.commandcode', '.kiro', '.claude'\\) })",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\riads\\\\Desktop\\\\Food_delivery\\\\apps\" -Directory | ForEach-Object { Write-Host \"=== $\\($_.Name\\) ===\" ; Get-ChildItem $_.FullName -Directory | Select-Object Name })",
+      "PowerShell(Head -20)",
+      "Bash(xargs cat)",
+      "Bash(npx jest *)",
+      "Bash(graphify query *)",
+      "Bash(curl -s https://api.github.com/repos/garrytan/gstack)"
     ]
   }
 }

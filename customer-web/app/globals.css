@@ -1,0 +1,489 @@
+@import "tailwindcss";
+
+/* useTheme() toggles data-theme on <html>; Tailwind's dark: variant defaults to
+   prefers-color-scheme, so without this every dark: utility in the app is dead
+   whenever the visitor picks a theme instead of inheriting the OS one. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@import "tw-animate-css";
+
+/* ============================================================
+   Wasabi design system — reconciled from the client's master
+   design doc. Primary red overridden to the real menu red
+   (#D21F3C). Cream + charcoal neutrals + supporting accents,
+   spacing / radius / shadow / motion / z tokens, light + dark.
+   ============================================================ */
+
+:root {
+  /* Primary scale — derived around the menu red #D21F3C */
+  --primary-50:  #FDF2F4;
+  --primary-100: #FBE0E4;
+  --primary-200: #F6BFC7;
+  --primary-300: #EE909D;
+  --primary-400: #E15266;
+  --primary-500: #D21F3C;
+  --primary-600: #B81833;
+  --primary-700: #99142B;
+  --primary-800: #7E1425;
+  --primary-900: #6B1423;
+  --brand: #D21F3C;
+  --brand-hover: #B81833;
+  --brand-active: #99142B;
+
+  /* Warm cream neutrals */
+  --cream-50:  #FFFDFC;
+  --cream-100: #FFF9F5;
+  --cream-200: #F7F2ED;
+  --cream-300: #F0E9E3;
+  --cream-400: #E6DDD5;
+
+  /* Charcoal */
+  --charcoal-900: #181615;
+  --charcoal-800: #272321;
+  --charcoal-700: #3E3936;
+  --charcoal-600: #59524E;
+  --charcoal-500: #6D6661;
+  --charcoal-400: #9B918B;
+  --charcoal-300: #BDB4AE;
+  --charcoal-200: #DED4CC;
+  --charcoal-100: #EBE4DE;
+
+  /* Supporting accents (use ≤5%) */
+  --mustard: #D9A22B;
+  --coral:   #C76365;
+  --olive:   #596043;
+  --success: #46715A;
+  --warning: #C88A32;
+  --error:   #A91D25;
+
+  /* Semantic surfaces (light) */
+  --background:      #FFF9F5;
+  --surface:         #FFFFFF;
+  --surface-sunken:  #F7F2ED;
+  --foreground:      #181615;
+  --foreground-dim:  #59524E;
+  --foreground-mute: #9B918B;
+  --border:          #DED4CC;
+  --border-subtle:   rgba(24, 22, 21, 0.08);
+  --ink:             #181615;
+  --on-ink:          #FFF9F5;
+
+  /* Radius */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 18px;
+
+  /* Shadows — warm, soft */
+  --shadow-xs: 0 2px 8px rgba(32, 24, 16, 0.05);
+  --shadow-sm: 0 8px 24px rgba(32, 24, 16, 0.07);
+  --shadow-md: 0 16px 50px rgba(32, 24, 16, 0.09);
+  --shadow-lg: 0 28px 80px rgba(32, 24, 16, 0.12);
+
+  /* Motion */
+  --duration-fast: 140ms;
+  --duration-normal: 240ms;
+  --duration-slow: 420ms;
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expressive: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Z-index scale */
+  --z-raised: 10;
+  --z-sticky: 100;
+  --z-overlay: 500;
+  --z-drawer: 700;
+  --z-modal: 900;
+  --z-toast: 1000;
+}
+
+/* Dark theme — derived to keep the cream/red/charcoal identity.
+   Grounds go warm-charcoal, cream becomes the text, red brightens
+   slightly so it still reads as the accent on dark surfaces. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background:      #151211;
+    --surface:         #201B19;
+    --surface-sunken:  #1A1615;
+    --foreground:      #F4EEE6;
+    --foreground-dim:  #B7ADA3;
+    --foreground-mute: #8A8078;
+    --border:          #352E29;
+    --border-subtle:   rgba(255, 249, 245, 0.09);
+    --ink:             #0E0C0B;
+    --on-ink:          #F4EEE6;
+    --brand:        #E7455C;
+    --brand-hover:  #EE5D71;
+    --brand-active: #D42E47;
+  }
+}
+:root[data-theme="dark"] {
+  --background:      #151211;
+  --surface:         #201B19;
+  --surface-sunken:  #1A1615;
+  --foreground:      #F4EEE6;
+  --foreground-dim:  #B7ADA3;
+  --foreground-mute: #8A8078;
+  --border:          #352E29;
+  --border-subtle:   rgba(255, 249, 245, 0.09);
+  --ink:             #0E0C0B;
+  --on-ink:          #F4EEE6;
+  --brand:        #E7455C;
+  --brand-hover:  #EE5D71;
+  --brand-active: #D42E47;
+}
+:root[data-theme="light"] {
+  --background:      #FFF9F5;
+  --surface:         #FFFFFF;
+  --surface-sunken:  #F7F2ED;
+  --foreground:      #181615;
+  --foreground-dim:  #59524E;
+  --foreground-mute: #9B918B;
+  --border:          #DED4CC;
+  --ink:             #181615;
+  --on-ink:          #FFF9F5;
+  --brand:        #D21F3C;
+  --brand-hover:  #B81833;
+  --brand-active: #99142B;
+}
+
+/* Expose the tokens Tailwind utilities can consume */
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-foreground: var(--foreground);
+  --color-foreground-dim: var(--foreground-dim);
+  --color-foreground-mute: var(--foreground-mute);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-ink: var(--ink);
+  --color-on-ink: var(--on-ink);
+  --color-cream: var(--cream-100);
+  --color-mustard: var(--mustard);
+  --color-success: var(--success);
+  --color-error: var(--error);
+  --color-border: var(--border);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  background: var(--background);
+  color: var(--foreground);
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  overflow-x: hidden;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+.font-display {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-optical-sizing: auto;
+}
+
+.font-street {
+  font-family: var(--font-archivo-black), Impact, "Arial Black", sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+}
+
+/* WASABI menu concept: ticket cuts and a restrained rice-paper surface. */
+.wasabi-menu-shell {
+  /* --menu-ink is the *foreground* colour: it flips to near-white in dark mode.
+     Surfaces that are meant to stay dark in both themes (the nav bar, the
+     footer) must not use it as a background, or they render white-on-white.
+     --menu-bar is that stable dark ground and is deliberately not overridden
+     in the dark blocks below. */
+  --menu-bar: #141313;
+
+  --menu-rice: #fbfaf6;
+  --menu-ink: #141313;
+  --menu-red: #d21f3c;
+  --menu-tan: #ead9b8;
+  background: var(--menu-rice);
+  color: var(--menu-ink);
+}
+
+/* Shared customer-web visual language outside the menu route. */
+.wasabi-app-shell {
+  /* --menu-ink is the *foreground* colour: it flips to near-white in dark mode.
+     Surfaces that are meant to stay dark in both themes (the nav bar, the
+     footer) must not use it as a background, or they render white-on-white.
+     --menu-bar is that stable dark ground and is deliberately not overridden
+     in the dark blocks below. */
+  --menu-bar: #141313;
+
+  --menu-rice: #fbfaf6;
+  --menu-ink: #141313;
+  --menu-red: #d21f3c;
+  --menu-tan: #ead9b8;
+  min-height: 100dvh;
+  background: var(--menu-rice);
+  color: var(--menu-ink);
+}
+
+.wasabi-app-shell .font-display {
+  font-family: var(--font-archivo-black), Impact, "Arial Black", sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+}
+
+/* Bento trays, counter slips and receipts use hard edges; circular controls remain circular. */
+.wasabi-app-shell [class*="rounded-[12px]"],
+.wasabi-app-shell [class*="rounded-[13px]"],
+.wasabi-app-shell [class*="rounded-[14px]"],
+.wasabi-app-shell [class*="rounded-[16px]"],
+.wasabi-app-shell [class*="rounded-[18px]"],
+.wasabi-app-shell [class*="rounded-[20px]"],
+.wasabi-app-shell [class*="rounded-[24px]"] {
+  border-radius: 0;
+}
+
+/* Soft elevation is off-brand here, but the hard offset shadow IS the brand.
+   Reset only Tailwind's named soft shadows and leave arbitrary shadow-[...]
+   values alone, or every deliberate offset gets flattened too. */
+.wasabi-app-shell [class~="shadow-sm"],
+.wasabi-app-shell [class~="shadow"],
+.wasabi-app-shell [class~="shadow-md"],
+.wasabi-app-shell [class~="shadow-lg"],
+.wasabi-app-shell [class~="shadow-xl"],
+.wasabi-app-shell [class~="shadow-2xl"] {
+  box-shadow: none;
+}
+
+.wasabi-app-shell .wasabi-page-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--menu-red);
+  font-size: 0.625rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.wasabi-app-shell .wasabi-page-kicker::before {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: currentColor;
+  content: "";
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .wasabi-app-shell {
+    --menu-rice: #171413;
+    --menu-ink: #f7f2ec;
+    --menu-tan: #4a3b2d;
+  }
+}
+
+:root[data-theme="dark"] .wasabi-app-shell {
+  --menu-rice: #171413;
+  --menu-ink: #f7f2ec;
+  --menu-tan: #4a3b2d;
+}
+
+.wasabi-ticket {
+  position: relative;
+}
+
+.wasabi-ticket::before,
+.wasabi-ticket::after {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  content: "";
+  border-radius: 999px;
+  background: var(--menu-rice);
+  transform: translateY(-50%);
+}
+
+.wasabi-ticket::before {
+  left: -9px;
+}
+
+.wasabi-ticket::after {
+  right: -9px;
+}
+
+.wasabi-clipped-corner {
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .wasabi-menu-shell {
+    --menu-rice: #171413;
+    --menu-ink: #f7f2ec;
+    --menu-tan: #4a3b2d;
+  }
+}
+
+:root[data-theme="dark"] .wasabi-menu-shell {
+  --menu-rice: #171413;
+  --menu-ink: #f7f2ec;
+  --menu-tan: #4a3b2d;
+}
+
+/* Subtle paper grain for warm surfaces (from doc §10) */
+.grain {
+  position: relative;
+}
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+::selection {
+  background: var(--brand);
+  color: #fff;
+}
+
+/* Cart CTA sits above the mobile bottom tab bar */
+.cart-bar-offset {
+  bottom: calc(60px + env(safe-area-inset-bottom) + 8px);
+}
+@media (min-width: 640px) {
+  .cart-bar-offset {
+    bottom: 1rem;
+  }
+}
+
+/* ======================================================================
+   Interaction primitives
+   Motion is short and mechanical — this brand is a counter, not a spa.
+   ====================================================================== */
+
+/* Tick draws itself on instead of fading: reads as a stamp, not a fade. */
+.choice-tick {
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+  opacity: 0;
+  transition:
+    stroke-dashoffset 220ms cubic-bezier(0.65, 0, 0.35, 1) 40ms,
+    opacity 90ms linear;
+}
+label:has(input:checked) .choice-tick {
+  stroke-dashoffset: 0;
+  opacity: 1;
+}
+
+/* The radio dot is a filled span, so it pops rather than draws. */
+.choice-dot {
+  opacity: 0;
+  transform: scale(0.2);
+  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 120ms linear;
+}
+label:has(input:checked) .choice-dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Knob overshoots very slightly, the way a real toggle snaps. */
+.choice-knob {
+  transform: translateX(0);
+  background: var(--foreground-dim);
+  transition:
+    transform 260ms cubic-bezier(0.34, 1.45, 0.64, 1),
+    background-color 160ms ease;
+}
+label:has(input:checked) .choice-knob {
+  transform: translateX(20px);
+  background: #fff;
+}
+
+/* Sweeping highlight beats a flat pulse for "content is coming". */
+@keyframes wasabi-sweep {
+  from { background-position: -140% 0; }
+  to { background-position: 240% 0; }
+}
+.skeleton-sweep {
+  background-color: color-mix(in srgb, var(--foreground) 8%, transparent);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--foreground) 6%, transparent) 45%,
+    transparent 90%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: wasabi-sweep 1.5s linear infinite;
+}
+
+/* Auto-dismiss timer, drawn rather than guessed at. */
+@keyframes wasabi-drain {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+.toast-timer {
+  transform-origin: left center;
+  animation: wasabi-drain var(--toast-duration, 4000ms) linear forwards;
+}
+
+/* Press states: the offset shadow collapses under the finger. */
+.press-offset {
+  box-shadow: 4px 4px 0 var(--ink);
+  transition:
+    transform 120ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 120ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.press-offset:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--ink);
+}
+.press-offset:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choice-tick,
+  .choice-dot,
+  .choice-knob,
+  .press-offset {
+    transition-duration: 0.001ms;
+  }
+  .skeleton-sweep,
+  .toast-timer {
+    animation: none;
+  }
+  .skeleton-sweep { background-image: none; }
+  .toast-timer { transform: scaleX(0); }
+}

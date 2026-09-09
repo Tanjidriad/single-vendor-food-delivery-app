@@ -8,10 +8,10 @@ import '../../../../core/utils/popups/loaders.dart';
 import '../../../../core/widgets/cwt/empty_state_widget.dart';
 import '../../../../core/widgets/shimmers/shimmer.dart';
 import '../../../offers/presentation/providers/offers_providers.dart';
-import '../../../offers/presentation/widgets/promo_ticket_card.dart';
 import '../../../orders/data/orders_repository.dart';
 import '../../../restaurant/data/restaurant_repository.dart';
 import '../providers/cart_provider.dart';
+import 'coupon_ticket_card.dart';
 
 class VoucherSelectionSheet extends ConsumerStatefulWidget {
   const VoucherSelectionSheet({super.key});
@@ -64,6 +64,7 @@ class _VoucherSelectionSheetState extends ConsumerState<VoucherSelectionSheet> {
   @override
   Widget build(BuildContext context) {
     final couponsAsync = ref.watch(publicCouponsProvider);
+    final subtotal = ref.watch(cartProvider).subtotal;
     final isDark = AppHelperFunctions.isDarkMode(context);
 
     return Container(
@@ -131,7 +132,7 @@ class _VoucherSelectionSheetState extends ConsumerState<VoucherSelectionSheet> {
                     ListView.separated(
                       padding: const EdgeInsets.all(20),
                       itemCount: coupons.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 16),
+                      separatorBuilder: (_, _) => const SizedBox(height: 16),
                       itemBuilder: (context, index) {
                         final c = coupons[index] as Map<String, dynamic>;
                         final code = c['code'] as String;
@@ -139,18 +140,12 @@ class _VoucherSelectionSheetState extends ConsumerState<VoucherSelectionSheet> {
 
                         return Opacity(
                           opacity: _applying && !isCurrentlyApplying ? 0.5 : 1.0,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              PromoTicketCard(
-                                coupon: c,
-                                isDark: isDark,
-                                actionText: isCurrentlyApplying ? '...' : 'APPLY',
-                                onActionTap: _applying ? null : () => _applyCoupon(code),
-                              ),
-                              if (isCurrentlyApplying)
-                                const CircularProgressIndicator(color: AppColors.primary),
-                            ],
+                          child: CouponTicketCard(
+                            coupon: c,
+                            subtotal: subtotal,
+                            isDark: isDark,
+                            isApplying: isCurrentlyApplying,
+                            onApply: _applying ? null : () => _applyCoupon(code),
                           ),
                         );
                       },
@@ -161,8 +156,8 @@ class _VoucherSelectionSheetState extends ConsumerState<VoucherSelectionSheet> {
               loading: () => ListView.separated(
                 padding: const EdgeInsets.all(20),
                 itemCount: 4,
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
-                itemBuilder: (_, __) => const TShimmerEffect(
+                separatorBuilder: (_, _) => const SizedBox(height: 16),
+                itemBuilder: (_, _) => const TShimmerEffect(
                   width: double.infinity,
                   height: 110,
                   radius: 16,

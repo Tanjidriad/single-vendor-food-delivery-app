@@ -54,4 +54,22 @@ export class ReportsController {
   ) {
     return this.reports.riderEarnings(user.riderProfileId!, period);
   }
+
+  @Get('rider/performance')
+  @Roles(UserRole.RIDER)
+  riderPerformance(
+    @CurrentUser() user: JwtPayload,
+    @Query('period') period: 'day' | 'week' | 'month' | 'all' = 'week',
+  ) {
+    return this.reports.riderQualityMetrics(user.riderProfileId!, period);
+  }
+
+  @Get('rider/cash')
+  @Roles(UserRole.RIDER)
+  riderCash(
+    @CurrentUser() user: JwtPayload,
+    @Query('period') period: 'day' | 'week' | 'month' | 'all' = 'day',
+  ) {
+    return this.reports.riderCashSummary(user.riderProfileId!, period);
+  }
 }

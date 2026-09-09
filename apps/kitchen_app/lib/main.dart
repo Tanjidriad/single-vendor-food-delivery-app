@@ -6,11 +6,17 @@ import 'core/bootstrap/app_bootstrap.dart';
 import 'core/config/api_host_resolver.dart';
 import 'core/router/app_router.dart';
 import 'core/services/kitchen_preferences.dart';
+import 'core/services/push_notification_service.dart';
 import 'core/theme/kitchen_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   bootstrapFlutterApp();
+  // Guarded — no-ops until Firebase credential files are added to the project.
+  await initFirebaseMessaging();
+  if (isFirebaseConfigured()) {
+    await enableCrashlyticsReporting();
+  }
   final prefs = await SharedPreferences.getInstance();
   await ApiHostResolver.init(prefs);
   runApp(const ProviderScope(child: KitchenApp()));

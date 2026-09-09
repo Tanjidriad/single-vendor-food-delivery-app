@@ -1,38 +1,35 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { retryFetch } from '../../common/utils/retry-fetch.util';
 
-/**
- * SMS delivery for OTP and transactional messages.
- * Twilio is the default provider; map keys can be swapped later without touching auth.
- */
 @Injectable()
 export class SmsService implements OnModuleInit {
   private readonly logger = new Logger(SmsService.name);
   private enabled = false;
-  private accountSid = '';
-  private authToken = '';
-  private fromNumber = '';
+  private acode = '';
+  private apiKey = '';
+  private senderId = '';
 
   constructor(private config: ConfigService) {}
 
   onModuleInit() {
-    const accountSid = this.config.get<string>('sms.twilioAccountSid')?.trim();
-    const authToken = this.config.get<string>('sms.twilioAuthToken')?.trim();
-    const fromNumber = this.config.get<string>('sms.twilioFromNumber')?.trim();
+    const acode    = this.config.get<string>('sms.rtcomAcode')?.trim();
+    const apiKey   = this.config.get<string>('sms.rtcomApiKey')?.trim();
+    const senderId = this.config.get<string>('sms.rtcomSenderId')?.trim();
 
-    if (accountSid && authToken && fromNumber) {
-      this.accountSid = accountSid;
-      this.authToken = authToken;
-      this.fromNumber = fromNumber;
-      this.enabled = true;
-      this.logger.log('Twilio SMS provider configured');
+    if (acode && apiKey && senderId) {
+      this.acode    = acode;
+      this.apiKey   = apiKey;
+      this.senderId = senderId;
+      this.enabled  = true;
+      this.logger.log('rtcom.xyz SMS provider configured');
       return;
     }
 
     const nodeEnv = this.config.get<string>('nodeEnv') ?? 'production';
     if (nodeEnv === 'production') {
       this.logger.warn(
-        'SMS not configured (set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER). Phone OTP will fail in production.',
+        'SMS not configured (set RTCOM_ACODE, RTCOM_API_KEY, RTCOM_SENDER_ID). Phone OTP will fail in production.',
       );
     }
   }
@@ -46,38 +43,35 @@ export class SmsService implements OnModuleInit {
       return false;
     }
 
-    const body = `Your FoodDelivery verification code is ${code}. Valid for ${expiryMinutes} minutes. Do not share this code.`;
+    const msg = `Your FoodDelivery verification code is ${code}. Valid for ${expiryMinutes} minutes. Do not share this code.`;
 
     try {
-      const url = `https://api.twilio.com/2010-04-01/Accounts/${this.accountSid}/Messages.json`;
-      const auth = Buffer.from(`${this.accountSid}:${this.authToken}`).toString(
-        'base64',
-      );
-      const params = new URLSearchParams({
-        To: phone,
-        From: this.fromNumber,
-        Body: body,
-      });
-
-      const response = await fetch(url, {
+      const response = await retryFetch('https://api.rtcom.xyz/onetomany', {
         method: 'POST',
-        headers: {
-          Authorization: `Basic ${auth}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: params.toString(),
+        headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(10_000),
+        body: JSON.stringify({
+          acode:           this.acode,
+          api_key:         this.apiKey,
+          senderid:        this.senderId,
+          type:            'text',
+          msg,
+          contacts:        phone,
+          transactionType: 'T',
+          contentID:       '',
+        }),
       });
 
-      if (!response.ok) {
-        const text = await response.text();
-        this.logger.error(`Twilio SMS failed (${response.status}): ${text}`);
-        return false;
+      const json = await response.json() as { response?: { code?: number; message?: string } };
+      if (json?.response?.code === 200) {
+        this.logger.log(`SMS OTP sent to ${phone}`);
+        return true;
       }
 
-      this.logger.log(`SMS OTP sent to ${phone}`);
-      return true;
+      this.logger.error(`rtcom SMS failed for ${phone}: ${json?.response?.message ?? 'unknown error'}`);
+      return false;
     } catch (err) {
-      this.logger.error(`Twilio SMS error for ${phone}`, err);
+      this.logger.error(`rtcom SMS error for ${phone}`, err);
       return false;
     }
   }

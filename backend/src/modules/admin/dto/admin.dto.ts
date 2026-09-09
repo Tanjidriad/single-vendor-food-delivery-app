@@ -1,7 +1,12 @@
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
-import { OrderStatus, UserRole, UserStatus } from '@prisma/client';
+import {
+  OrderStatus,
+  RiderDocumentStatus,
+  UserRole,
+  UserStatus,
+} from '@prisma/client';
 
 export class PaginationDto {
   @ApiPropertyOptional({ default: 1 })
@@ -64,6 +69,12 @@ export class UpdateRiderApprovalDto {
   @ApiProperty()
   @IsString()
   status: 'APPROVED' | 'REJECTED' | 'SUSPENDED';
+}
+
+export class UpdateDocumentStatusDto {
+  @ApiProperty({ enum: RiderDocumentStatus })
+  @IsEnum(RiderDocumentStatus)
+  status: RiderDocumentStatus;
 }
 
 export class SuperAdminOrderQueryDto extends PaginationDto {

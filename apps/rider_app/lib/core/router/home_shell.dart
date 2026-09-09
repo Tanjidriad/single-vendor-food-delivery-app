@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/notifications/presentation/providers/notifications_provider.dart';
 import '../../features/orders/presentation/assignment_navigation.dart';
 import '../../features/orders/presentation/providers/active_order_restore.dart';
 import '../../features/orders/presentation/providers/assignment_sync_controller.dart';
@@ -97,7 +98,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _onlineListener = ref.listenManual(isOnlineProvider, (_, __) {
+    _onlineListener = ref.listenManual(isOnlineProvider, (_, _) {
       _configureAssignmentPolling();
     });
     _activeOrderListener = ref.listenManual(activeOrderProvider, (previous, next) {
@@ -168,7 +169,12 @@ class _HomeShellState extends ConsumerState<HomeShell>
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
       case AppLifecycleState.hidden:
-        socket.setLifecycleAllowsReconnect(false);
+        // During an active delivery the socket must stay alive in the
+        // background so live location keeps broadcasting (the geolocator
+        // foreground service keeps the process running). Only let the socket
+        // go idle when there is no order in progress.
+        final hasActiveOrder = ref.read(activeOrderProvider) != null;
+        socket.setLifecycleAllowsReconnect(hasActiveOrder);
         _assignmentPollTimer?.cancel();
         _assignmentPollTimer = null;
       case AppLifecycleState.detached:
@@ -183,6 +189,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
     ref.watch(activeOrderRestoreProvider);
 
     final current = widget.navigationShell.currentIndex;
+    final unreadCount = ref.watch(unreadNotificationCountProvider);
 
     return Scaffold(
       extendBody: true,
@@ -195,6 +202,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
       bottomNavigationBar: _BottomBar(
         currentIndex: current,
         onTap: _goBranch,
+        profileBadgeCount: unreadCount,
       ),
     );
   }
@@ -242,16 +250,22 @@ class _CenterActionButton extends StatelessWidget {
 }
 
 class _BottomBar extends StatelessWidget {
-  const _BottomBar({required this.currentIndex, required this.onTap});
+  const _BottomBar({
+    required this.currentIndex,
+    required this.onTap,
+    this.profileBadgeCount = 0,
+  });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
+  final int profileBadgeCount;
 
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
       color: AppColors.surfaceLight,
-      elevation: 0,
+      elevation: 8,
+      shadowColor: Colors.black.withValues(alpha: 0.08),
       shape: const CircularNotchedRectangle(),
       notchMargin: 8,
       height: 64,
@@ -285,6 +299,7 @@ class _BottomBar extends StatelessWidget {
               icon: LucideIcons.user,
               label: 'Profile',
               selected: currentIndex == 4,
+              badgeCount: profileBadgeCount,
               onTap: () => onTap(4),
             ),
           ],
@@ -300,12 +315,14 @@ class _NavItem extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.badgeCount = 0,
   });
 
   final IconData icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final int badgeCount;
 
   @override
   Widget build(BuildContext context) {
@@ -325,13 +342,43 @@ class _NavItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 22, color: color),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(icon, size: 22, color: color),
+                    if (badgeCount > 0)
+                      Positioned(
+                        right: -6,
+                        top: -4,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            badgeCount > 9 ? '9+' : '$badgeCount',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
                 const SizedBox(height: 3),
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: 12,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                     color: color,
                   ),
                 ),

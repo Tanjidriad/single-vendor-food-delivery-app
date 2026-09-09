@@ -1,6 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -36,7 +35,6 @@ class _BkashPaymentScreenState extends ConsumerState<BkashPaymentScreen> {
   late final WebViewController _controller;
   var _executing = false;
   var _completed = false;
-  var _showHelp = true;
 
   @override
   void initState() {
@@ -96,7 +94,7 @@ class _BkashPaymentScreenState extends ConsumerState<BkashPaymentScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Payment failed: $e')),
+        const SnackBar(content: Text('Payment could not be completed. Please try again.')),
       );
       setState(() => _executing = false);
     }
@@ -112,43 +110,15 @@ class _BkashPaymentScreenState extends ConsumerState<BkashPaymentScreen> {
     }
   }
 
-  void _copyCode(String label, String value) {
-    Clipboard.setData(ClipboardData(text: value));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$label copied')),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pay with bKash'),
-        actions: [
-          IconButton(
-            tooltip: 'Sandbox help',
-            onPressed: () => setState(() => _showHelp = !_showHelp),
-            icon: Icon(_showHelp ? Icons.help_outline : Icons.help),
-          ),
-          TextButton(
-            onPressed: _executing ? null : _completePayment,
-            child: const Text(
-              'Done',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
       ),
       body: Stack(
         children: [
-          Column(
-            children: [
-              if (_showHelp) _SandboxHelpBanner(onCopy: _copyCode),
-              Expanded(child: WebViewWidget(controller: _controller)),
-            ],
-          ),
+          WebViewWidget(controller: _controller),
           if (_executing)
             const ColoredBox(
               color: Color(0x88000000),
@@ -161,109 +131,12 @@ class _BkashPaymentScreenState extends ConsumerState<BkashPaymentScreen> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Wallet 01770618575 · PIN is 5 digits: 12121 · OTP is 6 digits: 123456',
-                textAlign: TextAlign.center,
-                style: textTheme.bodySmall?.copyWith(
-                  color: const Color(0xFF6B7280),
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: _openInBrowser,
-                child: const Text('OTP not working? Open in browser'),
-              ),
-            ],
+          child: TextButton(
+            onPressed: _openInBrowser,
+            child: const Text('Having trouble? Open in browser'),
           ),
         ),
       ),
-    );
-  }
-}
-
-class _SandboxHelpBanner extends StatelessWidget {
-  const _SandboxHelpBanner({required this.onCopy});
-
-  final void Function(String label, String value) onCopy;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return Material(
-      color: const Color(0xFFFFF7ED),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Sandbox test codes',
-              style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 8),
-            _HelpRow(
-              label: '1. Wallet number',
-              value: '01770618575',
-              onCopy: () => onCopy('Wallet', '01770618575'),
-            ),
-            const SizedBox(height: 6),
-            _HelpRow(
-              label: '2. bKash PIN (5 digits, not 6)',
-              value: '12121',
-              onCopy: () => onCopy('PIN', '12121'),
-            ),
-            const SizedBox(height: 6),
-            _HelpRow(
-              label: '3. OTP / verification (6 digits)',
-              value: '123456',
-              onCopy: () => onCopy('OTP', '123456'),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'If a screen shows 6 boxes for PIN, enter 12121 only — leave the last box empty.',
-              style: textTheme.bodySmall?.copyWith(
-                color: const Color(0xFF9A3412),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HelpRow extends StatelessWidget {
-  const _HelpRow({
-    required this.label,
-    required this.value,
-    required this.onCopy,
-  });
-
-  final String label;
-  final String value;
-  final VoidCallback onCopy;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            '$label: $value',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ),
-        IconButton(
-          tooltip: 'Copy',
-          visualDensity: VisualDensity.compact,
-          onPressed: onCopy,
-          icon: const Icon(Icons.copy, size: 18),
-        ),
-      ],
     );
   }
 }

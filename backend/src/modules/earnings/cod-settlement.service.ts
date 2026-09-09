@@ -120,8 +120,14 @@ export class CodSettlementService {
     const foodAmountRemitted = round2(
       params.foodAmountRemitted ?? expectedFood,
     );
-    if (foodAmountRemitted < 0 || foodAmountRemitted > settlement.codCollectedAmount) {
-      throw new BadRequestException('Invalid food remittance amount');
+    // The rider only remits the food portion; the delivery fee stays in their
+    // pocket. Allowing up to the full grandTotal here would let an admin
+    // accidentally credit the restaurant the rider's fee too. Cap at the
+    // expected food remittance.
+    if (foodAmountRemitted < 0 || foodAmountRemitted > expectedFood) {
+      throw new BadRequestException(
+        `Food remittance must be between 0 and ${expectedFood}`,
+      );
     }
 
     return this.prisma.codSettlement.update({

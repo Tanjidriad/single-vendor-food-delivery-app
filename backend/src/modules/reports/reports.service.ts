@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { OrderStatus, RefundRequestStatus } from '@prisma/client';
+import { OrderStatus, PaymentMethod, RefundRequestStatus } from '@prisma/client';
 import {
+  codDeliveryKeptAmount,
+  codFoodRemittanceAmount,
   orderFoodRevenue,
   reportableDeliveredOrderWhere,
 } from '../../common/utils/earnings.util';
@@ -228,6 +230,189 @@ export class ReportsService {
       pendingBalance,
       payoutReady: pendingBalance > 0,
       recentPayouts: payouts,
+    };
+  }
+
+  /// Rider-facing quality metrics for the performance insights screen.
+  ///
+  /// Period-scoped by assignment `createdAt` (offers) and order `deliveredAt`
+  /// (completions). Rating is lifetime (from the rider profile). Every rate is
+  /// an integer percentage; rates degrade to 100 when there is no denominator
+  /// so a brand-new rider doesn't see a punitive 0%.
+  async riderQualityMetrics(riderProfileId: string, period: Period = 'week') {
+    const { start } = this.range(period);
+
+    const offered = await this.prisma.riderAssignment.count({
+      where: { riderId: riderProfileId, createdAt: { gte: start } },
+    });
+    const accepted = await this.prisma.riderAssignment.count({
+      where: {
+        riderId: riderProfileId,
+        status: 'ACCEPTED',
+        createdAt: { gte: start },
+      },
+    });
+    const cancelledCount = await this.prisma.riderAssignment.count({
+      where: {
+        riderId: riderProfileId,
+        status: 'CANCELLED',
+        createdAt: { gte: start },
+      },
+    });
+    const acceptanceRate =
+      offered > 0 ? Math.round((accepted / offered) * 100) : 100;
+
+    // Completion + on-time from delivered orders in the period.
+    const deliveredOrders = await this.prisma.order.findMany({
+      where: {
+        status: OrderStatus.DELIVERED,
+        deliveredAt: { gte: start },
+        isTest: false,
+        ignoreInReporting: false,
+        assignment: { riderId: riderProfileId, status: 'ACCEPTED' as const },
+      },
+      select: {
+        pickedUpAt: true,
+        deliveredAt: true,
+        restaurant: {
+          select: { settings: { select: { slaTransitSeconds: true } } },
+        },
+      },
+    });
+    const deliveries = deliveredOrders.length;
+    const completionRate =
+      accepted > 0
+        ? Math.min(100, Math.round((deliveries / accepted) * 100))
+        : 100;
+
+    let timedDeliveries = 0;
+    let onTimeDeliveries = 0;
+    for (const o of deliveredOrders) {
+      if (o.pickedUpAt && o.deliveredAt) {
+        timedDeliveries += 1;
+        const transitSeconds =
+          (o.deliveredAt.getTime() - o.pickedUpAt.getTime()) / 1000;
+        const slaTransitSeconds =
+          o.restaurant?.settings?.slaTransitSeconds ?? 1800;
+        if (transitSeconds <= slaTransitSeconds) onTimeDeliveries += 1;
+      }
+    }
+    const onTimeRate =
+      timedDeliveries > 0
+        ? Math.round((onTimeDeliveries / timedDeliveries) * 100)
+        : 100;
+
+    const profile = await this.prisma.riderProfile.findUnique({
+      where: { id: riderProfileId },
+      select: { ratingAvg: true, ratingCount: true },
+    });
+
+    return {
+      period,
+      offered,
+      accepted,
+      deliveries,
+      cancelledCount,
+      acceptanceRate,
+      completionRate,
+      onTimeRate,
+      ratingAvg: round2(profile?.ratingAvg ?? 5),
+      ratingCount: profile?.ratingCount ?? 0,
+    };
+  }
+
+  /// Cash-on-delivery reconciliation for a rider.
+  ///
+  /// The rider collects the full grandTotal from the customer, but keeps only
+  /// their riderFee. The food revenue portion (subtotal − discount + tax +
+  /// packaging) must be handed back to the restaurant. This view shows both
+  /// figures so the rider knows exactly how to split the cash at end of shift.
+  async riderCashSummary(riderProfileId: string, period: Period = 'day') {
+    const { start } = this.range(period);
+
+    // Include COD orders for this rider via settlement rows (recorded at OTP
+    // delivery), codCollectedAt, or assignment — do not require assignment
+    // status ACCEPTED because that row can be replaced during dispatch retries.
+    const orders = await this.prisma.order.findMany({
+      where: {
+        status: OrderStatus.DELIVERED,
+        deliveredAt: { gte: start },
+        isTest: false,
+        ignoreInReporting: false,
+        paymentMethod: PaymentMethod.COD,
+        OR: [
+          { codSettlement: { is: { riderId: riderProfileId } } },
+          {
+            codCollectedAt: { not: null },
+            assignment: { is: { riderId: riderProfileId } },
+          },
+          { assignment: { is: { riderId: riderProfileId } } },
+        ],
+      },
+      select: {
+        orderNumber: true,
+        grandTotal: true,
+        riderFee: true,
+        deliveryFee: true,
+        subtotal: true,
+        discountAmount: true,
+        taxAmount: true,
+        packagingFee: true,
+        deliveredAt: true,
+        codSettlement: {
+          select: {
+            codCollectedAmount: true,
+            deliveryFeeKept: true,
+          },
+        },
+      },
+      orderBy: { deliveredAt: 'desc' },
+    });
+
+    let cashCollected = 0;
+    let foodToRemit = 0;
+    let deliveryFeeKept = 0;
+
+    for (const order of orders) {
+      const collected =
+        order.codSettlement?.codCollectedAmount ?? order.grandTotal;
+      const kept =
+        order.codSettlement?.deliveryFeeKept ??
+        codDeliveryKeptAmount(order);
+      const remit = codFoodRemittanceAmount(order);
+
+      cashCollected += collected;
+      foodToRemit += remit;
+      deliveryFeeKept += kept;
+    }
+
+    const entries = orders.slice(0, 20).map((o) => {
+      const collected = o.codSettlement?.codCollectedAmount ?? o.grandTotal;
+      const kept =
+        o.codSettlement?.deliveryFeeKept ?? codDeliveryKeptAmount(o);
+      return {
+        orderNumber: o.orderNumber,
+        collected: round2(collected),
+        toRemit: round2(codFoodRemittanceAmount(o)),
+        kept: round2(kept),
+        time: o.deliveredAt
+          ? o.deliveredAt.toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true,
+            })
+          : '--',
+      };
+    });
+
+    return {
+      period,
+      cashCollected: round2(cashCollected),
+      ordersCount: orders.length,
+      foodToRemit: round2(foodToRemit),
+      deliveryFeeKept: round2(deliveryFeeKept),
+      cashToDeposit: round2(foodToRemit),
+      entries,
     };
   }
 

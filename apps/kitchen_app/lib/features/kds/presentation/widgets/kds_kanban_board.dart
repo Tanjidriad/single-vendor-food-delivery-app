@@ -63,6 +63,7 @@ class KdsKanbanBoard extends StatelessWidget {
         Expanded(
           child: KdsKanbanColumn(
             title: 'New orders',
+            showBadge: true,
             section: KitchenSection.newOrders,
             count: newOrders.length,
             accentColor: AppColors.pandaPink,
@@ -103,6 +104,7 @@ class KdsKanbanBoard extends StatelessWidget {
         Expanded(
           child: KdsKanbanColumn(
             title: 'New orders',
+            showBadge: true,
             section: KitchenSection.newOrders,
             count: newOrders.length,
             accentColor: AppColors.pandaPink,

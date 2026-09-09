@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_icons.dart';
@@ -18,7 +19,17 @@ class FloatingCartBar extends ConsumerWidget {
     final cart = ref.watch(cartProvider);
     if (cart.itemCount == 0) return const SizedBox.shrink();
 
-    return Padding(
+    return Animate(
+      effects: [
+        SlideEffect(
+          begin: const Offset(0, 0.5),
+          end: Offset.zero,
+          duration: 350.ms,
+          curve: Curves.easeOut,
+        ),
+        FadeEffect(duration: 350.ms),
+      ],
+      child: Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Material(
         elevation: 0,
@@ -54,6 +65,7 @@ class FloatingCartBar extends ConsumerWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }

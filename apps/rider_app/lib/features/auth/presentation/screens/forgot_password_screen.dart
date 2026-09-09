@@ -1,8 +1,13 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_paths.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/feedback/success_snack.dart';
 import '../../../../core/widgets/buttons/app_primary_button.dart';
 import '../../../../core/widgets/inputs/app_text_field.dart';
 import '../../../../core/widgets/layouts/clean_auth_scaffold.dart';
@@ -43,16 +48,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             email: email,
           );
       if (!mounted) return;
-      if (devCode != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Dev OTP: $devCode'), backgroundColor: const Color(0xFFF59E0B)),
-        );
+      if (kDebugMode && devCode != null) {
+        SuccessSnack.show(context, 'Dev OTP: $devCode');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Verification code sent!'), backgroundColor: Color(0xFF10B981)),
-        );
+        SuccessSnack.show(context, 'Verification code sent!');
       }
-      context.push('${RoutePaths.resetPassword}?email=${Uri.encodeComponent(email)}');
+      unawaited(context.push('${RoutePaths.resetPassword}?email=${Uri.encodeComponent(email)}'));
     } catch (e) {
       if (mounted) {
         setState(() => _error = e.toString().replaceAll('Exception: ', ''));
@@ -83,11 +84,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               padding: const EdgeInsets.only(top: 16),
               child: Text(
                 _error!,
-                style: const TextStyle(
-                  color: Color(0xFFEF4444),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.offline,
+                      fontWeight: FontWeight.w500,
+                    ),
               ),
             ),
           const SizedBox(height: 32),

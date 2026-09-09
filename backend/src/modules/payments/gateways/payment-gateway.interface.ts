@@ -17,6 +17,8 @@ export interface ExecutePaymentResult {
   success: boolean;
   transactionId?: string;
   transactionStatus?: string;
+  /** Amount the gateway actually captured, for server-side verification. */
+  amount?: string;
   raw?: unknown;
 }
 
@@ -24,6 +26,8 @@ export interface QueryPaymentResult {
   success: boolean;
   transactionId?: string;
   transactionStatus?: string;
+  /** Amount the gateway actually captured, for server-side verification. */
+  amount?: string;
   raw?: unknown;
 }
 

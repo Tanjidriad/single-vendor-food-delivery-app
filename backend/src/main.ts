@@ -2,7 +2,9 @@ import './instrument';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { SocketIoCorsAdapter } from './common/adapters/socket-io-cors.adapter';
@@ -10,11 +12,37 @@ import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { DevService } from './modules/dev/dev.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
+  app.useLogger(app.get(Logger));
   app.enableShutdownHooks();
   const config = app.get(ConfigService);
 
+  // Honour X-Forwarded-For from a trusted proxy/LB so req.ip (and per-IP rate
+  // limiting) reflect the real client instead of the proxy address.
+  const trustProxy = config.get<string>('trustProxy');
+  if (trustProxy !== undefined && trustProxy !== '') {
+    const hops = Number(trustProxy);
+    app.set(
+      'trust proxy',
+      Number.isFinite(hops)
+        ? hops
+        : trustProxy === 'true'
+          ? true
+          : trustProxy === 'false'
+            ? false
+            : trustProxy,
+    );
+  }
+
   app.use(helmet());
+
+  // Cap request body size to blunt memory-exhaustion abuse. File uploads use
+  // multipart (multer) with their own per-file limits, so 1mb is ample for JSON.
+  app.useBodyParser('json', { limit: '1mb' });
+  app.useBodyParser('urlencoded', { extended: true, limit: '1mb' });
+
   app.useWebSocketAdapter(new SocketIoCorsAdapter(app));
 
   const apiPrefix = config.get<string>('apiPrefix') ?? 'api/v1';

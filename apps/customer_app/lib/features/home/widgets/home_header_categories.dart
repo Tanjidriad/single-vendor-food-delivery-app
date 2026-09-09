@@ -47,7 +47,7 @@ class HomeHeaderCategories extends StatelessWidget {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: categories.length,
-              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
               itemBuilder: (_, i) {
                 final item = categoryFromApi(categories[i] as Map<String, dynamic>);
                 return _HeaderCategoryTile(

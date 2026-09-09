@@ -9,6 +9,9 @@ enum StatTone {
   /// breakdown grid). Brand-red icon, white value, secondary label.
   surface,
 
+  /// White card on the light app canvas (performance, earnings grids).
+  card,
+
   /// For sitting on top of a brand-colored / gradient header (e.g. the
   /// earnings balance header). Translucent white fill, all-white content.
   onAccent,
@@ -35,9 +38,13 @@ class StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool onAccent = tone == StatTone.onAccent;
+    final bool onCard = tone == StatTone.card;
 
-    final Color fill =
-        onAccent ? Colors.white.withValues(alpha: 0.16) : AppColors.surfaceElevated;
+    final Color fill = onAccent
+        ? Colors.white.withValues(alpha: 0.16)
+        : onCard
+            ? AppColors.surfaceLight
+            : AppColors.surfaceElevated;
     final Color iconColor = onAccent ? Colors.white : AppColors.primary;
     final Color valueColor = onAccent ? Colors.white : AppColors.textPrimary;
     final Color labelColor =
@@ -50,7 +57,10 @@ class StatTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: onAccent
             ? null
-            : Border.all(color: AppColors.borderDark),
+            : Border.all(
+                color: onCard ? AppColors.borderLight : AppColors.borderDark,
+              ),
+        boxShadow: onCard ? AppShadows.soft : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

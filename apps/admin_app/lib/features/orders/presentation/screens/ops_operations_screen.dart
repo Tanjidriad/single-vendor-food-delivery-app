@@ -66,9 +66,7 @@ class _OpsOperationsScreenState extends ConsumerState<OpsOperationsScreen> {
             }).toList(),
           ),
           const SizedBox(height: SpacingTokens.xl),
-          Expanded(
-            child: _buildTabBody(context, queuesAsync, refundsAsync),
-          ),
+          Expanded(child: _buildTabBody(context, queuesAsync, refundsAsync)),
         ],
       ),
     );
@@ -91,22 +89,22 @@ class _OpsOperationsScreenState extends ConsumerState<OpsOperationsScreen> {
   ) {
     return switch (tab) {
       _OpsTab.refunds => refundsAsync.maybeWhen(
-          data: (list) => list.length,
-          orElse: () => 0,
-        ),
+        data: (list) => list.length,
+        orElse: () => 0,
+      ),
       _ => queuesAsync.maybeWhen(
-          data: (queues) {
-            final key = switch (tab) {
-              _OpsTab.stuck => 'stuckDeliveries',
-              _OpsTab.failed => 'failedDeliveries',
-              _OpsTab.returned => 'returnedOrders',
-              _OpsTab.refunds => 'stuckDeliveries',
-            };
-            final list = queues[key];
-            return list is List ? list.length : 0;
-          },
-          orElse: () => 0,
-        ),
+        data: (queues) {
+          final key = switch (tab) {
+            _OpsTab.stuck => 'stuckDeliveries',
+            _OpsTab.failed => 'failedDeliveries',
+            _OpsTab.returned => 'returnedOrders',
+            _OpsTab.refunds => 'stuckDeliveries',
+          };
+          final list = queues[key];
+          return list is List ? list.length : 0;
+        },
+        orElse: () => 0,
+      ),
     };
   }
 
@@ -135,7 +133,9 @@ class _OpsOperationsScreenState extends ConsumerState<OpsOperationsScreen> {
         };
         final raw = queues[key];
         final orders = raw is List
-            ? List<_Order>.from(raw.map((e) => Map<String, dynamic>.from(e as Map)))
+            ? List<_Order>.from(
+                raw.map((e) => Map<String, dynamic>.from(e as Map)),
+              )
             : <_Order>[];
         return _ordersTable(orders);
       },
@@ -166,15 +166,15 @@ class _OpsOperationsScreenState extends ConsumerState<OpsOperationsScreen> {
     return _card(
       WDataTable<_Order>(
         columns: [
-          WTableColumn(label: 'Order', cellBuilder: (o) => Text('#${o['orderNumber'] ?? '—'}')),
+          WTableColumn(
+            label: 'Order',
+            cellBuilder: (o) => Text('#${o['orderNumber'] ?? '—'}'),
+          ),
           WTableColumn(
             label: 'Payment',
             cellBuilder: (o) => Text(_paymentLabel(o)),
           ),
-          WTableColumn(
-            label: 'SLA',
-            cellBuilder: (o) => Text(_slaLabel(o)),
-          ),
+          WTableColumn(label: 'SLA', cellBuilder: (o) => Text(_slaLabel(o))),
           WTableColumn(
             label: 'Actions',
             width: 160,
@@ -218,7 +218,8 @@ class _OpsOperationsScreenState extends ConsumerState<OpsOperationsScreen> {
           ),
           WTableColumn(
             label: 'Amount',
-            cellBuilder: (r) => Text('৳${(r['amount'] as num?)?.toStringAsFixed(2) ?? '0'}'),
+            cellBuilder: (r) =>
+                Text('৳${(r['amount'] as num?)?.toStringAsFixed(2) ?? '0'}'),
           ),
           WTableColumn(
             label: 'Reason',
@@ -254,10 +255,7 @@ class _OpsOperationsScreenState extends ConsumerState<OpsOperationsScreen> {
         border: Border.all(color: colors.border),
         boxShadow: ElevationTokens.sm,
       ),
-      child: ClipRRect(
-        borderRadius: RadiusTokens.borderRadiusLg,
-        child: child,
-      ),
+      child: ClipRRect(borderRadius: RadiusTokens.borderRadiusLg, child: child),
     );
   }
 
@@ -282,7 +280,9 @@ class _OpsOperationsScreenState extends ConsumerState<OpsOperationsScreen> {
     final id = order['id']?.toString();
     if (id == null) return;
     try {
-      await ref.read(opsRepositoryProvider).forceUnassign(id, reason: 'admin_ops');
+      await ref
+          .read(opsRepositoryProvider)
+          .forceUnassign(id, reason: 'admin_ops');
       ref.invalidate(opsQueuesProvider);
       _snack('Rider unassigned. Order will be re-offered.');
     } catch (_) {
@@ -317,10 +317,9 @@ class _OpsOperationsScreenState extends ConsumerState<OpsOperationsScreen> {
 
     if (action == null) return;
     try {
-      await ref.read(opsRepositoryProvider).resolveException(
-            id,
-            action: action,
-          );
+      await ref
+          .read(opsRepositoryProvider)
+          .resolveException(id, action: action);
       ref.invalidate(opsQueuesProvider);
       ref.invalidate(pendingRefundsProvider);
       _snack('Exception resolved.');
@@ -333,10 +332,9 @@ class _OpsOperationsScreenState extends ConsumerState<OpsOperationsScreen> {
     final id = refund['id']?.toString();
     if (id == null) return;
     try {
-      await ref.read(opsRepositoryProvider).updateRefund(
-            id,
-            status: 'APPROVED',
-          );
+      await ref
+          .read(opsRepositoryProvider)
+          .updateRefund(id, status: 'APPROVED');
       ref.invalidate(pendingRefundsProvider);
       _snack('Refund approved and queued for execution.');
     } catch (_) {
@@ -381,7 +379,9 @@ class _OpsTabChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: isActive ? colors.primary : colors.surface,
             borderRadius: RadiusTokens.borderRadiusMd,
-            border: Border.all(color: isActive ? colors.primary : colors.border),
+            border: Border.all(
+              color: isActive ? colors.primary : colors.border,
+            ),
           ),
           child: Text(
             label,

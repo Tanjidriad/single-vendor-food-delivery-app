@@ -6,21 +6,28 @@ import 'models/app_map_route_point.dart';
 
 /// Fetches driving routes from the Mapbox Directions API.
 class MapboxDirectionsService {
-  MapboxDirectionsService({Dio? dio}) : _dio = dio ?? Dio();
+  MapboxDirectionsService({Dio? dio})
+      : _dio = dio ??
+            Dio(BaseOptions(
+              connectTimeout: const Duration(seconds: 10),
+              receiveTimeout: const Duration(seconds: 10),
+            ));
 
   final Dio _dio;
   static const String _baseUrl =
       'https://api.mapbox.com/directions/v5/mapbox/driving';
 
   static String get _accessToken {
-    final token = dotenv.env['MAPBOX_ACCESS_TOKEN'];
-    if (token == null || token.isEmpty) {
-      throw StateError(
-        'MAPBOX_ACCESS_TOKEN is not set. Add it to apps/customer_app/.env '
-        '(copy from .env.example)',
-      );
+    const envToken = String.fromEnvironment('MAPBOX_ACCESS_TOKEN');
+    if (envToken.isNotEmpty) return envToken;
+    if (kDebugMode && dotenv.isInitialized) {
+      final token = dotenv.env['MAPBOX_ACCESS_TOKEN'];
+      if (token != null && token.isNotEmpty) return token;
     }
-    return token;
+    throw StateError(
+      'MAPBOX_ACCESS_TOKEN is not set. Pass --dart-define=MAPBOX_ACCESS_TOKEN=pk.xxx '
+      'or add it to apps/customer_app/.env in debug mode.',
+    );
   }
 
   Future<List<AppMapRoutePoint>> getRoute(

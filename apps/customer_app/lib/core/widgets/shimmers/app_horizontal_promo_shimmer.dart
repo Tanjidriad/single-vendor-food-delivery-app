@@ -22,8 +22,8 @@ class AppHorizontalPromoShimmer extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: padding),
         itemCount: itemCount,
-        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
-        itemBuilder: (_, __) => SizedBox(
+        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
+        itemBuilder: (_, _) => SizedBox(
           width: cardWidth,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

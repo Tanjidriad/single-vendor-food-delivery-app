@@ -49,19 +49,14 @@ class OrdersScreen extends ConsumerWidget {
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               itemCount: list.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 16),
+              separatorBuilder: (_, _) => const SizedBox(height: 16),
               itemBuilder: (_, i) {
-                final o = list[i] as Map<String, dynamic>;
-                final status = o['status'] as String? ?? 'PLACED';
+                final o = list[i];
+                final status = o.status;
 
-                // Safety date parser
-                String formattedDate = 'Today';
-                if (o['createdAt'] != null) {
-                  try {
-                    final parsed = DateTime.parse(o['createdAt'] as String);
-                    formattedDate = AppHelperFunctions.formatDate(parsed);
-                  } catch (_) {}
-                }
+                final formattedDate = o.createdAt != null
+                    ? AppHelperFunctions.formatDate(o.createdAt!)
+                    : 'Today';
 
                 // Soft status colors
                 Color statusBg = AppColors.primary.withValues(alpha: 0.1);
@@ -78,7 +73,7 @@ class OrdersScreen extends ConsumerWidget {
                 }
 
                 return GestureDetector(
-                  onTap: () => context.push(RoutePaths.orderDetailWithId(o['id'] as String)),
+                  onTap: () => context.push(RoutePaths.orderDetailWithId(o.id)),
                   child: Container(
                     decoration: BoxDecoration(
                       color: isDark ? AppColors.black400 : Colors.white,
@@ -123,7 +118,7 @@ class OrdersScreen extends ConsumerWidget {
                                       children: [
                                         Expanded(
                                           child: Text(
-                                            'Order #${o['orderNumber'] ?? ''}',
+                                            'Order #${o.orderNumber ?? ''}',
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -134,9 +129,7 @@ class OrdersScreen extends ConsumerWidget {
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
-                                          AppFormatter.formatCurrency(
-                                            (o['grandTotal'] as num?)?.toDouble() ?? 0,
-                                          ),
+                                          AppFormatter.formatCurrency(o.grandTotal),
                                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                                 fontWeight: FontWeight.w900,
                                                 color: AppColors.primary,
@@ -193,7 +186,7 @@ class OrdersScreen extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               TextButton.icon(
-                                onPressed: () => context.push(RoutePaths.orderDetailWithId(o['id'] as String)),
+                                onPressed: () => context.push(RoutePaths.orderDetailWithId(o.id)),
                                 style: TextButton.styleFrom(
                                   foregroundColor: isDark ? Colors.white70 : AppColors.textSecondary,
                                   padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -204,7 +197,7 @@ class OrdersScreen extends ConsumerWidget {
                                 ),
                                 label: const Icon(Iconsax.arrow_right_3, size: 16),
                               ),
-                              ReorderButton(orderId: o['id'] as String, compact: true),
+                              ReorderButton(orderId: o.id, compact: true),
                             ],
                           ),
                         ),

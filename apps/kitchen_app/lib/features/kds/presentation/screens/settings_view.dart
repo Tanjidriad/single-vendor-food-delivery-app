@@ -6,6 +6,8 @@ import '../../../../core/services/print_service.dart';
 import '../../../../core/services/sunmi_print_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../auth/widgets/pin_pad_dialog.dart';
+import '../widgets/kitchen_header.dart';
 
 class SettingsView extends ConsumerStatefulWidget {
   const SettingsView({super.key});
@@ -38,70 +40,85 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              border: Border(bottom: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.gray200)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Iconsax.setting_2, color: AppColors.pandaPink, size: 28),
-                const SizedBox(width: 12),
-                Text(
-                  'Settings',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
-                ),
-              ],
-            ),
-          ),
-          
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Profile Section
-                _buildSectionHeader('Profile'),
+    return Column(
+      children: [
+        const KitchenHeader(
+          title: 'Settings',
+          subtitle: 'Printer, display, alerts & security',
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Profile Section
+                  _buildSectionHeader('Profile'),
                 _buildCard([
                   ListTile(
                     leading: const CircleAvatar(
                       backgroundColor: AppColors.pandaPinkLight,
                       child: Icon(Iconsax.user, color: AppColors.pandaPink),
                     ),
-                    title: Text(user?['fullName'] ?? 'Kitchen Staff', style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
-                    subtitle: Text(user?['email'] ?? 'Kitchen account', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.gray700)),
+                    title: Text(
+                      user?['fullName'] ?? 'Kitchen Staff',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    subtitle: Text(
+                      user?['email'] ?? 'Kitchen account',
+                      style: TextStyle(
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.gray700,
+                      ),
+                    ),
                   ),
                 ]),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Hardware & Printing
                 _buildSectionHeader('Print'),
                 _buildCard([
                   _buildSwitchTile(
                     icon: Iconsax.printer,
                     title: 'Auto-print new orders',
-                    subtitle: 'Automatically print KOT when an order is accepted',
+                    subtitle:
+                        'Automatically print KOT when an order is accepted',
                     value: prefs.autoPrint,
-                    onChanged: (v) =>
-                        ref.read(kitchenPreferencesProvider.notifier).setAutoPrint(v),
+                    onChanged: (v) => ref
+                        .read(kitchenPreferencesProvider.notifier)
+                        .setAutoPrint(v),
                   ),
                   const Divider(height: 1, color: AppColors.gray200),
                   ListTile(
-                    leading: Icon(Iconsax.link, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
-                    title: Text('Sunmi Printer Status', style: TextStyle(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface)),
+                    leading: Icon(
+                      Iconsax.link,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.gray700,
+                    ),
+                    title: Text(
+                      'Sunmi Printer Status',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          width: 8, height: 8,
+                          width: 8,
+                          height: 8,
                           decoration: BoxDecoration(
-                            color: printerReady ? AppColors.success : AppColors.warning,
+                            color: printerReady
+                                ? AppColors.success
+                                : AppColors.warning,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -109,12 +126,18 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         Text(
                           printerReady ? 'Ready' : 'Not detected',
                           style: TextStyle(
-                            color: printerReady ? AppColors.success : AppColors.warning,
+                            color: printerReady
+                                ? AppColors.success
+                                : AppColors.warning,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Icon(Iconsax.arrow_right_3, size: 16, color: AppColors.gray500),
+                        const Icon(
+                          Iconsax.arrow_right_3,
+                          size: 16,
+                          color: AppColors.gray500,
+                        ),
                       ],
                     ),
                     onTap: () async {
@@ -131,7 +154,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                           ],
                         });
                         messenger.showSnackBar(
-                          const SnackBar(content: Text('Test ticket sent to printer')),
+                          const SnackBar(
+                            content: Text('Test ticket sent to printer'),
+                          ),
                         );
                       } else {
                         messenger.showSnackBar(
@@ -145,7 +170,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     },
                   ),
                 ]),
-                
+
                 const SizedBox(height: 24),
 
                 // Display
@@ -156,7 +181,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   _buildSwitchTile(
                     icon: Iconsax.maximize,
                     title: 'Compact Density',
-                    subtitle: 'Smaller cards and padding for high-volume stores',
+                    subtitle:
+                        'Smaller cards and padding for high-volume stores',
                     value: prefs.compactDensity,
                     onChanged: (v) => ref
                         .read(kitchenPreferencesProvider.notifier)
@@ -177,6 +203,90 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     onChanged: (v) => ref
                         .read(kitchenPreferencesProvider.notifier)
                         .setSoundEnabled(v),
+                  ),
+                ]),
+
+                const SizedBox(height: 24),
+
+                // Security
+                _buildSectionHeader('Security'),
+                _buildCard([
+                  ListTile(
+                    leading: Icon(
+                      Iconsax.lock,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.gray700,
+                    ),
+                    title: Text(
+                      prefs.hasPinSet ? 'Closing PIN: Set' : 'Set Closing PIN',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    subtitle: Text(
+                      prefs.hasPinSet
+                          ? 'PIN required to close the restaurant'
+                          : 'No PIN — anyone can close the restaurant',
+                      style: TextStyle(
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.gray700,
+                        fontSize: 12,
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (prefs.hasPinSet)
+                          TextButton(
+                            onPressed: () async {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  title: const Text('Remove PIN?'),
+                                  content: const Text(
+                                    'This will allow anyone to close the restaurant without a PIN.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                      child: const Text(
+                                        'Remove',
+                                        style: TextStyle(
+                                          color: AppColors.error,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirmed == true) {
+                                await ref
+                                    .read(kitchenPreferencesProvider.notifier)
+                                    .clearClosingPin();
+                              }
+                            },
+                            child: const Text(
+                              'Remove',
+                              style: TextStyle(color: AppColors.error),
+                            ),
+                          ),
+                        const Icon(
+                          Iconsax.arrow_right_3,
+                          size: 16,
+                          color: AppColors.gray500,
+                        ),
+                      ],
+                    ),
+                    onTap: () => _showSetPinFlow(context, ref, prefs),
                   ),
                 ]),
 
@@ -206,7 +316,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.error,
                       side: const BorderSide(color: AppColors.error),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     onPressed: () {
                       ref.read(authProvider.notifier).logout();
@@ -216,26 +328,90 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                       children: [
                         Icon(Iconsax.logout),
                         SizedBox(width: 8),
-                        Text('Log Out', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        Text(
+                          'Log Out',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 24),
                 Center(
                   child: Text(
                     'Kitchen App v1.0.0',
-                    style: TextStyle(color: isDark ? AppColors.gray700 : AppColors.gray500, fontSize: 13),
+                    style: TextStyle(
+                      color: isDark ? AppColors.gray700 : AppColors.gray500,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
-              ],
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
+  }
+
+  /// Two-step flow: enter new PIN → confirm new PIN → save.
+  Future<void> _showSetPinFlow(
+    BuildContext context,
+    WidgetRef ref,
+    KitchenPreferences prefs,
+  ) async {
+    // Step 1 — if a PIN is already set, verify the old one first
+    if (prefs.hasPinSet) {
+      final verified = await showPinPadDialog(
+        context,
+        expectedPin: prefs.closingPin,
+        title: 'Verify Current PIN',
+        subtitle: 'Enter your current PIN before changing it.',
+      );
+      if (!verified || !context.mounted) return;
+    }
+
+    // Step 2 — enter new PIN
+    final newPin = await showDialog<String>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => const _CapturePinDialog(title: 'Enter New 4-digit PIN'),
+    );
+    if (newPin == null || !context.mounted) return;
+
+    // Step 3 — confirm new PIN
+    final confirmed = await showDialog<String>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => const _CapturePinDialog(title: 'Confirm PIN'),
+    );
+    if (!context.mounted) return;
+
+    if (confirmed != newPin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('PINs do not match — please try again.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    await ref.read(kitchenPreferencesProvider.notifier).setClosingPin(newPin);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Closing PIN saved!'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    }
   }
 
   Widget _buildSectionHeader(String title) {
@@ -270,7 +446,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.gray200),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.gray200,
+        ),
       ),
       child: Column(children: children),
     );
@@ -287,9 +465,24 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     final isDark = theme.brightness == Brightness.dark;
 
     return SwitchListTile(
-      secondary: Icon(icon, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
-      title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface)),
-      subtitle: Text(subtitle, style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.gray700, fontSize: 12)),
+      secondary: Icon(
+        icon,
+        color: isDark ? AppColors.darkTextSecondary : AppColors.gray700,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onSurface,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          color: isDark ? AppColors.darkTextSecondary : AppColors.gray700,
+          fontSize: 12,
+        ),
+      ),
       value: value,
       activeThumbColor: AppColors.white50,
       activeTrackColor: AppColors.success,
@@ -299,7 +492,11 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     );
   }
 
-  Widget _buildThemeModeTile(BuildContext context, WidgetRef ref, KitchenPreferences prefs) {
+  Widget _buildThemeModeTile(
+    BuildContext context,
+    WidgetRef ref,
+    KitchenPreferences prefs,
+  ) {
     final labels = {
       ThemeMode.system: 'System',
       ThemeMode.light: 'Light',
@@ -309,10 +506,29 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     final isDark = theme.brightness == Brightness.dark;
 
     return ListTile(
-      leading: Icon(Iconsax.moon, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
-      title: Text('Theme', style: TextStyle(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface)),
-      subtitle: Text(labels[prefs.themeMode] ?? 'System', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.gray700, fontSize: 12)),
-      trailing: Icon(Iconsax.arrow_right_3, size: 16, color: isDark ? AppColors.gray700 : AppColors.gray500),
+      leading: Icon(
+        Iconsax.moon,
+        color: isDark ? AppColors.darkTextSecondary : AppColors.gray700,
+      ),
+      title: Text(
+        'Theme',
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onSurface,
+        ),
+      ),
+      subtitle: Text(
+        labels[prefs.themeMode] ?? 'System',
+        style: TextStyle(
+          color: isDark ? AppColors.darkTextSecondary : AppColors.gray700,
+          fontSize: 12,
+        ),
+      ),
+      trailing: Icon(
+        Iconsax.arrow_right_3,
+        size: 16,
+        color: isDark ? AppColors.gray700 : AppColors.gray500,
+      ),
       onTap: () async {
         final selected = await showModalBottomSheet<ThemeMode>(
           context: context,
@@ -320,7 +536,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           builder: (ctx) => _ThemePicker(current: prefs.themeMode),
         );
         if (selected != null) {
-          await ref.read(kitchenPreferencesProvider.notifier).setThemeMode(selected);
+          await ref
+              .read(kitchenPreferencesProvider.notifier)
+              .setThemeMode(selected);
         }
       },
     );
@@ -364,7 +582,11 @@ class _ThemePicker extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 'Choose theme',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
               const SizedBox(height: 8),
               ...options.map((option) {
@@ -375,29 +597,176 @@ class _ThemePicker extends StatelessWidget {
                     mode == ThemeMode.dark
                         ? Iconsax.moon
                         : mode == ThemeMode.light
-                            ? Iconsax.sun_1
-                            : Iconsax.mobile,
-                    color: selected ? AppColors.pandaPink : (isDark ? AppColors.darkTextSecondary : AppColors.gray700),
+                        ? Iconsax.sun_1
+                        : Iconsax.mobile,
+                    color: selected
+                        ? AppColors.pandaPink
+                        : (isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.gray700),
                   ),
                   title: Text(
                     title,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: selected ? AppColors.pandaPink : theme.colorScheme.onSurface,
+                      color: selected
+                          ? AppColors.pandaPink
+                          : theme.colorScheme.onSurface,
                     ),
                   ),
                   subtitle: Text(
                     subtitle,
-                    style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.gray700),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.gray700,
+                    ),
                   ),
                   trailing: selected
-                      ? const Icon(Iconsax.tick_circle, color: AppColors.pandaPink)
+                      ? const Icon(
+                          Iconsax.tick_circle,
+                          color: AppColors.pandaPink,
+                        )
                       : null,
                   onTap: () => Navigator.pop(context, mode),
                 );
               }),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A PIN entry dialog that returns the raw entered string (does not validate).
+/// Used when setting a new PIN.
+class _CapturePinDialog extends StatefulWidget {
+  final String title;
+  const _CapturePinDialog({required this.title});
+
+  @override
+  State<_CapturePinDialog> createState() => _CapturePinDialogState();
+}
+
+class _CapturePinDialogState extends State<_CapturePinDialog> {
+  String _entered = '';
+
+  void _onKey(String digit) {
+    if (_entered.length >= 4) return;
+    setState(() => _entered += digit);
+    if (_entered.length == 4) {
+      final captured = _entered;
+      Future.delayed(const Duration(milliseconds: 150), () {
+        if (mounted) Navigator.of(context).pop(captured);
+      });
+    }
+  }
+
+  void _onBack() {
+    if (_entered.isEmpty) return;
+    setState(() => _entered = _entered.substring(0, _entered.length - 1));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final keys = [
+      ['1', '2', '3'],
+      ['4', '5', '6'],
+      ['7', '8', '9'],
+      ['', '0', '⌫'],
+    ];
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(28, 32, 28, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(4, (i) {
+                final filled = i < _entered.length;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 120),
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: filled ? AppColors.pandaPink : Colors.transparent,
+                    border: Border.all(
+                      color: filled
+                          ? AppColors.pandaPink
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.25),
+                      width: 2,
+                    ),
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 28),
+            ...keys.map(
+              (row) => Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: row.map((k) {
+                  if (k.isEmpty) return const SizedBox(width: 72, height: 56);
+                  return GestureDetector(
+                    onTap: k == '⌫' ? _onBack : () => _onKey(k),
+                    child: Container(
+                      width: 72,
+                      height: 56,
+                      alignment: Alignment.center,
+                      decoration: k == '⌫'
+                          ? null
+                          : BoxDecoration(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.06,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                      child: k == '⌫'
+                          ? Icon(
+                              Icons.backspace_outlined,
+                              size: 20,
+                              color: theme.colorScheme.onSurface,
+                            )
+                          : Text(
+                              k,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

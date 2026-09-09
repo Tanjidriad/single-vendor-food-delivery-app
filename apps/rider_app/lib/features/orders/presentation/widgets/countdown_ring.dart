@@ -26,6 +26,7 @@ class CountdownRing extends StatelessWidget {
     super.key,
     required this.fraction,
     required this.isWarning,
+    required this.isCritical,
     required this.child,
     this.size = 220,
     this.strokeWidth = 8,
@@ -39,14 +40,18 @@ class CountdownRing extends StatelessWidget {
     this.size = 220,
     this.strokeWidth = 8,
   })  : fraction = state.fraction,
-        isWarning = state.isWarning;
+        isWarning = state.isWarning,
+        isCritical = state.isCritical;
 
   /// Ring fill in `[0, 1]`. `1.0` = full, `0.0` = empty. Values outside the
   /// range are clamped by the painter.
   final double fraction;
 
-  /// Whether to render the warning color treatment.
+  /// Whether to render the amber warning color treatment.
   final bool isWarning;
+
+  /// Whether to render the critical red color treatment.
+  final bool isCritical;
 
   /// The widget centered inside the ring (typically the primary action).
   final Widget child;
@@ -67,11 +72,11 @@ class CountdownRing extends StatelessWidget {
         (isDark ? AppColors.borderDark : AppColors.borderLight)
             .withValues(alpha: isDark ? 0.6 : 1.0);
 
-    // Normal treatment uses amber ("time ticking"); warning escalates to the
-    // offline red. Amber is used rather than the brand red so the red warning
-    // state stays visually distinct now that the brand itself is red.
-    final Color progressColor =
-        isWarning ? AppColors.offline : AppColors.busy;
+    final Color progressColor = isCritical
+        ? AppColors.offline
+        : isWarning
+            ? AppColors.busy
+            : AppColors.inProgress;
 
     return SizedBox(
       width: size,

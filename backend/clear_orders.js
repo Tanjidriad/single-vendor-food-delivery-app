@@ -1,3 +1,4 @@
+require('./scripts/_safety-guard');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 

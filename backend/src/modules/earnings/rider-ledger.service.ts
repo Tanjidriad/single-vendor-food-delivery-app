@@ -6,6 +6,7 @@ import {
 import {
   LedgerEntryType,
   OrderStatus,
+  PaymentMethod,
   PayoutStatus,
   Prisma,
 } from '@prisma/client';
@@ -53,11 +54,20 @@ export class RiderLedgerService {
       id: string;
       status: OrderStatus;
       riderFee: number;
+      paymentMethod: PaymentMethod;
       assignment?: { riderId: string; status: string } | null;
     },
   ) {
     if (order.status !== OrderStatus.DELIVERED) return;
     if (!order.assignment || order.assignment.status !== 'ACCEPTED') return;
+
+    // COD: the rider already keeps their delivery fee out of the cash collected
+    // at the door (tracked via CodSettlement.deliveryFeeKept), so the platform
+    // owes them nothing. Crediting the ledger here would pay the fee a second
+    // time on the next payout. Only online-paid orders create a real platform
+    // debt to the rider. Their gross earnings still surface in reports, which
+    // read riderFee straight off the order rather than the ledger.
+    if (order.paymentMethod === PaymentMethod.COD) return;
 
     await this.creditDeliveryEarning(tx, {
       orderId: order.id,

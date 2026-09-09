@@ -27,17 +27,19 @@ class CartState {
       );
 }
 
-class CartNotifier extends StateNotifier<CartState> {
-  CartNotifier(this._storage) : super(const CartState()) {
-    _load();
-  }
-
-  final LocalStorage _storage;
+class CartNotifier extends Notifier<CartState> {
   static const _key = 'cart_v1';
 
-  Future<void> _load() async {
+  LocalStorage get _storage => ref.read(localStorageProvider);
+
+  @override
+  CartState build() => _loadInitial();
+
+  /// Restores the persisted cart synchronously (local storage reads are sync),
+  /// so the initial [build] state already reflects saved items.
+  CartState _loadInitial() {
     final raw = _storage.readString(_key);
-    if (raw == null) return;
+    if (raw == null) return const CartState();
     try {
       final list = jsonDecode(raw) as List<dynamic>;
       final items = list.map((e) {
@@ -54,8 +56,10 @@ class CartNotifier extends StateNotifier<CartState> {
               .toList(),
         );
       }).toList();
-      state = state.copyWith(items: items);
-    } catch (_) {}
+      return CartState(items: items);
+    } catch (_) {
+      return const CartState();
+    }
   }
 
   Future<void> _persist() async {
@@ -126,6 +130,4 @@ class CartNotifier extends StateNotifier<CartState> {
   }
 }
 
-final cartProvider = StateNotifierProvider<CartNotifier, CartState>((ref) {
-  return CartNotifier(ref.watch(localStorageProvider));
-});
+final cartProvider = NotifierProvider<CartNotifier, CartState>(CartNotifier.new);

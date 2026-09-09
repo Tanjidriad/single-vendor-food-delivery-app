@@ -1,0 +1,36 @@
+# Shared analyzer configuration for the Flutter apps in this repo.
+#
+# Each app's analysis_options.yaml includes this file so lint rules stay
+# consistent across customer_app / rider_app (and can be adopted by the
+# other apps later). Keep app-specific overrides in the app's own file.
+#
+# NOTE: `strict-casts` / `strict-raw-types` are intentionally left off for now.
+# Most repositories still pass untyped Map<String, dynamic> across boundaries;
+# they will be enabled once the typed-data-layer work (Phase B) lands.
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.mocks.dart"
+
+linter:
+  rules:
+    # Correctness — catch real bug classes. These currently produce zero issues
+    # in customer_app / rider_app, so they act as a forward-looking guard.
+    - unawaited_futures # forgotten awaits silently swallow errors
+    - cancel_subscriptions # StreamSubscription leaks (socket/realtime)
+    - close_sinks # StreamController leaks (socket/realtime)
+    - avoid_empty_else
+    - unnecessary_statements
+    - no_adjacent_strings_in_list
+
+    # Production hygiene
+    - avoid_print # use a logger; print() ships to release logs
+
+  # Style-only lints (prefer_single_quotes, directives_ordering, ...) are
+  # intentionally NOT enabled: they generate large mechanical diffs with no
+  # production value and would obscure the architectural refactor. Run
+  # `dart format` + `dart fix` opportunistically instead.

@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../../core/router/route_paths.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_tokens.dart';
 import '../../../../core/widgets/feedback/error_state_view.dart';
+import '../../../../core/widgets/feedback/tab_loading_view.dart';
+import '../../../../core/widgets/status_chip.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../notifications/presentation/providers/notifications_provider.dart';
 import '../../../onboarding/data/onboarding_repository.dart';
+import '../../../performance/data/performance_summary.dart';
+import '../../../performance/presentation/providers/performance_provider.dart';
 import '../../data/rider_profile.dart';
 import '../providers/rider_profile_provider.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../widgets/profile_avatar.dart';
+import '../widgets/profile_ui_primitives.dart';
+
+/// How far the stats card overlaps the crimson hero header.
+const double _statsOverlap = 40;
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -18,71 +29,188 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(riderProfileProvider);
+    final performanceAsync = ref.watch(profilePerformancePreviewProvider);
+    final unreadCount = ref.watch(unreadNotificationCountProvider);
+    final performance = performanceAsync.whenOrNull(data: (d) => d);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9), // Classic native settings background
-      appBar: AppBar(
-        title: const Text(
-          'Profile',
-          style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: -0.5, color: AppColors.textPrimary),
-        ),
-        backgroundColor: const Color(0xFFF1F5F9),
-        elevation: 0,
-        centerTitle: false,
-      ),
+      backgroundColor: AppColors.backgroundLight,
       body: profileAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const TabLoadingView(),
         error: (err, _) => ErrorStateView(
           message: err.toString().replaceAll('Exception: ', ''),
           onRetry: () => ref.invalidate(riderProfileProvider),
         ),
-        data: (profile) => RefreshIndicator(
-          onRefresh: () async => ref.invalidate(riderProfileProvider),
-          child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 20), // Edge-to-edge lists don't need horizontal padding here
-            children: [
-              _HeroIdentity(profile: profile),
-              const SizedBox(height: 32),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text('WORK DETAILS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary, letterSpacing: 1.2)),
+        data: (profile) => AnnotatedRegion<SystemUiOverlayStyle>(
+          // White status-bar icons over the crimson hero.
+          value: SystemUiOverlayStyle.light
+              .copyWith(statusBarColor: Colors.transparent),
+          child: RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              ref.invalidate(riderProfileProvider);
+              ref.invalidate(profilePerformancePreviewProvider);
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 100),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      _HeroHeader(
+                        profile: profile,
+                        performance: performance,
+                        unreadCount: unreadCount,
+                      ),
+                      Positioned(
+                        left: AppSpacing.screen,
+                        right: AppSpacing.screen,
+                        bottom: -_statsOverlap,
+                        child: _StatsCard(performance: performance),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: _statsOverlap + AppSpacing.section),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.screen,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const ProfileSectionLabel(label: 'Earnings'),
+                        ProfileSectionCard(
+                          child: Column(
+                            children: [
+                              ProfileMenuRow(
+                                icon: LucideIcons.trophy,
+                                iconColor: AppColors.primary,
+                                iconBg: AppColors.primaryLight,
+                                title: 'My performance',
+                                subtitle: 'Stats, ratings & tips',
+                                onTap: () =>
+                                    context.push(RoutePaths.performance),
+                              ),
+                              ProfileMenuRow(
+                                icon: LucideIcons.banknote,
+                                iconColor: AppColors.primary,
+                                iconBg: AppColors.primaryLight,
+                                title: 'COD cash summary',
+                                subtitle: 'Collected, remit & fees',
+                                onTap: () => context.push(RoutePaths.cash),
+                                showDivider: false,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.section),
+                        const ProfileSectionLabel(label: 'Account'),
+                        ProfileSectionCard(
+                          child: Column(
+                            children: [
+                              ProfileMenuRow(
+                                icon: LucideIcons.user,
+                                iconColor: AppColors.textPrimary,
+                                iconBg: AppColors.surfaceElevated,
+                                title: 'Edit profile',
+                                subtitle: 'Name, vehicle & zone',
+                                onTap: () =>
+                                    context.push(RoutePaths.profileEdit),
+                              ),
+                              ProfileMenuRow(
+                                icon: LucideIcons.fileText,
+                                iconColor: AppColors.textPrimary,
+                                iconBg: AppColors.surfaceElevated,
+                                title: 'Documents',
+                                subtitle: 'NID, licence & registration',
+                                trailing: _documentsBadge(profile),
+                                onTap: () =>
+                                    context.push(RoutePaths.profileDocuments),
+                              ),
+                              ProfileMenuRow(
+                                icon: LucideIcons.bell,
+                                iconColor: AppColors.textPrimary,
+                                iconBg: AppColors.surfaceElevated,
+                                title: 'Notifications',
+                                subtitle: 'Delivery alerts & updates',
+                                trailing: unreadCount > 0
+                                    ? LabelChip(
+                                        label: '$unreadCount',
+                                        color: AppColors.primary,
+                                      )
+                                    : null,
+                                onTap: () =>
+                                    context.push(RoutePaths.notifications),
+                              ),
+                              ProfileMenuRow(
+                                icon: LucideIcons.lifeBuoy,
+                                iconColor: AppColors.textPrimary,
+                                iconBg: AppColors.surfaceElevated,
+                                title: 'Help center',
+                                subtitle: 'FAQs & support',
+                                onTap: () => context.push(RoutePaths.help),
+                                showDivider: false,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        _LogoutCard(onTap: () => _onLogout(context, ref)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              _WorkDetailsGroup(profile: profile),
-              const SizedBox(height: 24),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text('DOCUMENTS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary, letterSpacing: 1.2)),
-              ),
-              _DocumentsGroup(profile: profile),
-              const SizedBox(height: 32),
-              _LogoutTile(onTap: () => _onLogout(context, ref)),
-              const SizedBox(height: 100),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  /// Status badge for the Documents row, summarising all uploads.
+  static Widget? _documentsBadge(RiderProfileView profile) {
+    final docs = profile.documents;
+    if (docs.any((d) => d.status == 'REJECTED')) {
+      return const LabelChip(label: 'Action needed', color: AppColors.offline);
+    }
+    final pending = docs.where((d) => d.status == 'PENDING').length;
+    if (pending > 0) {
+      return LabelChip(label: '$pending in review', color: AppColors.busy);
+    }
+    final complete = docs.length >= RiderDocType.values.length &&
+        docs.every((d) => d.status == 'APPROVED');
+    if (complete) {
+      return const LabelChip(label: 'Verified', color: AppColors.online);
+    }
+    if (docs.isEmpty) {
+      return const LabelChip(label: 'Missing', color: AppColors.neutral);
+    }
+    return const LabelChip(label: 'Incomplete', color: AppColors.neutral);
+  }
+
   Future<void> _onLogout(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Log out', style: TextStyle(fontWeight: FontWeight.w700)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        title:
+            const Text('Log out', style: TextStyle(fontWeight: FontWeight.w700)),
         content: const Text('Are you sure you want to log out?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text('Cancel'),
           ),
-          TextButton(
+          FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: AppColors.offline,
-            ),
-            child: const Text('Log out', style: TextStyle(fontWeight: FontWeight.w700)),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.offline),
+            child: const Text('Log out'),
           ),
         ],
       ),
@@ -105,102 +233,162 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-// ── Hero Identity ───────────────────────────────────────────────────────────
-class _HeroIdentity extends StatelessWidget {
-  const _HeroIdentity({required this.profile});
+/// Full-bleed crimson header: screen title, notification bell, and the rider's
+/// identity (avatar, name, phone, status + rating chips).
+class _HeroHeader extends StatelessWidget {
+  const _HeroHeader({
+    required this.profile,
+    required this.performance,
+    required this.unreadCount,
+  });
 
   final RiderProfileView profile;
-
-  String get _initials {
-    final parts = profile.fullName.trim().split(RegExp(r'\s+'));
-    if (parts.isEmpty || parts.first.isEmpty) return '';
-    if (parts.length == 1) return parts.first.characters.first.toUpperCase();
-    return (parts.first.characters.first + parts[1].characters.first).toUpperCase();
-  }
+  final PerformanceSummary? performance;
+  final int unreadCount;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.primaryLight.withValues(alpha: 0.3),
-            border: Border.all(color: AppColors.primary, width: 2),
+    final textTheme = Theme.of(context).textTheme;
+    final rating = profile.ratingAvg ?? performance?.ratingAvg;
+    final trips = performance?.deliveries ?? 0;
+
+    final (IconData statusIcon, String statusLabel) =
+        switch (profile.approvalStatus) {
+      'APPROVED' => (LucideIcons.shieldCheck, 'Active rider'),
+      'REJECTED' => (LucideIcons.circleAlert, 'Rejected'),
+      'SUSPENDED' => (LucideIcons.circleAlert, 'Suspended'),
+      _ => (LucideIcons.clock, 'Pending approval'),
+    };
+
+    return Container(
+      width: double.infinity,
+      color: AppColors.primary,
+      padding: const EdgeInsets.only(bottom: AppSpacing.xl + _statsOverlap),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screen,
+            AppSpacing.md,
+            AppSpacing.screen,
+            0,
           ),
-          alignment: Alignment.center,
-          child: _initials.isEmpty
-              ? const Icon(LucideIcons.user, size: 40, color: AppColors.primary)
-              : Text(
-                  _initials,
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Account',
+                      style: textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
                   ),
+                  _BellButton(unreadCount: unreadCount),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              InkWell(
+                onTap: () => context.push(RoutePaths.profileEdit),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                child: Row(
+                  children: [
+                    ProfileAvatar(
+                      fullName: profile.fullName,
+                      avatarUrl: profile.avatarUrl,
+                      radius: 28,
+                      showCameraBadge: false,
+                      showOnlineDot: true,
+                      isOnline: profile.isOnline,
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            profile.fullName,
+                            style: textTheme.titleLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (profile.phone != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              profile.phone!,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: AppSpacing.sm),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              _HeroChip(icon: statusIcon, label: statusLabel),
+                              if (rating != null)
+                                _HeroChip(
+                                  icon: LucideIcons.star,
+                                  label: trips > 0
+                                      ? '${rating.toStringAsFixed(2)} · $trips trips'
+                                      : rating.toStringAsFixed(2),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    const Icon(
+                      LucideIcons.chevronRight,
+                      size: 20,
+                      color: Colors.white70,
+                    ),
+                  ],
                 ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          profile.fullName,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
-            letterSpacing: -0.5,
+              ),
+            ],
           ),
         ),
-        if (profile.phone != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            profile.phone!,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-        const SizedBox(height: 16),
-        _ApprovalBadge(status: profile.approvalStatus),
-      ],
+      ),
     );
   }
 }
 
-class _ApprovalBadge extends StatelessWidget {
-  const _ApprovalBadge({required this.status});
+/// Frosted white pill on the crimson header.
+class _HeroChip extends StatelessWidget {
+  const _HeroChip({required this.icon, required this.label});
 
-  final String status;
+  final IconData icon;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    final (Color color, IconData icon, String label) = switch (status) {
-      'APPROVED' => (const Color(0xFF10B981), LucideIcons.checkCircle2, 'Active Rider'),
-      'REJECTED' => (AppColors.offline, LucideIcons.xCircle, 'Application Rejected'),
-      'SUSPENDED' => (AppColors.offline, LucideIcons.ban, 'Account Suspended'),
-      _ => (const Color(0xFFF59E0B), LucideIcons.clock, 'Pending Approval'),
-    };
-    
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(100),
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(AppRadius.full),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
+          Icon(icon, size: 12, color: Colors.white),
+          const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: color,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
             ),
           ),
         ],
@@ -209,85 +397,106 @@ class _ApprovalBadge extends StatelessWidget {
   }
 }
 
-// ── Grouped List Container ──────────────────────────────────────────────────
-class _SettingsGroup extends StatelessWidget {
-  const _SettingsGroup({required this.children});
-  final List<Widget> children;
+class _BellButton extends StatelessWidget {
+  const _BellButton({required this.unreadCount});
+
+  final int unreadCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(
+          onPressed: () => context.push(RoutePaths.notifications),
+          style: IconButton.styleFrom(
+            backgroundColor: Colors.white.withValues(alpha: 0.18),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+          ),
+          icon: const Icon(LucideIcons.bell, size: 20, color: Colors.white),
+        ),
+        if (unreadCount > 0)
+          Positioned(
+            top: 6,
+            right: 6,
+            child: Container(
+              width: 9,
+              height: 9,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// White card floating over the header seam with the three key rates.
+class _StatsCard extends StatelessWidget {
+  const _StatsCard({required this.performance});
+
+  final PerformanceSummary? performance;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        color: AppColors.surfaceLight,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: AppShadows.medium,
       ),
-      child: Column(
-        children: children,
-      ),
-    );
-  }
-}
-
-// ── Work details ────────────────────────────────────────────────────────────
-class _WorkDetailsGroup extends StatelessWidget {
-  const _WorkDetailsGroup({required this.profile});
-
-  final RiderProfileView profile;
-
-  @override
-  Widget build(BuildContext context) {
-    return _SettingsGroup(
-      children: [
-        _SettingsRow(icon: LucideIcons.gauge, label: 'Vehicle', value: profile.vehicleType),
-        const Divider(height: 1, indent: 48, color: Color(0xFFF1F5F9)),
-        _SettingsRow(icon: LucideIcons.tag, label: 'Model', value: profile.vehicleModel),
-        const Divider(height: 1, indent: 48, color: Color(0xFFF1F5F9)),
-        _SettingsRow(icon: LucideIcons.hash, label: 'Plate', value: profile.vehicleRegistration),
-        const Divider(height: 1, indent: 48, color: Color(0xFFF1F5F9)),
-        _SettingsRow(icon: LucideIcons.map, label: 'Zone', value: profile.zone, isLast: true),
-      ],
-    );
-  }
-}
-
-class _SettingsRow extends StatelessWidget {
-  const _SettingsRow({
-    required this.icon, 
-    required this.label, 
-    required this.value,
-    this.isLast = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final String? value;
-  final bool isLast;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppColors.textSecondary),
-          const SizedBox(width: 12),
+          _StatCell(
+            value: performance != null ? '${performance!.completionRate}%' : '—',
+            label: 'Completion',
+          ),
+          const _StatDivider(),
+          _StatCell(
+            value: performance != null ? '${performance!.acceptanceRate}%' : '—',
+            label: 'Acceptance',
+          ),
+          const _StatDivider(),
+          _StatCell(
+            value: performance != null ? '${performance!.onTimeRate}%' : '—',
+            label: 'On-time',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatCell extends StatelessWidget {
+  const _StatCell({required this.value, required this.label});
+
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const Spacer(),
-          Text(
-            (value == null || value!.isEmpty) ? '—' : value!,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
+            style: textTheme.labelSmall?.copyWith(
               color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -296,196 +505,54 @@ class _SettingsRow extends StatelessWidget {
   }
 }
 
-// ── Documents ─────────────────────────────────────────────────────────────
-class _DocumentsGroup extends ConsumerStatefulWidget {
-  const _DocumentsGroup({required this.profile});
-
-  final RiderProfileView profile;
-
-  @override
-  ConsumerState<_DocumentsGroup> createState() => _DocumentsGroupState();
-}
-
-class _DocumentsGroupState extends ConsumerState<_DocumentsGroup> {
-  RiderDocType? _uploading;
-
-  Future<void> _upload(RiderDocType type) async {
-    try {
-      final picked = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 2000,
-        imageQuality: 85,
-      );
-      if (picked == null) return;
-      setState(() => _uploading = type);
-      await ref.read(onboardingRepositoryProvider).uploadDocument(
-            type: type,
-            filePath: picked.path,
-            fileName: picked.name,
-          );
-      ref.invalidate(riderProfileProvider);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
-            backgroundColor: AppColors.offline,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _uploading = null);
-    }
-  }
-
-  String? _statusFor(String wireType) {
-    for (final d in widget.profile.documents) {
-      if (d.type == wireType) return d.status;
-    }
-    return null;
-  }
+class _StatDivider extends StatelessWidget {
+  const _StatDivider();
 
   @override
   Widget build(BuildContext context) {
-    return _SettingsGroup(
-      children: [
-        for (int i = 0; i < RiderDocType.values.length; i++) ...[
-          _DocRow(
-            label: RiderDocType.values[i].label,
-            status: _statusFor(RiderDocType.values[i].wire),
-            busy: _uploading == RiderDocType.values[i],
-            onUpload: _uploading == null ? () => _upload(RiderDocType.values[i]) : null,
-          ),
-          if (i != RiderDocType.values.length - 1)
-            const Divider(height: 1, indent: 48, color: Color(0xFFF1F5F9)),
-        ],
-      ],
-    );
+    return Container(width: 1, height: 32, color: AppColors.borderLight);
   }
 }
 
-class _DocRow extends StatelessWidget {
-  const _DocRow({
-    required this.label,
-    required this.status,
-    required this.busy,
-    required this.onUpload,
-  });
-
-  final String label;
-  final String? status;
-  final bool busy;
-  final VoidCallback? onUpload;
-
-  @override
-  Widget build(BuildContext context) {
-    final bool uploaded = status != null;
-    final (Color color, String text) = switch (status) {
-      'APPROVED' => (const Color(0xFF10B981), 'Approved'),
-      'REJECTED' => (AppColors.offline, 'Rejected'),
-      'PENDING' => (const Color(0xFFF59E0B), 'In review'),
-      _ => (AppColors.textSecondary, 'Missing'),
-    };
-
-    return InkWell(
-      onTap: onUpload,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                uploaded ? LucideIcons.fileCheck2 : LucideIcons.fileWarning,
-                size: 20,
-                color: color,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    text,
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color),
-                  ),
-                ],
-              ),
-            ),
-            if (busy)
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2.5),
-              )
-            else if (onUpload != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Text(
-                  uploaded ? 'Update' : 'Upload',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
-              )
-            else
-              const Icon(LucideIcons.chevronRight, size: 20, color: Color(0xFFCBD5E1)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Logout ───────────────────────────────────────────────────────────────
-class _LogoutTile extends StatelessWidget {
-  const _LogoutTile({required this.onTap});
+/// Quiet destructive row — deliberately not a primary-styled button.
+class _LogoutCard extends StatelessWidget {
+  const _LogoutCard({required this.onTap});
 
   final VoidCallback onTap;
 
+  static const Color _dangerTint = Color(0xFFFEF2F2);
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+    return ProfileSectionCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.xs,
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: const Padding(
-          padding: EdgeInsets.all(16),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(LucideIcons.logOut, size: 18, color: AppColors.offline),
-              SizedBox(width: 8),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: _dangerTint,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                ),
+                child:
+                    const Icon(LucideIcons.logOut, size: 20, color: AppColors.offline),
+              ),
+              const SizedBox(width: AppSpacing.md),
               Text(
-                'Log Out',
-                style: TextStyle(color: AppColors.offline, fontWeight: FontWeight.w600, fontSize: 16),
+                'Log out',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.offline,
+                    ),
               ),
             ],
           ),

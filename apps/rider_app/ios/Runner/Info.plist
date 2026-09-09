@@ -66,6 +66,18 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need your location to assign you nearby delivery orders.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Background location lets us track your delivery progress even when the app is minimized.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access is needed for profile photos and proof-of-delivery photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo library access lets you choose a profile photo.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>comgooglemaps</string>

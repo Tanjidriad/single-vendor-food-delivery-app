@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -114,6 +115,30 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
     context.pop();
   }
 
+  /// The server expired/reassigned this offer before the local countdown ran
+  /// out (e.g. the rider's clock drifted, or dispatch moved it on). Tear the
+  /// screen down immediately rather than letting the rider accept a dead offer.
+  void _onServerExpired(Map<String, dynamic> payload) {
+    if (!mounted || _isAccepting || _isRejecting) return;
+    final expiredId = payload['assignmentId']?.toString();
+    final myId = AssignmentView.fromJson(_data).assignmentId;
+    // Only react to expiry of the offer this screen is showing.
+    if (expiredId == null || expiredId.isEmpty || expiredId != myId) return;
+
+    _countdownTimer?.cancel();
+    ref.read(activeAssignmentProvider.notifier).set(null);
+    ref.read(pendingAssignmentProvider.notifier).set(null);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('This offer expired before you responded.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    context.pop();
+  }
+
   /// Accepts the assignment behind the slide-to-confirm control (Requirement
   /// 3.6, 6.1).
   ///
@@ -133,6 +158,7 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
     }
 
     setState(() => _isAccepting = true);
+    unawaited(HapticFeedback.mediumImpact());
     try {
       final repo = ref.read(ordersRepositoryProvider);
       debugPrint('[AssignTrace] accept start assignmentId=$assignmentId');
@@ -241,11 +267,15 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final activeOrder = ref.watch(activeOrderProvider);
+    // React to a server-side expiry of this offer (Requirement 3.9, realtime
+    // path). The backend now also emits `assignment:expired` to the rider's
+    // personal room, so a pending offer is torn down even before the local
+    // countdown reaches zero.
+    ref.listen(assignmentExpiredStreamProvider, (previous, next) {
+      final data = next.value;
+      if (data != null) _onServerExpired(data);
+    });
 
-    // Defensive guard: the incoming screen is guarded against stacking over itself.
-    // We removed the activeOrder null check here so riders can receive multiple
-    // assignment popups while handling an existing delivery.
     final assignment = AssignmentView.fromJson(_data);
     final countdown = CountdownState.from(_remainingSeconds, _totalSeconds);
 
@@ -300,6 +330,7 @@ class _IncomingOrderScreenState extends ConsumerState<IncomingOrderScreen> {
                   _CountdownPill(
                     remainingSeconds: _remainingSeconds,
                     isWarning: countdown.isWarning,
+                    isCritical: countdown.isCritical,
                   ),
                   // The card is bottom-anchored and scrolls only if it cannot
                   // fit, so the layout never overflows on small screens.
@@ -487,10 +518,18 @@ class _CountdownPill extends StatelessWidget {
   const _CountdownPill({
     required this.remainingSeconds,
     required this.isWarning,
+    required this.isCritical,
   });
 
   final int remainingSeconds;
   final bool isWarning;
+  final bool isCritical;
+
+  Color get _color {
+    if (isCritical) return AppColors.offline;
+    if (isWarning) return AppColors.busy;
+    return AppColors.inProgress;
+  }
 
   String get _formatted {
     final safe = remainingSeconds < 0 ? 0 : remainingSeconds;
@@ -504,7 +543,7 @@ class _CountdownPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
-        color: isWarning ? AppColors.offline : AppColors.busy,
+        color: _color,
         borderRadius: BorderRadius.circular(30),
       ),
       child: Row(

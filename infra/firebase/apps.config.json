@@ -1,0 +1,20 @@
+{
+  "projectId": "wasabi-delivery-e7bf2",
+  "androidApps": [
+    {
+      "displayName": "Rider App",
+      "packageName": "com.fooddelivery.rider_app",
+      "target": "apps/rider_app/android/app/google-services.json"
+    },
+    {
+      "displayName": "Kitchen App",
+      "packageName": "com.fooddelivery.kitchen_app",
+      "target": "apps/kitchen_app/android/app/google-services.json"
+    },
+    {
+      "displayName": "Customer App",
+      "packageName": "com.demokitchen.fooddelivery.customer_app",
+      "target": "apps/customer_app/android/app/google-services.json"
+    }
+  ]
+}

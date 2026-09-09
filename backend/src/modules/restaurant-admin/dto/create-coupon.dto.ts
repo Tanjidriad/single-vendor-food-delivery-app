@@ -2,6 +2,7 @@ import {
   IsBoolean,
   IsDateString,
   IsIn,
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -44,4 +45,20 @@ export class CreateCouponDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  // ── Targeting ──────────────────────────────────────────────
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  perUserLimit?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  newCustomersOnly?: boolean;
+
+  /** Email or phone of the customer to restrict this coupon to.
+   *  Resolved to targetUserId server-side. Empty string clears targeting. */
+  @IsOptional()
+  @IsString()
+  targetCustomerIdentifier?: string;
 }

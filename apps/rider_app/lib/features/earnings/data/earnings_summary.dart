@@ -29,6 +29,15 @@ class EarningsSummary {
   /// degrades to [kEarningsPlaceholder] when absent.
   final String hoursOnline;
 
+  /// Withdrawable ledger balance from `pendingBalance`. Optional.
+  final num? pendingBalance;
+
+  /// Whether the rider has a positive balance ready for ops payout.
+  final bool payoutReady;
+
+  /// Admin-recorded payouts from `recentPayouts`. Empty when absent.
+  final List<PayoutEntry> recentPayouts;
+
   /// Recent delivery entries from `history`. Empty when absent or malformed.
   final List<EarningsEntry> recentDeliveries;
 
@@ -37,6 +46,9 @@ class EarningsSummary {
     required this.tripCount,
     required this.acceptanceRate,
     required this.hoursOnline,
+    this.pendingBalance,
+    this.payoutReady = false,
+    this.recentPayouts = const [],
     required this.recentDeliveries,
   });
 
@@ -54,9 +66,80 @@ class EarningsSummary {
           _asInt(json['totalTrips']) ?? _asInt(json['deliveries']) ?? 0,
       acceptanceRate: _asDouble(json['acceptanceRate']),
       hoursOnline: _asString(json['onlineHours']) ?? kEarningsPlaceholder,
+      pendingBalance: _asNum(json['pendingBalance']),
+      payoutReady: json['payoutReady'] == true,
+      recentPayouts: _asPayoutList(json['recentPayouts']),
       recentDeliveries: _asEntryList(json['history']),
     );
   }
+}
+
+/// A single ops-recorded payout within an [EarningsSummary].
+class PayoutEntry {
+  final num amount;
+  final String status;
+  final String? reference;
+  final String? note;
+  final String dateLabel;
+
+  const PayoutEntry({
+    required this.amount,
+    required this.status,
+    this.reference,
+    this.note,
+    required this.dateLabel,
+  });
+
+  factory PayoutEntry.fromJson(Map<String, dynamic> json) {
+    final paidAt = _parseDateTime(json['paidAt']);
+    final createdAt = _parseDateTime(json['createdAt']);
+    final date = paidAt ?? createdAt;
+    final reference = _asString(json['reference']);
+
+    final parts = <String>[
+      if (date != null) _formatPayoutDate(date),
+      if (reference != null) 'Ref: $reference',
+    ];
+
+    return PayoutEntry(
+      amount: _asNum(json['amount']) ?? 0,
+      status: _asString(json['status']) ?? kEarningsPlaceholder,
+      reference: reference,
+      note: _asString(json['note']),
+      dateLabel: parts.isEmpty ? kEarningsPlaceholder : parts.join(' · '),
+    );
+  }
+}
+
+DateTime? _parseDateTime(dynamic value) {
+  if (value == null) return null;
+  if (value is DateTime) return value;
+  if (value is String) return DateTime.tryParse(value);
+  return null;
+}
+
+String _formatPayoutDate(DateTime date) {
+  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  final weekday = weekdays[date.weekday - 1];
+  final month = months[date.month - 1];
+  final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
+  final minute = date.minute.toString().padLeft(2, '0');
+  final meridiem = date.hour >= 12 ? 'PM' : 'AM';
+  return '$weekday, $month ${date.day} · $hour:$minute $meridiem';
 }
 
 /// A single recent-delivery line item within an [EarningsSummary].
@@ -129,4 +212,17 @@ List<EarningsEntry> _asEntryList(dynamic value) {
     }
   }
   return entries;
+}
+
+List<PayoutEntry> _asPayoutList(dynamic value) {
+  if (value is! List) return const [];
+  final payouts = <PayoutEntry>[];
+  for (final item in value) {
+    if (item is Map<String, dynamic>) {
+      payouts.add(PayoutEntry.fromJson(item));
+    } else if (item is Map) {
+      payouts.add(PayoutEntry.fromJson(Map<String, dynamic>.from(item)));
+    }
+  }
+  return payouts;
 }

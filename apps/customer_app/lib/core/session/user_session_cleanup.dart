@@ -17,5 +17,5 @@ void clearUserScopedData(Ref ref) {
   ref.invalidate(favoriteMenuItemIdsProvider);
   ref.invalidate(ordersListProvider);
   ref.invalidate(orderDetailProvider);
-  ref.invalidate(notificationsListProvider);
+  ref.invalidate(notificationsProvider);
 }

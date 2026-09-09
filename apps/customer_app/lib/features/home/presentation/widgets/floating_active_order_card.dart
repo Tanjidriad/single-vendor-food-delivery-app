@@ -54,9 +54,12 @@ class FloatingActiveOrderCard extends ConsumerWidget {
       data: (order) {
         if (order == null) return const SizedBox.shrink();
 
-        final status = order['status'] as String? ?? '';
-        final restaurantName = order['restaurant']?['name'] as String? ?? 'Restaurant';
-        final orderId = order['id'] as String;
+        final status = order.status;
+        final restaurant = order.raw['restaurant'];
+        final restaurantName =
+            (restaurant is Map ? restaurant['name'] as String? : null) ??
+                'Restaurant';
+        final orderId = order.id;
 
         return Positioned(
           left: 16,
@@ -134,7 +137,7 @@ class FloatingActiveOrderCard extends ConsumerWidget {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

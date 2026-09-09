@@ -7,10 +7,10 @@ export class DispatchExternalDto {
   @IsNotEmpty()
   deliveryService: string;
 
-  @ApiProperty({ example: 'PATHAO-987123', description: 'Tracking / consignment ID from the courier' })
+  @ApiProperty({ example: 'PATHAO-987123', description: 'Tracking / consignment ID from the courier', required: false })
   @IsString()
-  @IsNotEmpty()
-  trackingId: string;
+  @IsOptional()
+  trackingId?: string;
 
   @ApiPropertyOptional({ example: 'https://merchant.pathao.com/tracking/PATHAO-987123', description: 'Direct tracking page URL (optional)' })
   @IsString()

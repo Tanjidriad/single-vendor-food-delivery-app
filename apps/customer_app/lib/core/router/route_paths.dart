@@ -1,5 +1,6 @@
 abstract final class RoutePaths {
   static const splash = '/';
+  static const forceUpdate = '/force-update';
   static const onboarding = '/onboarding';
   static const login = '/login';
   static const register = '/register';
@@ -8,6 +9,8 @@ abstract final class RoutePaths {
   static String resetPasswordWithEmail(String email) => '$resetPassword?email=$email';
   static const emailVerify = '/email-verify';
   static String emailVerifyWithEmail(String email) => '$emailVerify?email=$email';
+  static const phoneOtp = '/phone-otp';
+  static String phoneOtpWithPhone(String phone) => '$phoneOtp?phone=${Uri.encodeComponent(phone)}';
   static const home = '/home';
   static const orders = '/orders';
   static const offers = '/offers';

@@ -13,8 +13,8 @@ class MenuSkeleton extends StatelessWidget {
     return ListView.separated(
       padding: const EdgeInsets.all(AppSpacing.md),
       itemCount: count,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (_, __) => const Row(
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemBuilder: (_, _) => const Row(
         children: [
           SkeletonBox(width: 88, height: 88, radius: 12),
           SizedBox(width: 12),

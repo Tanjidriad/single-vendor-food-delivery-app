@@ -9,7 +9,13 @@ import '../network/api_client.dart';
 final socketServiceProvider = Provider<SocketService>((ref) {
   final apiClient = ref.watch(apiClientProvider);
   final service = SocketService(apiClient);
-  ref.onDispose(service.dispose);
+  final sub = apiClient.tokenRefreshedStream.listen((_) {
+    service.reconnect();
+  });
+  ref.onDispose(() {
+    sub.cancel();
+    service.dispose();
+  });
   return service;
 });
 
@@ -40,6 +46,13 @@ final orderStatusStreamProvider =
   return socketService.orderStatusStream;
 });
 
+/// Stream of incoming chat messages (`order:message`).
+final orderMessageStreamProvider =
+    StreamProvider.autoDispose<Map<String, dynamic>>((ref) {
+  final socketService = ref.watch(socketServiceProvider);
+  return socketService.orderMessageStream;
+});
+
 class SocketService {
   final ApiClient _apiClient;
   io.Socket? _socket;
@@ -56,6 +69,8 @@ class SocketService {
       StreamController<Map<String, dynamic>>.broadcast();
   final _orderStatusController =
       StreamController<Map<String, dynamic>>.broadcast();
+  final _orderMessageController =
+      StreamController<Map<String, dynamic>>.broadcast();
   final _connectedController = StreamController<void>.broadcast();
 
   Stream<void> get connectedStream => _connectedController.stream;
@@ -66,6 +81,8 @@ class SocketService {
       _assignmentExpiredController.stream;
   Stream<Map<String, dynamic>> get orderStatusStream =>
       _orderStatusController.stream;
+  Stream<Map<String, dynamic>> get orderMessageStream =>
+      _orderMessageController.stream;
 
   bool get isConnected => _isConnected;
 
@@ -159,6 +176,16 @@ class SocketService {
       }
     });
 
+    // Incoming chat message
+    _socket?.on('order:message', (data) {
+      if (data is List && data.isNotEmpty) data = data.first;
+      if (data is Map<String, dynamic>) {
+        _orderMessageController.add(data);
+      } else if (data is Map) {
+        _orderMessageController.add(Map<String, dynamic>.from(data));
+      }
+    });
+
     _socket?.onDisconnect((_) {
       debugPrint('[SocketService] Disconnected from realtime');
       _isConnected = false;
@@ -198,7 +225,7 @@ class SocketService {
       'orderId': orderId,
       'latitude': latitude,
       'longitude': longitude,
-      if (heading != null) 'heading': heading,
+      'heading': ?heading,
     });
   }
 
@@ -210,15 +237,16 @@ class SocketService {
   }
 
   void _scheduleReconnect() {
-    if (_manualDisconnect || !_lifecycleAllowsReconnect) return;
+    if (!shouldScheduleReconnect(
+      manualDisconnect: _manualDisconnect,
+      lifecycleAllowsReconnect: _lifecycleAllowsReconnect,
+    )) {
+      return;
+    }
     _reconnectTimer?.cancel();
-    final seconds = switch (_reconnectAttempt) {
-      0 => 3,
-      1 => 6,
-      _ => 15,
-    };
+    final delay = reconnectBackoff(_reconnectAttempt);
     _reconnectAttempt++;
-    _reconnectTimer = Timer(Duration(seconds: seconds), () async {
+    _reconnectTimer = Timer(delay, () async {
       debugPrint('[SocketService] Reconnect attempt $_reconnectAttempt');
       await connect();
     });
@@ -238,6 +266,29 @@ class SocketService {
     _assignmentCreatedController.close();
     _assignmentExpiredController.close();
     _orderStatusController.close();
+    _orderMessageController.close();
     _connectedController.close();
   }
 }
+
+/// Reconnect backoff schedule: 3s on the first retry, 6s on the second, then a
+/// steady 15s for every subsequent attempt. Keeping this pure (no socket, no
+/// timer) makes the reconnection cadence directly testable. Exposed for tests.
+Duration reconnectBackoff(int attempt) {
+  final seconds = switch (attempt) {
+    0 => 3,
+    1 => 6,
+    _ => 15,
+  };
+  return Duration(seconds: seconds);
+}
+
+/// Whether an automatic reconnect should be scheduled. Reconnection must be
+/// suppressed after a deliberate/manual disconnect (e.g. logout) and while the
+/// app is backgrounded (lifecycle paused), so a signed-out or backgrounded
+/// rider is never dragged back online. Exposed for tests.
+bool shouldScheduleReconnect({
+  required bool manualDisconnect,
+  required bool lifecycleAllowsReconnect,
+}) =>
+    !manualDisconnect && lifecycleAllowsReconnect;

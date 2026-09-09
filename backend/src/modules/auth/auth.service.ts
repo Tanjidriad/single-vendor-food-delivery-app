@@ -310,7 +310,11 @@ export class AuthService {
       },
     });
     if ((dto.purpose === 'LOGIN' || dto.purpose === 'RESET_PASSWORD') && !user) {
-      throw new NotFoundException('User not found');
+      return {
+        success: true,
+        message: 'If the account exists, an OTP has been sent',
+        expiresAt,
+      };
     }
     userId = user?.id;
 

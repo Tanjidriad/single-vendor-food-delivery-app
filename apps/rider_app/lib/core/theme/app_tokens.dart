@@ -12,6 +12,12 @@ class AppSpacing {
   static const double xl = 20;
   static const double xxl = 24;
   static const double xxxl = 32;
+
+  /// Standard horizontal gutter for screens and grouped sections.
+  static const double screen = lg;
+
+  /// Vertical gap between major content blocks (e.g. order detail sections).
+  static const double section = xxl;
 }
 
 /// Corner-radius scale. Pills use [full]; cards use [lg]/[xl]; sheets use [xxl].

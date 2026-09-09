@@ -1,10 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
-
-
 import '../../../../core/network/api_client.dart';
+import '../../../../core/storage/token_storage.dart';
 
 import '../../../../core/realtime/socket_service.dart';
 
@@ -29,14 +26,6 @@ import '../../domain/usecases/register_usecase.dart';
 const _kAccessToken = 'access_token';
 
 const _kRefreshToken = 'refresh_token';
-
-
-
-final secureStorageProvider = Provider<FlutterSecureStorage>(
-
-  (ref) => const FlutterSecureStorage(),
-
-);
 
 
 
@@ -311,6 +300,78 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         fullName: fullName,
 
       );
+
+      await _ref.read(authSessionProvider.notifier).establishSession(
+
+            accessToken: result.accessToken,
+
+            refreshToken: result.refreshToken,
+
+          );
+
+      state = const AsyncData(null);
+
+    } on AuthRepositoryException catch (e, st) {
+
+      state = AsyncError(e, st);
+
+    } catch (e, st) {
+
+      state = AsyncError(e, st);
+
+    }
+
+  }
+
+
+
+  Future<void> phoneRegister(String phone, String fullName) async {
+
+    state = const AsyncLoading();
+
+    try {
+
+      final result = await _ref
+
+          .read(authRepositoryProvider)
+
+          .registerWithPhone(phone: phone, fullName: fullName);
+
+      await _ref.read(authSessionProvider.notifier).establishSession(
+
+            accessToken: result.accessToken,
+
+            refreshToken: result.refreshToken,
+
+          );
+
+      state = const AsyncData(null);
+
+    } on AuthRepositoryException catch (e, st) {
+
+      state = AsyncError(e, st);
+
+    } catch (e, st) {
+
+      state = AsyncError(e, st);
+
+    }
+
+  }
+
+
+
+  Future<void> phoneLogin(String phone, String code) async {
+
+    state = const AsyncLoading();
+
+    try {
+
+      final result = await _ref
+
+          .read(authRepositoryProvider)
+
+          .verifyPhoneLoginOtp(phone: phone, code: code);
 
       await _ref.read(authSessionProvider.notifier).establishSession(
 

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:intl_phone_field/phone_number.dart';
 
 import '../../../../core/router/route_paths.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -24,15 +26,12 @@ class RegisterScreen extends ConsumerStatefulWidget {
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  PhoneNumber? _phoneNumber;
   bool _privacyAccepted = false;
 
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
@@ -78,18 +77,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
     if (!_formKey.currentState!.validate()) return;
+    if (_phoneNumber == null || _phoneNumber!.number.isEmpty) {
+      AppLoaders.errorSnackBar(
+        context,
+        title: 'Invalid number',
+        message: 'Please enter a valid Bangladeshi phone number.',
+      );
+      return;
+    }
 
     AppFullScreenLoader.openLoadingDialog(
       context,
-      'We are processing your information...',
+      'Creating your account…',
       'assets/images/141397-loading-juggle.json',
     );
 
-    final email = _emailController.text.trim();
-
-    await ref.read(authControllerProvider.notifier).register(
-          email,
-          _passwordController.text,
+    await ref.read(authControllerProvider.notifier).phoneRegister(
+          _phoneNumber!.completeNumber,
           _nameController.text.trim(),
         );
 
@@ -97,7 +101,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     AppFullScreenLoader.stopLoading(context);
 
     ref.read(authControllerProvider).whenOrNull(
-      data: (_) => context.go(RoutePaths.emailVerifyWithEmail(email)),
+      data: (_) => context.go(RoutePaths.home),
       error: (e, _) => AppLoaders.errorSnackBar(
         context,
         title: 'Registration failed',
@@ -121,7 +125,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Iconsax.arrow_left_2),
-          onPressed: () => context.pop(),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go(RoutePaths.login),
         ),
       ),
       body: SingleChildScrollView(
@@ -130,7 +135,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Let\'s create your account', style: Theme.of(context).textTheme.headlineMedium),
+              Text(
+                "Let's create your account",
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
               const SizedBox(height: 32),
               Form(
                 key: _formKey,
@@ -139,25 +147,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     AppTextField(
                       controller: _nameController,
                       label: 'Full Name',
-                      prefixIcon: const Icon(Iconsax.user, size: 20, color: AppColors.textSecondary),
+                      prefixIcon: const Icon(
+                        Iconsax.user,
+                        size: 20,
+                        color: AppColors.textSecondary,
+                      ),
                       validator: (v) => AppValidator.validateEmptyText('Name', v),
                     ),
                     const SizedBox(height: 16),
-                    AppTextField(
-                      controller: _emailController,
-                      label: 'E-Mail',
-                      keyboardType: TextInputType.emailAddress,
-                      prefixIcon: const Icon(Iconsax.direct, size: 20, color: AppColors.textSecondary),
-                      validator: AppValidator.validateEmail,
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      controller: _passwordController,
-                      label: 'Password',
-                      obscureText: true,
-                      showObscureToggle: true,
-                      prefixIcon: const Icon(Iconsax.password_check, size: 20, color: AppColors.textSecondary),
-                      validator: AppValidator.validatePassword,
+                    IntlPhoneField(
+                      initialCountryCode: 'BD',
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'Phone Number',
+                        counterText: '',
+                      ),
+                      onChanged: (phone) => _phoneNumber = phone,
+                      onCountryChanged: (_) => _phoneNumber = null,
+                      validator: (phone) {
+                        if (phone == null || phone.number.isEmpty) {
+                          return 'Phone number is required';
+                        }
+                        return null;
+                      },
+                      invalidNumberMessage: 'Invalid Bangladeshi phone number',
                     ),
                     const SizedBox(height: 24),
                     Row(

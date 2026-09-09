@@ -37,6 +37,7 @@ import { UpdateRestaurantProfileDto } from './dto/update-restaurant-profile.dto'
 export class RestaurantAdminController {
   constructor(private admin: RestaurantAdminService) {}
 
+  @Roles(UserRole.OWNER, UserRole.MANAGER, UserRole.ADMIN, UserRole.KITCHEN, UserRole.CASHIER)
   @Patch('profile')
   updateProfile(@CurrentUser() user: JwtPayload, @Body() body: UpdateRestaurantProfileDto) {
     return this.admin.updateRestaurant(requireRestaurantId(user), body);

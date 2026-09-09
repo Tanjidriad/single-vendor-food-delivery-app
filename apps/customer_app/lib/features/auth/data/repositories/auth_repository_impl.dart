@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -50,12 +52,56 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<AuthResult> registerWithPhone({
+    required String phone,
+    required String fullName,
+  }) async {
+    try {
+      final data = await _remote.register(
+        phone: phone,
+        password: _generatePassword(),
+        fullName: fullName,
+      );
+      return _mapAuthResponse(data);
+    } on DioException catch (e) {
+      throw AuthRepositoryException(ServerFailure(_dioMessage(e)));
+    } on AuthRepositoryException {
+      rethrow;
+    } catch (e) {
+      throw AuthRepositoryException(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<void> sendPhoneLoginOtp({required String phone}) async {
+    try {
+      await _remote.sendOtp(phone: phone, purpose: 'LOGIN');
+    } on DioException catch (e) {
+      throw AuthRepositoryException(ServerFailure(_dioMessage(e)));
+    }
+  }
+
+  @override
+  Future<AuthResult> verifyPhoneLoginOtp({
+    required String phone,
+    required String code,
+  }) async {
+    try {
+      final data = await _remote.verifyOtpLogin(phone: phone, code: code);
+      return _mapAuthResponse(data);
+    } on DioException catch (e) {
+      throw AuthRepositoryException(ServerFailure(_dioMessage(e)));
+    } on AuthRepositoryException {
+      rethrow;
+    } catch (e) {
+      throw AuthRepositoryException(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<String?> sendPasswordResetOtp({required String email}) async {
     try {
-      final data = await _remote.sendOtp(
-        email: email,
-        purpose: 'RESET_PASSWORD',
-      );
+      final data = await _remote.sendOtp(email: email, purpose: 'RESET_PASSWORD');
       return data['devCode'] as String?;
     } on DioException catch (e) {
       throw AuthRepositoryException(ServerFailure(_dioMessage(e)));
@@ -69,11 +115,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String newPassword,
   }) async {
     try {
-      await _remote.resetPassword(
-        email: email,
-        code: code,
-        newPassword: newPassword,
-      );
+      await _remote.resetPassword(email: email, code: code, newPassword: newPassword);
     } on DioException catch (e) {
       throw AuthRepositoryException(ServerFailure(_dioMessage(e)));
     }
@@ -82,10 +124,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<String?> sendVerifyEmailOtp({required String email}) async {
     try {
-      final data = await _remote.sendOtp(
-        email: email,
-        purpose: 'VERIFY_PHONE',
-      );
+      final data = await _remote.sendOtp(email: email, purpose: 'VERIFY_PHONE');
       return data['devCode'] as String?;
     } on DioException catch (e) {
       throw AuthRepositoryException(ServerFailure(_dioMessage(e)));
@@ -98,11 +137,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String code,
   }) async {
     try {
-      await _remote.verifyOtp(
-        email: email,
-        code: code,
-        purpose: 'VERIFY_PHONE',
-      );
+      await _remote.verifyOtp(email: email, code: code, purpose: 'VERIFY_PHONE');
     } on DioException catch (e) {
       throw AuthRepositoryException(ServerFailure(_dioMessage(e)));
     }
@@ -131,6 +166,13 @@ class AuthRepositoryImpl implements AuthRepository {
       accessToken: accessToken,
       refreshToken: refreshToken,
     );
+  }
+
+  static String _generatePassword() {
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$%^&*';
+    final rng = Random.secure();
+    return List.generate(24, (_) => chars[rng.nextInt(chars.length)]).join();
   }
 
   static String _dioMessage(DioException e) {

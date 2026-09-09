@@ -34,7 +34,7 @@ class _OrderSuccessScreenState extends ConsumerState<OrderSuccessScreen> {
       final data = await ref.read(ordersRepositoryProvider).getOrder(widget.orderId);
       if (mounted) {
         setState(() {
-          _order = data;
+          _order = data.raw;
           _isLoading = false;
         });
       }

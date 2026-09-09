@@ -6,16 +6,15 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/router/route_paths.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_tokens.dart';
-import '../../../../core/utils/format.dart';
 import '../../../../core/websockets/socket_service.dart';
-import '../../../earnings/data/earnings_summary.dart';
-import '../../../earnings/presentation/providers/earnings_summary_provider.dart';
 import '../../../orders/data/active_order_view.dart';
 import '../../../orders/presentation/providers/order_providers.dart';
 import '../../../orders/presentation/providers/rider_orders_provider.dart';
 import '../../../profile/presentation/providers/rider_profile_provider.dart';
 import '../providers/rider_online_controller.dart';
 
+/// Minimal home placeholder until the full map-first redesign ships.
+/// Shows online toggle, approval status, resume-delivery card, and notifications.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -63,27 +62,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ? null
         : ActiveOrderView.fromJson(activeOrderMap);
 
-    final name = ref
-        .watch(riderProfileProvider)
-        .maybeWhen(data: (p) => p.fullName, orElse: () => 'Rider');
+    final profileAsync = ref.watch(riderProfileProvider);
+    final name = profileAsync.maybeWhen(
+      data: (p) => p.fullName,
+      orElse: () => 'Rider',
+    );
+    final avatarUrl = profileAsync.maybeWhen(
+      data: (p) => p.avatarUrl,
+      orElse: () => null,
+    );
+    final approvalStatus = profileAsync.maybeWhen(
+      data: (p) => p.approvalStatus,
+      orElse: () => 'APPROVED',
+    );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // Modern slate-50 background
+      backgroundColor: AppColors.backgroundLight,
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: _ModernHeader(
               name: name,
+              avatarUrl: avatarUrl,
               isOnline: isOnline,
               isToggling: isToggling,
               onToggle: () =>
                   ref.read(riderOnlineControllerProvider.notifier).toggle(),
+              onNotifications: () => context.push(RoutePaths.notifications),
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xl,
+              vertical: AppSpacing.xl,
+            ),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
+                if (approvalStatus != 'APPROVED') ...[
+                  _ApprovalBanner(status: approvalStatus),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
                 if (activeOrder != null) ...[
                   _PremiumActiveDeliveryCard(
                     order: activeOrder,
@@ -93,10 +111,71 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       extra: activeOrderMap,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.lg),
                 ],
-                const _BentoStatsSummary(),
-                const SizedBox(height: 100), // padding for bottom bar
+                if (activeOrder == null && isOnline)
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceLight,
+                      borderRadius: BorderRadius.circular(AppRadius.xl),
+                      border: Border.all(color: AppColors.borderLight),
+                      boxShadow: AppShadows.soft,
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          LucideIcons.radio,
+                          color: AppColors.online,
+                          size: 24,
+                        ),
+                        SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Text(
+                            "You're online — waiting for delivery offers.",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (activeOrder == null && !isOnline)
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceLight,
+                      borderRadius: BorderRadius.circular(AppRadius.xl),
+                      border: Border.all(color: AppColors.borderLight),
+                      boxShadow: AppShadows.soft,
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          LucideIcons.power,
+                          color: AppColors.textSecondary,
+                          size: 24,
+                        ),
+                        SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Text(
+                            'Go online to start receiving delivery requests.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 100),
               ]),
             ),
           ),
@@ -106,32 +185,137 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-// ── Standard Premium Header ──────────────────────────────────────────────────
-// ── Standard Premium Header ──────────────────────────────────────────────────
+class _ApprovalBanner extends StatelessWidget {
+  const _ApprovalBanner({required this.status});
+
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    final (Color color, String message) = switch (status) {
+      'REJECTED' => (
+          AppColors.offline,
+          'Your application was rejected. Contact support for details.',
+        ),
+      'SUSPENDED' => (
+          AppColors.offline,
+          'Your account is suspended. Contact support to resolve.',
+        ),
+      _ => (
+          AppColors.busy,
+          'Your account is pending approval. Upload documents in Profile.',
+        ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(LucideIcons.info, color: color, size: 20),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: color,
+                height: 1.35,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeaderAvatar extends StatelessWidget {
+  const _HeaderAvatar({
+    required this.avatarUrl,
+    required this.name,
+    required this.isOnline,
+  });
+
+  final String? avatarUrl;
+  final String name;
+  final bool isOnline;
+
+  String get _initial {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty || parts.first.isEmpty) return 'R';
+    return parts.first.characters.first.toUpperCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const radius = 20.0;
+    final url = avatarUrl?.trim();
+    final fallbackBg = isOnline
+        ? Colors.white.withValues(alpha: 0.2)
+        : AppColors.primaryLight.withValues(alpha: 0.2);
+    final fallbackColor = isOnline ? Colors.white : AppColors.primary;
+
+    if (url != null && url.isNotEmpty) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: fallbackBg,
+        backgroundImage: NetworkImage(url),
+        onBackgroundImageError: (_, _) {},
+      );
+    }
+
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: fallbackBg,
+      child: Text(
+        _initial,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          color: fallbackColor,
+        ),
+      ),
+    );
+  }
+}
+
 class _ModernHeader extends StatelessWidget {
   const _ModernHeader({
     required this.name,
+    this.avatarUrl,
     required this.isOnline,
     required this.isToggling,
     required this.onToggle,
+    required this.onNotifications,
   });
 
   final String name;
+  final String? avatarUrl;
   final bool isOnline;
   final bool isToggling;
   final VoidCallback onToggle;
+  final VoidCallback onNotifications;
 
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
-    
-    // Dynamic Colors based on status
+
     final headerBg = isOnline ? AppColors.primary : Colors.white;
     final textPrimary = isOnline ? Colors.white : AppColors.textPrimary;
-    final textSecondary = isOnline ? Colors.white.withValues(alpha: 0.8) : AppColors.textSecondary;
-    final iconBg = isOnline ? Colors.white.withValues(alpha: 0.2) : const Color(0xFFF1F5F9);
-    final toggleBg = isOnline ? Colors.black.withValues(alpha: 0.15) : const Color(0xFFF1F5F9);
-    
+    final textSecondary =
+        isOnline ? Colors.white.withValues(alpha: 0.8) : AppColors.textSecondary;
+    final iconBg =
+        isOnline ? Colors.white.withValues(alpha: 0.2) : AppColors.surfaceElevated;
+    final toggleBg =
+        isOnline ? Colors.black.withValues(alpha: 0.15) : AppColors.surfaceElevated;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       color: headerBg,
@@ -139,22 +323,15 @@ class _ModernHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top bar: Avatar + Name + Notification
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: isOnline 
-                        ? Colors.white.withValues(alpha: 0.2) 
-                        : AppColors.primaryLight.withValues(alpha: 0.2),
-                    child: Icon(
-                      LucideIcons.user,
-                      size: 20,
-                      color: isOnline ? Colors.white : AppColors.primary,
-                    ),
+                  _HeaderAvatar(
+                    avatarUrl: avatarUrl,
+                    name: name,
+                    isOnline: isOnline,
                   ),
                   const SizedBox(width: 12),
                   Column(
@@ -182,7 +359,7 @@ class _ModernHeader extends StatelessWidget {
                 ],
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: onNotifications,
                 icon: Icon(
                   LucideIcons.bell,
                   size: 22,
@@ -196,8 +373,6 @@ class _ModernHeader extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-
-          // Status & Toggle Section - Clean and Native-feeling
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             padding: const EdgeInsets.all(4),
@@ -217,8 +392,8 @@ class _ModernHeader extends StatelessWidget {
                         color: !isOnline ? Colors.white : Colors.transparent,
                         borderRadius: BorderRadius.circular(100),
                         boxShadow: !isOnline
-                            ? [
-                                const BoxShadow(
+                            ? const [
+                                BoxShadow(
                                   color: Color(0x0A000000),
                                   blurRadius: 4,
                                   offset: Offset(0, 2),
@@ -231,8 +406,10 @@ class _ModernHeader extends StatelessWidget {
                           'Offline',
                           style: TextStyle(
                             fontSize: 15,
-                            fontWeight: !isOnline ? FontWeight.w700 : FontWeight.w600,
-                            color: !isOnline ? AppColors.textPrimary : textSecondary,
+                            fontWeight:
+                                !isOnline ? FontWeight.w700 : FontWeight.w600,
+                            color:
+                                !isOnline ? AppColors.textPrimary : textSecondary,
                           ),
                         ),
                       ),
@@ -249,8 +426,8 @@ class _ModernHeader extends StatelessWidget {
                         color: isOnline ? Colors.white : Colors.transparent,
                         borderRadius: BorderRadius.circular(100),
                         boxShadow: isOnline
-                            ? [
-                                const BoxShadow(
+                            ? const [
+                                BoxShadow(
                                   color: Color(0x1A000000),
                                   blurRadius: 8,
                                   offset: Offset(0, 2),
@@ -274,8 +451,11 @@ class _ModernHeader extends StatelessWidget {
                                 'Go Online',
                                 style: TextStyle(
                                   fontSize: 15,
-                                  fontWeight: isOnline ? FontWeight.w700 : FontWeight.w600,
-                                  color: isOnline ? AppColors.primary : AppColors.textSecondary,
+                                  fontWeight:
+                                      isOnline ? FontWeight.w700 : FontWeight.w600,
+                                  color: isOnline
+                                      ? AppColors.primary
+                                      : AppColors.textSecondary,
                                 ),
                               ),
                       ),
@@ -291,7 +471,6 @@ class _ModernHeader extends StatelessWidget {
   }
 }
 
-// ── Premium Active Delivery Card ─────────────────────────────────────────────
 class _PremiumActiveDeliveryCard extends StatelessWidget {
   const _PremiumActiveDeliveryCard({
     required this.order,
@@ -326,7 +505,6 @@ class _PremiumActiveDeliveryCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // Header
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
@@ -384,8 +562,6 @@ class _PremiumActiveDeliveryCard extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Body
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -403,7 +579,7 @@ class _PremiumActiveDeliveryCard extends StatelessWidget {
                       child: Container(
                         width: 2,
                         height: 24,
-                        color: const Color(0xFFE2E8F0),
+                        color: AppColors.borderLight,
                       ),
                     ),
                   ),
@@ -448,7 +624,7 @@ class _LocationRow extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
+            color: AppColors.surfaceElevated,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, size: 18, color: iconColor),
@@ -481,136 +657,6 @@ class _LocationRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ── Bento Grid Performance Summary ───────────────────────────────────────────
-class _BentoStatsSummary extends ConsumerWidget {
-  const _BentoStatsSummary();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final summaryAsync = ref.watch(earningsSummaryProvider);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Performance',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
-            letterSpacing: -0.5,
-          ),
-        ),
-        const SizedBox(height: 16),
-        summaryAsync.when(
-          loading: () => const SizedBox(
-            height: 120,
-            child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (_, _) => Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceLight,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              'Could not load your stats right now.',
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-            ),
-          ),
-          data: (summary) => Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: _BentoCard(
-                  title: 'Today\'s Earnings',
-                  value: formatCurrency(summary.todayTotal),
-                  icon: LucideIcons.wallet,
-                  color: const Color(0xFF10B981),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 2,
-                child: _BentoCard(
-                  title: 'Trips',
-                  value: '${summary.tripCount}',
-                  icon: LucideIcons.bike,
-                  color: const Color(0xFF3B82F6),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _BentoCard extends StatelessWidget {
-  const _BentoCard({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 15,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              color: AppColors.textPrimary,
-              letterSpacing: -0.5,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

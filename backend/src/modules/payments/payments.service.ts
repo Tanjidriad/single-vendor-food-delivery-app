@@ -36,10 +36,27 @@ export class PaymentsService {
       throw new BadRequestException('Order is already paid');
     }
 
-    const callbackUrl = this.config.get<string>('bkash.callbackUrl');
-    if (!callbackUrl?.trim()) {
+    const callbackUrlBase = this.config.get<string>('bkash.callbackUrl');
+    if (!callbackUrlBase?.trim()) {
       throw new ServiceUnavailableException(
         'BKASH_CALLBACK_URL is not configured',
+      );
+    }
+    let callbackUrl: string;
+    try {
+      const parsed = new URL(callbackUrlBase.trim());
+      if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error();
+      if (
+        this.config.get<string>('nodeEnv') === 'production' &&
+        parsed.protocol !== 'https:'
+      ) {
+        throw new Error();
+      }
+      parsed.searchParams.set('orderId', order.id);
+      callbackUrl = parsed.toString();
+    } catch {
+      throw new ServiceUnavailableException(
+        'BKASH_CALLBACK_URL must be a valid HTTPS web URL',
       );
     }
 
@@ -47,7 +64,7 @@ export class PaymentsService {
       amount: order.grandTotal,
       merchantInvoiceNumber: order.id,
       payerReference: order.customerPhone || order.customerId,
-      callbackUrl: callbackUrl.trim(),
+      callbackUrl,
     });
 
     await this.prisma.payment.update({
@@ -63,7 +80,7 @@ export class PaymentsService {
       status: PaymentStatus.PENDING,
       paymentId: created.paymentId,
       checkoutUrl: created.checkoutUrl,
-      callbackUrl: callbackUrl.trim(),
+      callbackUrl,
       sandboxHint:
         this.config.get<boolean>('bkash.sandbox') !== false
           ? {
@@ -122,10 +139,33 @@ export class PaymentsService {
       );
     }
 
+    // Defense in depth: confirm the gateway captured the exact order total so a
+    // tampered or inconsistent flow can't settle an order for the wrong amount.
+    if (result.amount != null) {
+      const captured = Number(result.amount);
+      if (
+        !Number.isFinite(captured) ||
+        Math.abs(captured - order.grandTotal) > 0.01
+      ) {
+        throw new BadRequestException(
+          'Captured payment amount does not match the order total',
+        );
+      }
+    }
+
     const trxId = result.transactionId ?? paymentId;
     const now = new Date();
 
+    // Settle atomically: only the first execute flips the status (the WHERE
+    // guard), so concurrent executes can't double-settle or double-emit.
     const updatedOrder = await this.prisma.$transaction(async (tx) => {
+      const settled = await tx.order.updateMany({
+        where: { id: orderId, paymentStatus: { not: PaymentStatus.PAID } },
+        data: { paymentStatus: PaymentStatus.PAID },
+      });
+      if (settled.count === 0) {
+        return null;
+      }
       await tx.payment.update({
         where: { orderId },
         data: {
@@ -134,11 +174,20 @@ export class PaymentsService {
           paidAt: now,
         },
       });
-      return tx.order.update({
-        where: { id: orderId },
-        data: { paymentStatus: PaymentStatus.PAID },
-      });
+      return tx.order.findUnique({ where: { id: orderId } });
     });
+
+    // A concurrent request already settled this order — return idempotently
+    // without re-emitting the restaurant notification.
+    if (!updatedOrder) {
+      return {
+        orderId,
+        gateway: this.gateway.id,
+        status: PaymentStatus.PAID,
+        transactionId: trxId,
+        message: 'Already paid',
+      };
+    }
 
     this.realtime.emitRestaurantNewOrder(updatedOrder.restaurantId, {
       orderId: updatedOrder.id,

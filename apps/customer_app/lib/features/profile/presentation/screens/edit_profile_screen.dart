@@ -231,6 +231,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   label: 'Phone Number',
                   keyboardType: TextInputType.phone,
                   prefixIcon: const Icon(Iconsax.call, size: 20, color: AppColors.textSecondary),
+                  validator: (v) => AppValidator.validatePhoneNumber(v),
                 ),
                 const SizedBox(height: 48),
                 AppButton(

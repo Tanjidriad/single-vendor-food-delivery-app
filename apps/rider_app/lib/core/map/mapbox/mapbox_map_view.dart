@@ -271,6 +271,7 @@ class _MapboxMapViewState extends State<MapboxMapView> {
     return MapWidget(
       key: const ValueKey('mapWidget'),
       onMapCreated: _onMapCreated,
+      // ignore: deprecated_member_use — removed in the planned Mapbox→Google Maps migration.
       cameraOptions: CameraOptions(
         center: Point(coordinates: center),
         zoom: 14.0,

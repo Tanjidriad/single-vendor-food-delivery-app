@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_endpoints.dart';
+import '../../../../core/services/push_notification_service.dart';
 import '../../../../core/storage/earnings_cache.dart';
 import '../../../../core/websockets/socket_service.dart';
 import '../../data/auth_repository.dart';
@@ -28,6 +31,7 @@ class AuthNotifier extends Notifier<bool> {
     final status = await ref.read(authRepositoryProvider).checkAuthStatus();
     state = status;
     if (status) {
+      unawaited(ref.read(pushNotificationServiceProvider).register());
       await _syncOnlineStateFromServer();
       if (ref.read(isOnlineProvider)) {
         // Re-assert online so the backend retries dispatch for orders that were
@@ -39,9 +43,17 @@ class AuthNotifier extends Notifier<bool> {
     }
   }
 
+  /// Called from [SplashScreen] to await the initial auth bootstrap.
+  Future<void> ensureBootstrapped() async {
+    await _checkStatus();
+  }
+
   Future<bool> login(String phone, String password) async {
     await ref.read(authRepositoryProvider).login(phone, password);
     state = true;
+
+    // Register for push offers (no-op until Firebase credentials are added).
+    unawaited(ref.read(pushNotificationServiceProvider).register());
 
     // Mark online on the server before opening the realtime socket so dispatch
     // can target this rider and pending offers are recoverable via REST.

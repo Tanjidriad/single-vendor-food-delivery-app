@@ -78,11 +78,10 @@ class OnboardingRepository {
       await _api.patch(
         ApiEndpoints.riderProfile,
         data: {
-          if (vehicleType != null) 'vehicleType': vehicleType,
-          if (vehicleModel != null) 'vehicleModel': vehicleModel,
-          if (vehicleRegistration != null)
-            'vehicleRegistration': vehicleRegistration,
-          if (zone != null) 'zone': zone,
+          'vehicleType': ?vehicleType,
+          'vehicleModel': ?vehicleModel,
+          'vehicleRegistration': ?vehicleRegistration,
+          'zone': ?zone,
         },
       );
     } on DioException catch (e) {

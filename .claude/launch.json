@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "backend", "run", "start:dev"],
+      "port": 3000
+    },
+    {
+      "name": "admin-panel",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "admin-panel", "run", "dev"],
+      "port": 8000
+    },
+    {
+      "name": "customer-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "customer-web", "run", "dev"],
+      "port": 3001
+    }
+  ]
+}

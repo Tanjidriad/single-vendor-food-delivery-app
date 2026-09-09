@@ -9,6 +9,7 @@ import '../../../../core/widgets/inputs/app_text_field.dart';
 import '../../data/addresses_repository.dart';
 import '../providers/addresses_providers.dart';
 import '../../../../core/widgets/map/app_map_view.dart';
+import '../../../restaurant/data/restaurant_repository.dart';
 import 'package:geolocator/geolocator.dart';
 
 class AddAddressSheet extends ConsumerStatefulWidget {
@@ -134,7 +135,9 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
         throw Exception('Location permissions are permanently denied.');
       }
 
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
       
       setState(() {
         _geocodedLat = position.latitude;
@@ -206,7 +209,7 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
         margin: const EdgeInsets.only(right: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
           border: Border.all(color: isSelected ? AppColors.primary : const Color(0xFFE5E7EB)),
           borderRadius: BorderRadius.circular(24),
         ),
@@ -234,6 +237,14 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
     final textTheme = Theme.of(context).textTheme;
     final isDark = AppHelperFunctions.isDarkMode(context);
 
+    final restaurant = ref.watch(restaurantProvider).valueOrNull;
+    final zones = (restaurant?['deliveryZones'] as List?)
+            ?.whereType<Map<String, dynamic>>()
+            .toList() ??
+        const <Map<String, dynamic>>[];
+    final restLat = (restaurant?['latitude'] as num?)?.toDouble();
+    final restLng = (restaurant?['longitude'] as num?)?.toDouble();
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: BoxDecoration(
@@ -256,6 +267,10 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
                           initialLatitude: _geocodedLat!,
                           initialLongitude: _geocodedLng!,
                           markers: const [],
+                          fitMarkersInView: false,
+                          zones: zones,
+                          restaurantLatitude: restLat,
+                          restaurantLongitude: restLng,
                         )
                       : ColoredBox(
                           color: isDark
@@ -322,9 +337,9 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
                             height: 56,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.1),
+                              color: AppColors.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
                             ),
                             child: _geocoding 
                                 ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
@@ -422,7 +437,7 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF111827) : Colors.white,
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.05), offset: const Offset(0, -4), blurRadius: 10),
+                BoxShadow(color: Colors.black.withValues(alpha: 0.05), offset: const Offset(0, -4), blurRadius: 10),
               ],
             ),
             child: AppButton(

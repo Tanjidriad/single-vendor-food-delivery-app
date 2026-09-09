@@ -72,8 +72,36 @@ lerna-debug.log*
 Thumbs.db
 desktop.ini
 
+# Secrets / service-account keys (never commit — keep these outside the repo ideally)
+*firebase-adminsdk*.json
+*service-account*.json
+*serviceaccount*.json
+*-serviceAccount.json
+# MCP config contains a live Figma token — keep it out of git
+.mcp.json
+
 # Misc
 *.pem
 .vercel
 .netlify
 .turbo
+
+# Graphify cache and runs
+graphify-out/cache/
+graphify-out/20*/
+
+# Scratch folder
+scratch_ionic_coupon/
+.gstack/
+
+# Firebase config (contains API keys)
+**/google-services.json
+**/GoogleService-Info.plist
+*.zip
+# Large binary files
+
+# Codex config (may contain API tokens)
+.codex/
+
+# Throwaway backups of env files — never commit these
+*.bak.claude

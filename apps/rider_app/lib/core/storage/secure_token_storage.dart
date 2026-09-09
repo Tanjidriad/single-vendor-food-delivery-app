@@ -8,10 +8,7 @@ const _migratedKey = 'tokens_migrated_to_secure_storage';
 /// Persists auth tokens in encrypted storage (migrates legacy SharedPreferences once).
 class SecureTokenStorage {
   SecureTokenStorage({FlutterSecureStorage? secure})
-      : _secure = secure ??
-            const FlutterSecureStorage(
-              aOptions: AndroidOptions(encryptedSharedPreferences: true),
-            );
+      : _secure = secure ?? const FlutterSecureStorage();
 
   final FlutterSecureStorage _secure;
   bool _migrationDone = false;

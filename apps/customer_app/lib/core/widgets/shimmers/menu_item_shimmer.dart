@@ -15,8 +15,8 @@ class TMenuItemShimmer extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: itemCount,
-      separatorBuilder: (_, __) => const SizedBox(height: 16),
-      itemBuilder: (_, __) {
+      separatorBuilder: (_, _) => const SizedBox(height: 16),
+      itemBuilder: (_, _) {
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(

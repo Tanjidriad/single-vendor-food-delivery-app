@@ -1,6 +1,7 @@
 /// NestJS API path segments (base URL from [AppConfig.apiBaseUrl]).
 abstract final class ApiEndpoints {
   static const health = '/health';
+  static const appConfig = '/app/config';
   static const devClientConfig = '/dev/client-config';
 
   static const authLogin = '/auth/login';
@@ -24,6 +25,8 @@ abstract final class ApiEndpoints {
   static const usersMe = '/users/me';
   static const uploadsAvatar = '/uploads/avatar';
 
+  static const devicesRegister = '/devices/register';
+
   static String restaurantBySlug(String slug) => '/restaurant/slug/$slug';
   static String menu(String restaurantId) => '/menu/restaurant/$restaurantId';
   static String menuFeatured(String restaurantId) =>
@@ -39,6 +42,7 @@ abstract final class ApiEndpoints {
   static const orders = '/orders';
   static String order(String id) => '/orders/$id';
   static String orderConfirmDelivery(String id) => '/orders/$id/confirm-delivery';
+  static String orderMessages(String id) => '/orders/$id/messages';
 
   static const deliveryFeeQuote = '/delivery-fee/quote';
   static const deliveryFeeGeocode = '/delivery-fee/geocode';

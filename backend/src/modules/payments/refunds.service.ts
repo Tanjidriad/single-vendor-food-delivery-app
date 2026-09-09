@@ -2,8 +2,12 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { NOTIFICATIONS_QUEUE } from '../../common/queues/queue.constants';
 import {
   OrderStatus,
   PaymentMethod,
@@ -18,10 +22,13 @@ import { CreateRefundRequestDto, UpdateRefundRequestDto } from './dto/refund-req
 
 @Injectable()
 export class RefundsService {
+  private readonly logger = new Logger(RefundsService.name);
+
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
     @Inject(PAYMENT_GATEWAY) private gateway: PaymentGatewayProvider,
+    @InjectQueue(NOTIFICATIONS_QUEUE) private notificationsQueue: Queue,
   ) {}
 
   async listPending(restaurantId?: string) {
@@ -161,12 +168,12 @@ export class RefundsService {
       return r;
     });
 
-    void this.notifications.sendToUser(
-      updated.order.customerId,
-      'Refund processed',
-      `Your refund of ৳${updated.amount} for order ${updated.order.orderNumber} has been processed.`,
-      { type: 'order:refund.executed', orderId: updated.orderId },
-    );
+    this.notificationsQueue.add('send', {
+      userId: updated.order.customerId,
+      title: 'Refund processed',
+      body: `Your refund of ৳${updated.amount} for order ${updated.order.orderNumber} has been processed.`,
+      data: { type: 'order:refund.executed', orderId: updated.orderId },
+    }).catch((err) => this.logger.warn(`Failed to enqueue refund notification: ${err}`));
 
     return updated;
   }
@@ -187,7 +194,13 @@ export class RefundsService {
     });
   }
 
-  async enqueueDeliveryFailedRefund(orderId: string) {
+  /**
+   * Create a refund request for a prepaid (ONLINE + PAID) order. It is a no-op
+   * for COD or not-yet-paid orders, so it is safe to call on ANY terminal path
+   * (reject, cancel, delivery failure). Idempotent via {@link create}, so
+   * calling it more than once for the same order never creates a second refund.
+   */
+  async enqueuePrepaidRefund(orderId: string, reason: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
     });
@@ -198,7 +211,14 @@ export class RefundsService {
     return this.create({
       orderId,
       amount: order.grandTotal,
-      reason: 'Delivery failed — prepaid order refund',
+      reason,
     });
+  }
+
+  async enqueueDeliveryFailedRefund(orderId: string) {
+    return this.enqueuePrepaidRefund(
+      orderId,
+      'Delivery failed — prepaid order refund',
+    );
   }
 }

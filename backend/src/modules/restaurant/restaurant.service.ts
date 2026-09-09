@@ -12,6 +12,7 @@ export class RestaurantService {
         settings: true,
         operatingHours: { orderBy: { dayOfWeek: 'asc' } },
         deliveryFeeConfig: true,
+        deliveryZones: { where: { isActive: true } },
       },
     });
     if (!restaurant) throw new NotFoundException('Restaurant not found');
@@ -25,6 +26,7 @@ export class RestaurantService {
         settings: true,
         operatingHours: { orderBy: { dayOfWeek: 'asc' } },
         deliveryFeeConfig: true,
+        deliveryZones: { where: { isActive: true } },
       },
     });
     if (!restaurant) throw new NotFoundException('Restaurant not found');

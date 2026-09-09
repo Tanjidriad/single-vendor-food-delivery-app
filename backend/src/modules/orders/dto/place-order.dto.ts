@@ -9,6 +9,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -116,5 +117,6 @@ export class PlaceOrderDto {
   })
   @IsOptional()
   @IsString()
+  @MaxLength(128)
   idempotencyKey?: string;
 }

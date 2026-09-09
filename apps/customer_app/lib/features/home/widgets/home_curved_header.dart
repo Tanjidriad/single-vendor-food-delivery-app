@@ -58,13 +58,13 @@ class HomeCurvedHeader extends ConsumerWidget {
                     HomeHeaderCategories(categories: categories),
                 loading: () =>
                     const HomeHeaderCategories(categories: [], isLoading: true),
-                error: (_, __) => const HomeHeaderCategories(categories: []),
+                error: (_, _) => const HomeHeaderCategories(categories: []),
               ),
               const SizedBox(height: AppSpacing.lg),
             ],
           ),
           loading: () => const AppHomeHeaderShimmer(onPrimary: true),
-          error: (_, __) => Column(
+          error: (_, _) => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               HomeTopBar(
@@ -85,7 +85,7 @@ class HomeCurvedHeader extends ConsumerWidget {
                     HomeHeaderCategories(categories: categories),
                 loading: () =>
                     const HomeHeaderCategories(categories: [], isLoading: true),
-                error: (_, __) => const HomeHeaderCategories(categories: []),
+                error: (_, _) => const HomeHeaderCategories(categories: []),
               ),
               const SizedBox(height: AppSpacing.lg),
             ],

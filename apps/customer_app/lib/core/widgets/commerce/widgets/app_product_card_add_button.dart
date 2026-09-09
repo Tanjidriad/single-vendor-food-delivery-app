@@ -37,7 +37,9 @@ class AppProductCardAddButton extends ConsumerWidget {
           onNavigateToDetail!();
           return;
         }
-        ref.read(cartProvider.notifier).addItem(
+        ref
+            .read(cartProvider.notifier)
+            .addItem(
               CartItem(
                 menuItemId: menuItemId,
                 name: name,
@@ -50,8 +52,8 @@ class AppProductCardAddButton extends ConsumerWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOutCubicEmphasized,
-        width: 36,
-        height: 36,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           color: qty > 0 ? AppColors.primary : AppColors.textPrimary,
           borderRadius: const BorderRadius.only(
@@ -64,9 +66,9 @@ class AppProductCardAddButton extends ConsumerWidget {
               ? Text(
                   '$qty',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: AppColors.onPrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    color: AppColors.onPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
                 )
               : const Icon(AppIcons.add, color: AppColors.onPrimary, size: 20),
         ),
